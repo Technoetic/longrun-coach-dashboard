@@ -1,298 +1,349 @@
+import Heap from "./Heap.js";
+import Visualizer from "./Visualizer.js";
+import TutorialManager from "./TutorialManager.js";
+import Scenario from "./Scenario.js";
+import { SAMPLE_DATA } from "../utils/constants.js";
+
 class App {
-	#hashTable;
-	#contactBook;
-	#visualizer;
-	#animationEngine;
-	#elements;
-
 	constructor() {
-		this.#hashTable = new HashTable(7);
-		this.#contactBook = new ContactBook(this.#hashTable);
-		this.#animationEngine = new AnimationEngine();
+		// DOM references
+		this._valueInput = document.getElementById("value-input");
+		this._btnInsert = document.getElementById("btn-insert");
+		this._btnExtract = document.getElementById("btn-extract");
+		this._btnPeek = document.getElementById("btn-peek");
+		this._btnBuild = document.getElementById("btn-build");
+		this._btnSort = document.getElementById("btn-sort");
+		this._btnSample = document.getElementById("btn-sample");
+		this._btnClear = document.getElementById("btn-clear");
+		this._heapTypeCheckbox = document.getElementById("heap-type");
+		this._speedSlider = document.getElementById("speed-slider");
+		this._btnTutorial = document.getElementById("btn-tutorial");
+		this._modalClose = document.getElementById("modal-close");
+		this._welcomeModal = document.getElementById("welcome-modal");
+		this._toast = document.getElementById("toast");
+
+		// Playback buttons
+		this._btnSkipBack = document.getElementById("btn-skip-back");
+		this._btnStepBack = document.getElementById("btn-step-back");
+		this._btnPlayPause = document.getElementById("btn-play-pause");
+		this._btnStepForward = document.getElementById("btn-step-forward");
+		this._btnSkipForward = document.getElementById("btn-skip-forward");
+		this._stepCounter = document.getElementById("step-counter");
+
+		// Info displays
+		this._heapSizeDisplay = document.getElementById("heap-size");
+		this._heapHeightDisplay = document.getElementById("heap-height");
+		this._heapTypeDisplay = document.getElementById("heap-type-display");
+
+		// Canvas and array container
+		const canvas = document.getElementById("tree-canvas");
+		const arrayContainer = document.getElementById("array-view");
+		const explanationPanel = document.getElementById("explanation-panel");
+
+		// Scenario
+		this._scenarioSelect = document.getElementById("scenario-select");
+		this._scenario = new Scenario();
+
+		// Create instances
+		this._heap = new Heap("max");
+		this._visualizer = new Visualizer(canvas, arrayContainer, this._scenario);
+		this._tutorial = new TutorialManager(explanationPanel);
+		this._isAnimating = false;
+
+		this._init();
 	}
 
-	init() {
-		this.#elements = {
-			form: document.getElementById("contact-form"),
-			nameInput: document.getElementById("input-name"),
-			phoneInput: document.getElementById("input-phone"),
-			searchBtn: document.getElementById("btn-search"),
-			deleteBtn: document.getElementById("btn-delete"),
-			contactList: document.getElementById("contact-list"),
-			notification: document.getElementById("notification"),
-			visualizerPanel: document.querySelector(".bucket-panel"),
-			sizeSelect: document.getElementById("table-size"),
-			speedSlider: document.getElementById("speed-slider"),
-			speedValue: document.getElementById("speed-value"),
-			resetBtn: document.getElementById("btn-reset"),
-			sampleBtn: document.getElementById("btn-sample"),
-		};
-
-		this.#visualizer = new Visualizer(
-			this.#elements.visualizerPanel,
-			this.#animationEngine,
+	_init() {
+		// Bind event listeners
+		this._btnInsert.addEventListener("click", () => this.handleInsert());
+		this._btnExtract.addEventListener("click", () => this.handleExtract());
+		this._btnPeek.addEventListener("click", () => this.handlePeek());
+		this._btnBuild.addEventListener("click", () => this.handleBuild());
+		this._btnSort.addEventListener("click", () => this.handleSort());
+		this._btnSample.addEventListener("click", () => this.handleSample());
+		this._btnClear.addEventListener("click", () => this.handleClear());
+		this._heapTypeCheckbox.addEventListener("change", () =>
+			this.handleTypeToggle(),
+		);
+		this._speedSlider.addEventListener("input", (e) =>
+			this.handleSpeedChange(e.target.value),
+		);
+		this._btnTutorial.addEventListener("click", () => this.handleTutorial());
+		this._modalClose.addEventListener("click", () => this.closeModal());
+		this._scenarioSelect.addEventListener("change", (e) =>
+			this.handleScenarioChange(e.target.value),
 		);
 
-		this.bindEvents();
-		this.updateView();
+		// Playback controls
+		this._btnSkipBack.addEventListener("click", () =>
+			this._visualizer.skipToStart(),
+		);
+		this._btnStepBack.addEventListener("click", () =>
+			this._visualizer.stepBack(),
+		);
+		this._btnPlayPause.addEventListener("click", () => this.handlePlayPause());
+		this._btnStepForward.addEventListener("click", () =>
+			this._visualizer.stepForward(),
+		);
+		this._btnSkipForward.addEventListener("click", () =>
+			this._visualizer.skipToEnd(),
+		);
+
+		// Enter key on input
+		this._valueInput.addEventListener("keydown", (e) => {
+			if (e.key === "Enter") this.handleInsert();
+		});
+
+		// Visualizer callbacks
+		this._visualizer.onStepChange((current, total) => {
+			this._stepCounter.textContent = `Step ${current + 1}/${total}`;
+		});
+		this._visualizer.onAnimationEnd(() => {
+			this._isAnimating = false;
+			this._setButtonsEnabled(true);
+			this._btnPlayPause.textContent = "⏸";
+		});
+
+		// Check if first visit (show modal)
+		// Modal is visible by default, hidden on close
+
+		// Apply initial scenario
+		this._applyScenario();
+
+		// Initial render
+		this._updateInfo();
+		this._visualizer.render(this._heap.toArray());
 	}
 
-	bindEvents() {
-		this.#elements.form?.addEventListener("submit", (e) => {
-			e.preventDefault();
-			this.handleInsert();
-		});
-
-		this.#elements.searchBtn?.addEventListener("click", () =>
-			this.handleSearch(),
-		);
-		this.#elements.deleteBtn?.addEventListener("click", () =>
-			this.handleDelete(),
-		);
-
-		this.#elements.sizeSelect?.addEventListener("change", (e) => {
-			const newSize = parseInt(e.target.value, 10);
-			this.handleResize(newSize);
-		});
-
-		this.#elements.speedSlider?.addEventListener("input", (e) => {
-			const speed = parseFloat(e.target.value);
-			this.#animationEngine.setSpeed(speed);
-			if (this.#elements.speedValue) {
-				this.#elements.speedValue.textContent = `${speed}x`;
-			}
-		});
-
-		this.#elements.resetBtn?.addEventListener("click", () =>
-			this.handleReset(),
-		);
-		this.#elements.sampleBtn?.addEventListener("click", () =>
-			this.handleSampleData(),
-		);
-
-		document.addEventListener("keydown", (e) => {
-			if (e.key === "Enter" && e.ctrlKey) {
-				this.handleInsert();
-			}
-		});
-	}
-
-	async handleInsert() {
-		const name = this.#elements.nameInput?.value.trim();
-		const phone = this.#elements.phoneInput?.value.trim();
-
-		if (!name || !phone) {
-			this.showNotification("이름과 전화번호를 모두 입력하세요.", "error");
+	handleInsert() {
+		const sc = this._scenario.config;
+		const value = parseInt(this._valueInput.value, 10);
+		if (Number.isNaN(value) || value < sc.minVal || value > sc.maxVal) {
+			this._showToast(`${sc.minVal}~${sc.maxVal} 사이의 값을 입력하세요`);
 			return;
 		}
+		if (this._heap.size() >= 15) {
+			this._showToast("최대 15개까지 넣을 수 있습니다");
+			return;
+		}
+		const name = this._scenario.getNameForValue(value);
+		const result = this._heap.insert(value);
+		this._valueInput.value = "";
+		this._updateInfo();
+		this._playTrace(result.trace);
+		this._showToast(
+			sc.names ? `${name}(${sc.valueLabel} ${value}) 접수!` : `${value} 삽입!`,
+		);
+	}
 
-		this.#visualizer.resetHighlights();
-		const result = this.#contactBook.addContact(name, phone);
+	handleExtract() {
+		const sc = this._scenario.config;
+		if (this._heap.isEmpty()) {
+			this._showToast(sc.emptyMsg);
+			return;
+		}
+		const rootVal = this._heap.peek().value;
+		const name = this._scenario.getNameForValue(rootVal);
+		const result = this._heap.extractRoot();
+		this._updateInfo();
+		this._playTrace(result.trace);
+		this._showToast(
+			sc.names
+				? `${name}(${sc.valueLabel} ${rootVal}) 처리!`
+				: `${rootVal} 꺼냈습니다!`,
+		);
+	}
 
-		if (result.success) {
-			await this.#visualizer.showHashComputation(
-				name,
-				result.hashSteps,
-				result.index,
-			);
-			this.updateView();
-			await this.#visualizer.showInsert(
-				result.index,
-				name,
-				phone,
-				result.collision,
-			);
+	handlePeek() {
+		const sc = this._scenario.config;
+		const result = this._heap.peek();
+		if (result.value === null) {
+			this._showToast(sc.emptyMsg);
+			return;
+		}
+		const name = this._scenario.getNameForValue(result.value);
+		this._visualizer.render(this._heap.toArray(), { active: 0 });
+		this._showToast(
+			sc.names
+				? `다음: ${name}(${sc.valueLabel} ${result.value})`
+				: `루트 값: ${result.value}`,
+		);
+		this._tutorial.showMessage(
+			sc.names
+				? `다음 순서: <strong>${name}</strong> (${sc.valueLabel} ${result.value})`
+				: `루트(${this._heap.getType() === "max" ? "최대" : "최소"}값): <strong>${result.value}</strong>`,
+		);
+	}
 
-			if (result.updated) {
-				this.showNotification(`"${name}" 연락처가 업데이트되었습니다.`, "info");
-			} else if (result.collision) {
-				this.showNotification(
-					`충돌 발생! "${name}"이(가) 버킷 ${result.index}에 체이닝되었습니다.`,
-					"warning",
-				);
-			} else {
-				this.showNotification(
-					`"${name}"이(가) 버킷 ${result.index}에 저장되었습니다.`,
-					"success",
-				);
-			}
+	handleBuild() {
+		const sc = this._scenario.config;
+		const count = 5 + Math.floor(Math.random() * 6);
+		const range = sc.maxVal - sc.minVal + 1;
+		const values = [];
+		while (values.length < count) {
+			const n = sc.minVal + Math.floor(Math.random() * range);
+			if (!values.includes(n)) values.push(n);
+		}
+		this._scenario.clearNames();
+		this._heap.clear();
+		// Pre-assign names
+		for (const v of values) this._scenario.getNameForValue(v);
+		const result = this._heap.buildHeap(values);
+		this._updateInfo();
+		this._playTrace(result.trace);
+		this._showToast(sc.buildMsg(count));
+	}
 
-			this.#elements.nameInput.value = "";
-			this.#elements.phoneInput.value = "";
-			this.#elements.nameInput.focus();
+	handleSort() {
+		const sc = this._scenario.config;
+		if (this._heap.isEmpty()) {
+			this._showToast(sc.emptyMsg);
+			return;
+		}
+		const result = this._heap.heapSort();
+		this._updateInfo();
+		this._playTrace(result.trace);
+		this._showToast("정렬 완료!");
+	}
+
+	handleSample() {
+		const sc = this._scenario.config;
+		this._scenario.clearNames();
+		this._heap.clear();
+		let data;
+		if (this._scenario.id === "hospital") {
+			data = [8, 3, 6, 2, 7, 5, 1, 4, 9, 10];
+		} else if (this._scenario.id === "taxi") {
+			data = [3, 12, 7, 1, 15, 5, 9, 2, 8, 4];
 		} else {
-			this.showNotification(result.error, "error");
+			data = [...SAMPLE_DATA];
+		}
+		for (const v of data) this._scenario.getNameForValue(v);
+		const result = this._heap.buildHeap(data);
+		this._updateInfo();
+		this._playTrace(result.trace);
+		this._showToast(`${sc.sampleLabel}을(를) 넣었습니다!`);
+	}
+
+	handleClear() {
+		this._scenario.clearNames();
+		this._heap.clear();
+		this._visualizer.render([], {});
+		this._updateInfo();
+		this._stepCounter.textContent = "Step 0/0";
+		this._tutorial.clearMessage();
+		this._showToast("초기화 완료");
+	}
+
+	handleTypeToggle() {
+		const type = this._heapTypeCheckbox.checked ? "max" : "min";
+		this._heap.setType(type);
+		this._heapTypeDisplay.textContent =
+			type === "max" ? "Max Heap" : "Min Heap";
+		this._updateInfo();
+		this._visualizer.render(this._heap.toArray());
+		this._showToast(`${type === "max" ? "Max" : "Min"} Heap으로 전환`);
+	}
+
+	handleScenarioChange(scenarioId) {
+		this._scenario.set(scenarioId);
+		this._applyScenario();
+		this.handleClear();
+	}
+
+	_applyScenario() {
+		const sc = this._scenario.config;
+		this._valueInput.placeholder = sc.placeholder;
+		this._valueInput.min = sc.minVal;
+		this._valueInput.max = sc.maxVal;
+		this._btnInsert.textContent = sc.insertLabel;
+		this._btnExtract.textContent = sc.extractLabel;
+		this._btnPeek.textContent = sc.peekLabel;
+		this._btnBuild.textContent = sc.buildLabel;
+		this._btnSort.textContent = sc.sortLabel;
+		this._btnSample.textContent = sc.sampleLabel;
+		// Auto-set heap type for scenario
+		const type = sc.heapType;
+		this._heapTypeCheckbox.checked = type === "max";
+		this._heap.setType(type);
+		this._heapTypeDisplay.textContent =
+			type === "max" ? "Max Heap" : "Min Heap";
+	}
+
+	handleSpeedChange(value) {
+		this._visualizer.setSpeed(parseInt(value, 10));
+	}
+
+	handlePlayPause() {
+		if (this._visualizer.isPlaying()) {
+			this._visualizer.pause();
+			this._btnPlayPause.textContent = "▶";
+		} else {
+			this._visualizer.resume();
+			this._btnPlayPause.textContent = "⏸";
 		}
 	}
 
-	async handleSearch() {
-		const name = this.#elements.nameInput?.value.trim();
-		if (!name) {
-			this.showNotification("검색할 이름을 입력하세요.", "error");
+	handleTutorial() {
+		if (this._tutorial.isActive()) {
+			this._tutorial.exit();
+		} else {
+			this._tutorial.start();
+		}
+	}
+
+	closeModal() {
+		this._welcomeModal.classList.add("hidden");
+	}
+
+	_playTrace(trace) {
+		if (!trace || trace.length === 0) {
+			this._visualizer.render(this._heap.toArray());
 			return;
 		}
+		this._isAnimating = true;
+		this._setButtonsEnabled(false);
+		this._btnPlayPause.textContent = "⏸";
 
-		this.#visualizer.resetHighlights();
-		const result = this.#contactBook.findContact(name);
-
-		if (result.success) {
-			await this.#visualizer.showHashComputation(
-				name,
-				result.hashSteps,
-				result.index,
-			);
-			await this.#visualizer.showSearch(
-				result.index,
-				result.found,
-				result.steps,
-			);
-
-			if (result.found) {
-				this.showNotification(
-					`"${name}" 발견! 전화번호: ${result.value} (${result.steps}단계)`,
-					"success",
-				);
-				this.#elements.phoneInput.value = result.value;
-			} else {
-				this.showNotification(
-					`"${name}"을(를) 찾을 수 없습니다. (${result.steps}단계 탐색)`,
-					"error",
-				);
+		// Show messages in explanation panel during animation
+		this._visualizer.onStepChange((current, total) => {
+			this._stepCounter.textContent = `Step ${current + 1}/${total}`;
+			if (trace[current]?.message) {
+				this._tutorial.showMessage(trace[current].message);
 			}
-		}
+		});
+
+		this._visualizer.playTrace(trace);
 	}
 
-	async handleDelete() {
-		const name = this.#elements.nameInput?.value.trim();
-		if (!name) {
-			this.showNotification("삭제할 이름을 입력하세요.", "error");
-			return;
-		}
-
-		this.#visualizer.resetHighlights();
-		const result = this.#contactBook.removeContact(name);
-
-		if (result.success) {
-			await this.#visualizer.showHashComputation(
-				name,
-				result.hashSteps,
-				result.index,
-			);
-
-			if (result.deleted) {
-				await this.#visualizer.showDelete(result.index);
-				this.updateView();
-				this.showNotification(`"${name}"이(가) 삭제되었습니다.`, "success");
-				this.#elements.nameInput.value = "";
-				this.#elements.phoneInput.value = "";
-			} else {
-				this.showNotification(`"${name}"을(를) 찾을 수 없습니다.`, "error");
-			}
-		}
+	_updateInfo() {
+		this._heapSizeDisplay.textContent = this._heap.size();
+		this._heapHeightDisplay.textContent = this._heap.height();
 	}
 
-	handleResize(newSize) {
-		this.#hashTable.resize(newSize);
-		this.updateView();
-		this.showNotification(
-			`테이블 크기가 ${newSize}으로 변경되었습니다. 모든 항목이 재해싱되었습니다.`,
-			"info",
-		);
-	}
-
-	handleReset() {
-		this.#hashTable.clear();
-		this.#visualizer.clearHashPanel();
-		this.updateView();
-		this.showNotification("테이블이 초기화되었습니다.", "info");
-	}
-
-	async handleSampleData() {
-		const samples = [
-			{ name: "홍길동", phone: "010-1234-5678" },
-			{ name: "김철수", phone: "010-2345-6789" },
-			{ name: "이영희", phone: "010-3456-7890" },
-			{ name: "박민수", phone: "010-4567-8901" },
-			{ name: "정수진", phone: "010-5678-9012" },
+	_setButtonsEnabled(enabled) {
+		const buttons = [
+			this._btnInsert,
+			this._btnExtract,
+			this._btnPeek,
+			this._btnBuild,
+			this._btnSort,
+			this._btnSample,
+			this._btnClear,
 		];
-
-		for (const { name, phone } of samples) {
-			const result = this.#contactBook.addContact(name, phone);
-			if (result.success) {
-				this.updateView();
-				await this.#animationEngine.delay(300);
-			}
-		}
-		this.showNotification("샘플 데이터 5개가 추가되었습니다.", "success");
+		buttons.forEach((btn) => {
+			btn.disabled = !enabled;
+		});
 	}
 
-	updateView() {
-		const stats = this.#contactBook.getStats();
-		this.#visualizer.renderBuckets(stats.buckets);
-		this.#visualizer.updateStats(stats);
-		this.renderContactList();
+	_showToast(message) {
+		this._toast.textContent = message;
+		this._toast.classList.add("show");
+		setTimeout(() => this._toast.classList.remove("show"), 2000);
 	}
-
-	renderContactList() {
-		const contacts = this.#contactBook.getAllContacts();
-		if (!this.#elements.contactList) return;
-
-		if (contacts.length === 0) {
-			this.#elements.contactList.innerHTML = `
-        <div class="empty-contacts">
-          <span class="empty-icon">📱</span>
-          <p>연락처가 없습니다</p>
-          <p class="empty-hint">위 폼에서 연락처를 추가하세요</p>
-        </div>
-      `;
-			return;
-		}
-
-		this.#elements.contactList.innerHTML = contacts
-			.map(
-				(c) => `
-      <div class="contact-card" data-name="${c.key}">
-        <div class="contact-avatar">${c.key[0]}</div>
-        <div class="contact-info">
-          <span class="contact-name">${c.key}</span>
-          <span class="contact-phone">${c.value}</span>
-        </div>
-        <span class="contact-bucket" title="버킷 ${c.index}">#${c.index}</span>
-      </div>
-    `,
-			)
-			.join("");
-
-		this.#elements.contactList
-			.querySelectorAll(".contact-card")
-			.forEach((card) => {
-				card.addEventListener("click", () => {
-					const name = card.dataset.name;
-					this.#elements.nameInput.value = name;
-					const result = this.#contactBook.findContact(name);
-					if (result.found) {
-						this.#elements.phoneInput.value = result.value;
-					}
-				});
-			});
-	}
-
-	showNotification(message, type = "info") {
-		const el = this.#elements.notification;
-		if (!el) return;
-
-		const icons = { success: "✅", error: "❌", warning: "⚠️", info: "ℹ️" };
-		el.innerHTML = `<span class="notif-icon">${icons[type] || ""}</span> ${message}`;
-		el.className = `notification ${type} show`;
-
-		setTimeout(() => {
-			el.classList.remove("show");
-		}, 3000);
-	}
-
 }
 
+// Auto-start
 document.addEventListener("DOMContentLoaded", () => {
-	const app = new App();
-	app.init();
+	new App();
 });

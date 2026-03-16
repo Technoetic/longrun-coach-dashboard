@@ -1,176 +1,144 @@
-class TutorialManager {
-	#steps;
-	#currentIndex;
-	#container;
-	#onStepChange;
+export default class TutorialManager {
+	constructor(explanationPanel) {
+		this._panel = explanationPanel;
+		this._currentStep = -1;
+		this._active = false;
+		this._steps = [
+			{
+				title: "힙이 뭐야?",
+				content:
+					'🏥 <strong>병원 응급실</strong>을 떠올려 보세요. 환자가 도착한 순서가 아니라 <strong>위급한 순서</strong>대로 치료하죠? 힙도 똑같습니다 — 들어온 순서 상관없이 <strong>"가장 중요한 것"을 항상 맨 위에</strong> 유지하는 구조입니다.',
+				action: null,
+			},
+			{
+				title: "어디에 쓰여?",
+				content:
+					"📱 <strong>카카오택시</strong> — 가장 가까운 기사를 먼저 배정 (Min Heap)<br>🎮 <strong>게임 매칭</strong> — 실력이 비슷한 상대를 빠르게 찾기<br>📦 <strong>배달앱</strong> — 가장 급한 주문을 먼저 처리<br>💻 <strong>운영체제</strong> — 우선순위 높은 작업을 먼저 실행",
+				action: null,
+			},
+			{
+				title: "트리 모양 이해하기",
+				content:
+					'위의 <strong>트리 그림</strong>과 아래 <strong>배열</strong>을 비교해 보세요. 맨 위(루트)가 배열[0]이고, 아래로 한 줄씩 순서대로 채워집니다. <strong>"예제 데이터"</strong> 버튼을 눌러 확인해 보세요!',
+				action: "showTree",
+			},
+			{
+				title: "넣기 — 새 환자 도착!",
+				content:
+					'🏥 새 환자(숫자)가 <strong>대기열 맨 뒤</strong>에 앉습니다. 그런데 앞사람보다 더 위급하면? <strong>앞으로 이동</strong>합니다! 위급도가 맞을 때까지 계속 올라갑니다. 왼쪽에서 숫자를 입력하고 <strong>"넣기"</strong>를 눌러보세요!',
+				action: "demoInsert",
+			},
+			{
+				title: "꺼내기 — 가장 급한 환자 치료!",
+				content:
+					'🚑 항상 <strong>맨 위(가장 큰/작은 값)</strong>를 꺼냅니다. 꺼낸 뒤 맨 뒤의 값이 맨 위로 올라오고, 자기 자리를 찾아 <strong>아래로 내려갑니다</strong>. <strong>"꺼내기"</strong> 버튼을 눌러 과정을 관찰해 보세요!',
+				action: "demoExtract",
+			},
+			{
+				title: "정렬 — 전부 순서대로!",
+				content:
+					'힙에서 맨 위를 <strong>반복해서 꺼내면</strong> 자동으로 정렬됩니다! 📦 배달앱에서 주문을 급한 순서대로 하나씩 처리하는 것과 같습니다. <strong>"정렬하기"</strong>를 눌러 확인해 보세요!',
+				action: "demoSort",
+			},
+		];
+	}
 
-	static STEPS = [
-		{
-			title: "1. 해시 함수란?",
-			description:
-				"해시 함수는 데이터(키)를 고정 크기의 숫자(인덱스)로 변환하는 함수입니다. 전화번호부에서 이름을 입력하면 해시 함수가 그 이름을 저장할 위치(버킷 번호)로 바꿔줍니다.",
-			action: "demo-hash",
-			highlight: ".hash-computation",
-			example:
-				'예: "홍길동" → 각 글자의 코드값 합산 → 7로 나눈 나머지 → 버킷 3번',
-			tip: '💡 오른쪽 "해시 계산 과정" 패널에서 변환 과정을 확인하세요!',
-		},
-		{
-			title: "2. 첫 번째 연락처 추가",
-			description:
-				"insert 연산으로 해시테이블에 데이터를 저장합니다. 이름을 해시하여 인덱스를 구하고, 해당 버킷에 (이름, 전화번호) 쌍을 저장합니다.",
-			action: "try-insert",
-			highlight: ".contact-form",
-			example:
-				'이름에 "김철수", 전화번호에 "010-1234-5678"을 입력하고 추가 버튼을 누르세요.',
-			tip: "💡 버킷 배열에서 데이터가 저장되는 과정을 관찰하세요!",
-		},
-		{
-			title: "3. 여러 연락처 추가",
-			description:
-				"연락처를 더 추가하여 해시테이블이 채워지는 모습을 관찰합니다. 각 이름마다 다른 버킷에 저장되는 것을 확인하세요.",
-			action: "try-multiple-insert",
-			highlight: ".bucket-array",
-			example: "3~4개의 연락처를 추가해 보세요. 버킷이 점점 채워집니다.",
-			tip: "💡 로드 팩터(적재율)가 올라가는 것을 상단에서 확인하세요!",
-		},
-		{
-			title: "4. 연락처 검색 O(1)",
-			description:
-				"search 연산은 해시 함수로 바로 올바른 버킷을 찾습니다. 배열을 처음부터 끝까지 탐색할 필요가 없어 평균 O(1) 시간에 검색됩니다.",
-			action: "try-search",
-			highlight: ".contact-form .search-btn",
-			example: "추가한 연락처의 이름을 입력하고 검색 버튼을 누르세요.",
-			tip: "💡 검색 시 방문하는 버킷 수(단계)를 확인하세요!",
-		},
-		{
-			title: "5. 충돌이란?",
-			description:
-				"서로 다른 키가 같은 해시 값(같은 버킷)을 가질 때 충돌이 발생합니다. 해시테이블의 크기가 제한적이므로 충돌은 불가피합니다.",
-			action: "demo-collision",
-			highlight: ".bucket-array",
-			example: "같은 버킷에 저장되는 이름을 추가하면 충돌이 발생합니다!",
-			tip: "💡 충돌이 발생하면 버킷이 빨간색으로 깜빡입니다.",
-		},
-		{
-			title: "6. 체이닝으로 충돌 해결",
-			description:
-				"체이닝(Chaining)은 같은 버킷에 연결 리스트로 여러 항목을 저장하는 방식입니다. 충돌이 발생해도 체인에 노드를 추가하면 됩니다.",
-			action: "demo-chaining",
-			highlight: ".bucket-array",
-			example:
-				"충돌이 발생한 버킷을 보면 여러 항목이 체인처럼 연결되어 있습니다.",
-			tip: "💡 체인이 길어지면 검색 시간이 O(n)으로 늘어날 수 있습니다.",
-		},
-		{
-			title: "7. 연락처 삭제",
-			description:
-				"delete 연산은 해시로 버킷을 찾고, 체인에서 해당 항목을 제거합니다. 삭제 후에도 같은 버킷의 다른 항목들은 유지됩니다.",
-			action: "try-delete",
-			highlight: ".contact-form .delete-btn",
-			example: "삭제할 이름을 입력하고 삭제 버튼을 누르세요.",
-			tip: "💡 삭제 후 버킷의 체인이 어떻게 변하는지 관찰하세요!",
-		},
-		{
-			title: "8. 로드 팩터와 리사이징",
-			description:
-				"로드 팩터 = 항목 수 / 테이블 크기. 로드 팩터가 너무 높으면(보통 0.75) 충돌이 많아져 성능이 저하됩니다. 이때 테이블 크기를 늘리고 모든 항목을 재해싱합니다.",
-			action: "demo-resize",
-			highlight: ".control-panel",
-			example: "상단 컨트롤에서 테이블 크기를 변경하면 리사이징이 발생합니다.",
-			tip: "🎉 축하합니다! 해시테이블의 핵심 개념을 모두 배웠습니다!",
-		},
-	];
+	start() {
+		this._active = true;
+		this._currentStep = 0;
+		this._showStep(0);
+	}
 
-	constructor(container, onStepChange = null) {
-		this.#steps = TutorialManager.STEPS;
-		this.#currentIndex = 0;
-		this.#container = container;
-		this.#onStepChange = onStepChange;
+	nextStep() {
+		if (this._currentStep < this._steps.length - 1) {
+			this._currentStep++;
+			this._showStep(this._currentStep);
+		}
+		return this.getCurrentStep();
+	}
+
+	prevStep() {
+		if (this._currentStep > 0) {
+			this._currentStep--;
+			this._showStep(this._currentStep);
+		}
+		return this.getCurrentStep();
+	}
+
+	goToStep(n) {
+		if (n >= 0 && n < this._steps.length) {
+			this._currentStep = n;
+			this._showStep(n);
+		}
+		return this.getCurrentStep();
+	}
+
+	exit() {
+		this._active = false;
+		this._currentStep = -1;
+		this._panel.innerHTML = "";
 	}
 
 	getCurrentStep() {
-		return this.#steps[this.#currentIndex];
-	}
-
-	getCurrentIndex() {
-		return this.#currentIndex;
-	}
-
-	goToStep(index) {
-		if (index >= 0 && index < this.#steps.length) {
-			this.#currentIndex = index;
-			this.render();
-			if (this.#onStepChange) this.#onStepChange(this.getCurrentStep(), index);
+		if (this._currentStep >= 0 && this._currentStep < this._steps.length) {
+			return {
+				...this._steps[this._currentStep],
+				number: this._currentStep,
+			};
 		}
+		return null;
 	}
 
-	next() {
-		if (this.#currentIndex < this.#steps.length - 1) {
-			this.goToStep(this.#currentIndex + 1);
-		}
+	getTotalSteps() {
+		return this._steps.length;
 	}
 
-	prev() {
-		if (this.#currentIndex > 0) {
-			this.goToStep(this.#currentIndex - 1);
-		}
+	isActive() {
+		return this._active;
 	}
 
-	isComplete() {
-		return this.#currentIndex === this.#steps.length - 1;
+	showMessage(text) {
+		this._panel.innerHTML = text;
 	}
 
-	getProgress() {
-		return {
-			current: this.#currentIndex + 1,
-			total: this.#steps.length,
-			percent: Math.round(
-				((this.#currentIndex + 1) / this.#steps.length) * 100,
-			),
-		};
+	clearMessage() {
+		this._panel.innerHTML =
+			'👈 왼쪽에서 <strong>"예제 데이터"</strong>를 눌러 시작하거나, 숫자를 직접 넣어보세요!';
 	}
 
-	render() {
-		if (!this.#container) return;
-		const step = this.getCurrentStep();
-		const progress = this.getProgress();
+	_showStep(index) {
+		if (index < 0 || index >= this._steps.length) return;
 
-		this.#container.innerHTML = `
-      <div class="tutorial-header">
-        <div class="tutorial-progress">
-          <div class="progress-bar">
-            <div class="progress-fill" style="width: ${progress.percent}%"></div>
-          </div>
-          <span class="progress-text">${progress.current} / ${progress.total}</span>
+		const step = this._steps[index];
+		const stepNumber = index + 1;
+		const totalSteps = this._steps.length;
+		const isPrevDisabled = index === 0;
+		const isNextDisabled = index === this._steps.length - 1;
+
+		const html = `
+      <div class="tutorial-step">
+        <h3>Step ${stepNumber}: ${step.title}</h3>
+        <p>${step.content}</p>
+        <div class="tutorial-nav">
+          <button id="tutorial-prev" ${isPrevDisabled ? "disabled" : ""}>이전</button>
+          <span class="tutorial-counter">${stepNumber} / ${totalSteps}</span>
+          <button id="tutorial-next" ${isNextDisabled ? "disabled" : ""}>다음</button>
         </div>
-        <h3 class="tutorial-title">${step.title}</h3>
-      </div>
-      <div class="tutorial-body">
-        <p class="tutorial-desc">${step.description}</p>
-        <div class="tutorial-example">${step.example}</div>
-        <div class="tutorial-tip">${step.tip}</div>
-      </div>
-      <div class="tutorial-nav">
-        <button class="tutorial-prev-btn" ${this.#currentIndex === 0 ? "disabled" : ""}>← 이전</button>
-        <div class="tutorial-dots">
-          ${this.#steps.map((_, i) => `<span class="dot ${i === this.#currentIndex ? "active" : ""}" data-step="${i}"></span>`).join("")}
-        </div>
-        <button class="tutorial-next-btn" ${this.isComplete() ? "disabled" : ""}>다음 →</button>
       </div>
     `;
 
-		// 이벤트 바인딩
-		this.#container
-			.querySelector(".tutorial-prev-btn")
-			?.addEventListener("click", () => this.prev());
-		this.#container
-			.querySelector(".tutorial-next-btn")
-			?.addEventListener("click", () => this.next());
-		this.#container.querySelectorAll(".dot").forEach((dot) => {
-			dot.addEventListener("click", () =>
-				this.goToStep(parseInt(dot.dataset.step, 10)),
-			);
-		});
+		this._panel.innerHTML = html;
+
+		// Attach event listeners
+		const prevBtn = this._panel.querySelector("#tutorial-prev");
+		const nextBtn = this._panel.querySelector("#tutorial-next");
+
+		if (prevBtn && !isPrevDisabled) {
+			prevBtn.addEventListener("click", () => this.prevStep());
+		}
+
+		if (nextBtn && !isNextDisabled) {
+			nextBtn.addEventListener("click", () => this.nextStep());
+		}
 	}
 }

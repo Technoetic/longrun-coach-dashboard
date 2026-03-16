@@ -116,6 +116,26 @@ if ($ToolName -eq "Write" -or $ToolName -eq "Edit") {
     }
 
     # --------------------------------------------------------------
+    # 2b-0. Python 파일 수정 시 자동 구문 검증
+    # --------------------------------------------------------------
+    if ($FilePath -match '\.py$' -and $FilePath -notmatch 'node_modules') {
+        $pyChecker = Join-Path $PSScriptRoot "python-syntax-check.ps1"
+        if (Test-Path $pyChecker) {
+            & powershell -ExecutionPolicy Bypass -File $pyChecker -ProjectRoot $ProjectRoot -FilePath $FilePath 2>&1 | Out-String | Write-Output
+        }
+    }
+
+    # --------------------------------------------------------------
+    # 2b-1. Step 파일 수정 시 번호 갭 검증
+    # --------------------------------------------------------------
+    if ($FilePath -match 'step_archive') {
+        $gapChecker = Join-Path $PSScriptRoot "step-gap-checker.ps1"
+        if (Test-Path $gapChecker) {
+            & powershell -ExecutionPolicy Bypass -File $gapChecker -ProjectRoot $ProjectRoot -FilePath $FilePath 2>&1 | Out-String | Write-Output
+        }
+    }
+
+    # --------------------------------------------------------------
     # 2b. src/*.js 수정 시 구문 검증 + import 경로 확인
     # --------------------------------------------------------------
     if ($FilePath -match '[/\\]src[/\\].*\.js$') {
@@ -153,7 +173,22 @@ if ($ToolName -eq "Write" -or $ToolName -eq "Edit") {
     }
 
     # --------------------------------------------------------------
-    # 2d. HTML 파일 수정 시 자동 인터랙션 테스트 + 자동 수정 루프
+    # 2d. src/ 수정 시 빌드 + 테스트 검증 (exit 1로 블로킹)
+    #     번들링(2c) 이후 실행 → 빌드/테스트 실패 시 Claude 진행 차단
+    # --------------------------------------------------------------
+    if ($FilePath -match '[/\\]src[/\\].*\.(js|ts|jsx|tsx|css|html)$') {
+        $buildTestValidator = Join-Path $PSScriptRoot "build-test-validator.ps1"
+        if (Test-Path $buildTestValidator) {
+            & powershell -ExecutionPolicy Bypass -File $buildTestValidator -ProjectRoot $ProjectRoot -FilePath $FilePath 2>&1 | Out-String | Write-Output
+            if ($LASTEXITCODE -ne 0) {
+                Write-Output "[BLOCKED] 빌드/테스트 실패 - 수정 필요"
+                exit 1
+            }
+        }
+    }
+
+    # --------------------------------------------------------------
+    # 2e. HTML 파일 수정 시 자동 인터랙션 테스트 + 자동 수정 루프
     # --------------------------------------------------------------
     if ($FilePath -match '\.html?$' -and $FilePath -and (Test-Path $FilePath)) {
         Write-Output "`nHTML 파일 수정 감지: $FilePath"

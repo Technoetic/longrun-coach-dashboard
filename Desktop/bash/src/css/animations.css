@@ -1,70 +1,87 @@
-/* Animations - Keyframe Definitions */
-
+@keyframes nodeAppear {
+	from {
+		transform: scale(0);
+		opacity: 0;
+	}
+	to {
+		transform: scale(1);
+		opacity: 1;
+	}
+}
+@keyframes nodePulse {
+	0%,
+	100% {
+		transform: scale(1);
+	}
+	50% {
+		transform: scale(1.1);
+	}
+}
 @keyframes fadeIn {
-	from { opacity: 0; transform: scale(0.92); }
-	to { opacity: 1; transform: scale(1); }
+	from {
+		opacity: 0;
+		transform: translateY(10px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
 }
-
-@keyframes slideIn {
-	from { opacity: 0; transform: translateX(-16px); }
-	to { opacity: 1; transform: translateX(0); }
+@keyframes fadeOut {
+	from {
+		opacity: 1;
+	}
+	to {
+		opacity: 0;
+	}
 }
-
-@keyframes bounce {
-	0% { transform: translateY(0); }
-	30% { transform: translateY(-8px); }
-	60% { transform: translateY(0); }
-	80% { transform: translateY(-3px); }
-	100% { transform: translateY(0); }
+@keyframes slideUp {
+	from {
+		transform: translateY(20px);
+		opacity: 0;
+	}
+	to {
+		transform: translateY(0);
+		opacity: 1;
+	}
 }
-
-@keyframes shake {
-	0% { transform: translateX(0); }
-	20% { transform: translateX(-6px); }
-	40% { transform: translateX(6px); }
-	60% { transform: translateX(-3px); }
-	80% { transform: translateX(3px); }
-	100% { transform: translateX(0); }
+.fade-in {
+	animation: fadeIn 0.3s ease forwards;
 }
-
-@keyframes pulse {
-	0%, 100% { transform: scale(1); opacity: 1; }
-	50% { transform: scale(1.08); opacity: 0.85; }
+.slide-up {
+	animation: slideUp 0.3s ease forwards;
 }
-
-@keyframes glow {
-	0% { box-shadow: 0 0 0 0 rgba(108, 92, 231, 0.2); }
-	50% { box-shadow: 0 0 12px 4px rgba(108, 92, 231, 0.1); }
-	100% { box-shadow: 0 0 0 0 rgba(108, 92, 231, 0); }
+.array-cell {
+	animation: nodeAppear 0.3s ease forwards;
 }
-
-@keyframes hashFlow {
-	0% { opacity: 0; transform: translateY(-8px); }
-	15% { opacity: 1; transform: translateY(0); }
-	85% { opacity: 1; transform: translateY(0); }
-	100% { opacity: 0; transform: translateY(8px); }
+/* Staggered animation for array cells */
+.array-cell:nth-child(1) {
+	animation-delay: 0ms;
 }
-
-/* Utility Classes */
-.animate-fade-in { animation: fadeIn 250ms ease-out forwards; }
-.animate-slide-in { animation: slideIn 250ms ease-out forwards; }
-.animate-bounce { animation: bounce 500ms ease-in-out; }
-.animate-shake { animation: shake 350ms ease-in-out; }
-.animate-pulse { animation: pulse 2s ease-in-out infinite; }
-.animate-glow { animation: glow 2s ease-in-out infinite; }
-.animate-hash-flow { animation: hashFlow 700ms ease-out forwards; }
-
-/* Stagger */
-.animate-stagger > * { animation: fadeIn 250ms ease-out forwards; }
-.animate-stagger > *:nth-child(1) { animation-delay: 0ms; }
-.animate-stagger > *:nth-child(2) { animation-delay: 40ms; }
-.animate-stagger > *:nth-child(3) { animation-delay: 80ms; }
-.animate-stagger > *:nth-child(4) { animation-delay: 120ms; }
-.animate-stagger > *:nth-child(5) { animation-delay: 160ms; }
-.animate-stagger > *:nth-child(n + 6) { animation-delay: 200ms; }
-
-/* Delay Utilities */
-.delay-100 { animation-delay: 100ms; }
-.delay-200 { animation-delay: 200ms; }
-.delay-300 { animation-delay: 300ms; }
-.delay-500 { animation-delay: 500ms; }
+.array-cell:nth-child(2) {
+	animation-delay: 30ms;
+}
+.array-cell:nth-child(3) {
+	animation-delay: 60ms;
+}
+.array-cell:nth-child(4) {
+	animation-delay: 90ms;
+}
+.array-cell:nth-child(5) {
+	animation-delay: 120ms;
+}
+.array-cell:nth-child(6) {
+	animation-delay: 150ms;
+}
+.array-cell:nth-child(7) {
+	animation-delay: 180ms;
+}
+.array-cell:nth-child(8) {
+	animation-delay: 210ms;
+}
+.array-cell:nth-child(9) {
+	animation-delay: 240ms;
+}
+.array-cell:nth-child(10) {
+	animation-delay: 270ms;
+}

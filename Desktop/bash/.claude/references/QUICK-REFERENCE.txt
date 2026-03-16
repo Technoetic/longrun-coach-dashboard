@@ -1,0 +1,277 @@
+================================================================================
+HEAP-SORT-VISUALIZER: QUICK REFERENCE CARD
+================================================================================
+
+CLONED FROM: https://github.com/sangampaudel530/Heap-Sort-Visualizer-Interactive-Web-Based-Learning-Tool.git
+DATE: 2026-03-15
+LOCATION: .claude/references/heap-sort-visualizer/
+
+================================================================================
+1. ARCHITECTURE AT A GLANCE
+================================================================================
+
+MaxHeap (Data)
+  - insert(), delete(), buildHeap(), heapSort()
+  - Records every compare/swap step
+  - Tracks comparisons, swaps
+  - Stores [type, data, stats, msg]
+
+HeapVisualizer (Canvas)
+  - drawTree() - Renders tree structure (BFS layout)
+  - drawArray() - Bar chart visualization
+  - highlight() - Color-coded state display
+
+HeapSortApp (Controller)
+  - playAnimation() - Plays recorded steps
+  - renderStep() - Interprets step type
+  - stepForward/Backward() - Manual navigation
+  - updateDisplay() - Updates UI
+
+Flow: Algorithm (record steps) → Playback (from array) → Render (canvas+DOM)
+
+================================================================================
+2. KEY INSIGHT: ANIMATION RECORDING
+================================================================================
+
+WRONG: Algorithm → Real-time animation
+  Problem: Hard to control speed, can't step backward
+
+CORRECT: Algorithm (record steps) → Playback (from array)
+  Benefit: Perfect replay, speed control, step backward
+
+Implementation:
+  1. During algorithm: addAnimationStep(type, {indices, data, msg})
+  2. Store steps: this.animationSteps = [...]
+  3. On playback: renderStep(animationSteps[currentStep])
+  4. User controls: speed slider, pause, step forward/back
+
+================================================================================
+3. ANIMATION STEP TYPES
+================================================================================
+
+compare         - Compare two indices (highlight RED)
+swap            - Swap two indices (highlight YELLOW)
+insert          - Add to heap (clear highlights)
+delete          - Remove from heap (clear highlights)
+heapify         - Heapify operation (highlight single index)
+build_complete  - Build heap finished (clear highlights)
+extract         - Element moved to sorted array
+sort_complete   - Sort finished (highlight all GREEN)
+
+Each step: {type, indices, heap_state, comparisons, swaps, message}
+
+================================================================================
+4. VISUALIZATION PATTERNS
+================================================================================
+
+TREE LAYOUT (BFS Algorithm):
+  - Levels: Math.ceil(Math.log2(size + 1))
+  - Queue: [{index: 0, level: 0, left: 0, right: width}]
+  - Position: x = (left + right) / 2, y = startY + level * levelHeight
+  - Subtrees: left [left, x), right [x, right)
+
+BAR CHART:
+  - Height: value * (height - 80) / max_value
+  - Width: (width - 40) / length - 10
+  - Grid: Horizontal reference lines
+
+COLORS:
+  #6366f1 (Indigo)  = Default state
+  #f87171 (Red)     = Comparing (active)
+  #fbbf24 (Amber)   = Swapping, Root
+  #34d399 (Green)   = Sorted, Completed
+  #0f172a (Dark)    = Background
+
+EFFECTS:
+  - shadowBlur: 15 (node halos)
+  - shadowColor: match element color
+  - Reset: shadowBlur = 0 after draw
+
+================================================================================
+5. PLAYBACK LOOP
+================================================================================
+
+playAnimation()
+  → Set animationSteps = heap.animationSteps
+  → Set currentStep = 0, isAnimating = true
+  → Call playNextStep()
+
+playNextStep()
+  → Get step = animationSteps[currentStep]
+  → Call renderStep(step)
+  → delay = Math.max(100, (11 - speed) * 100)
+  → setTimeout(() => {currentStep++; playNextStep()}, delay)
+
+renderStep(step)
+  → Switch on step.type
+  → visualizer.highlight(indices)
+  → Update stats (comparisons, swaps, size)
+  → visualizer.draw()
+
+Controls:
+  - Play/Pause: Toggle isAnimating
+  - Step Forward: currentStep++
+  - Step Backward: currentStep--
+  - Speed: 1-10 scale (1000-100ms delay)
+
+================================================================================
+6. CSS COLOR SYSTEM
+================================================================================
+
+:root {
+    --primary: #6366f1;
+    --success: #10b981;
+    --danger: #ef4444;
+    --warning: #f59e0b;
+    --info: #3b82f6;
+    --bg: #0f172a;
+    --bg-light: #1e293b;
+    --bg-card: #334155;
+    --text: #f1f5f9;
+    --border: #475569;
+    --comparing: #f87171;
+    --swapping: #fbbf24;
+    --sorted: #34d399;
+}
+
+Gradients:
+  body: linear-gradient(135deg, var(--bg) 0%, #1e293b 100%)
+  cards: box-shadow: 0 6px 30px rgba(0,0,0,0.25)
+
+================================================================================
+7. LAYOUT TEMPLATE
+================================================================================
+
+#introPage
+  .intro-content
+    h1, description, operations grid, features list
+    #startBtn (transition to mainApp)
+
+#mainApp (display: none initially)
+  .app-grid (grid: 360px | 1fr)
+    .left-column
+      .control-panel
+        .control-section (multiple)
+    .right-column
+      .viz-combined
+        .viz-card
+          canvas#treeCanvas
+          .viz-info-row (stats)
+          .array-display (DOM)
+
+================================================================================
+8. APPLYING TO HASH TABLE
+================================================================================
+
+File Structure:
+  src/js/HashTable.js
+  src/js/HashTableVisualizer.js
+  src/js/HashTableApp.js
+  src/css/main.css
+  index.html
+
+Step Types (adapted):
+  hash               - Hash computation
+  collision          - Collision detected
+  bucket_access      - Accessing bucket
+  chain_traverse     - Traversing chain
+  compare            - Comparing keys
+  found/not_found    - Search result
+  insert_complete    - Insert finished
+  resize_complete    - Resize finished
+
+Visualization:
+  Canvas: Bucket grid (not tree)
+  Buckets: Boxes showing occupancy + chains
+  Colors: Occupied (purple), collision (yellow), highlighted (red)
+  Stats: Size, capacity, load factor, collisions
+
+================================================================================
+9. PERFORMANCE TIPS
+================================================================================
+
+Canvas:
+  - Clear once per frame: ctx.fillRect(0, 0, width, height)
+  - Pre-calculate positions (BFS before drawing)
+  - Set shadowBlur = 0 after use
+  - Selectively apply shadows (not every element)
+
+Animation:
+  - Minimum delay 100ms per step
+  - Speed 1-10 maps to 1000-100ms
+  - Store steps once (don't recreate)
+
+Responsive:
+  - Listen to window resize
+  - Recalculate canvas dimensions dynamically
+  - Use clientWidth/clientHeight
+  - Call draw() after resize
+
+================================================================================
+10. COPY-PASTE CODE PATTERNS
+================================================================================
+
+Add Animation Step:
+  this.addAnimationStep('compare', {
+      indices: [i, j],
+      heap: [...this.heap],
+      message: `Comparing ${this.heap[i]} with ${this.heap[j]}`
+  });
+
+Highlight Elements:
+  this.visualizer.highlight(indices, isSwapping);
+
+Update Statistics:
+  document.getElementById('comparisons').textContent = step.comparisons;
+  document.getElementById('swaps').textContent = step.swaps;
+
+Event Listener with Validation:
+  insertBtn.addEventListener('click', () => {
+      const value = parseInt(insertInput.value, 10);
+      if (isNaN(value)) {
+          insertInput.classList.add('input-error');
+          setTimeout(() => insertInput.classList.remove('input-error'), 600);
+          return;
+      }
+      this.insert(value);
+  });
+
+Smooth Transition:
+  introPage.style.opacity = '0';
+  introPage.style.transform = 'scale(0.95)';
+  introPage.style.transition = 'all 0.5s ease-out';
+  setTimeout(() => {
+      introPage.style.display = 'none';
+      mainApp.style.display = 'block';
+  }, 500);
+
+================================================================================
+11. DOCUMENTATION FILES IN THIS DIRECTORY
+================================================================================
+
+README-ANALYSIS.md           Navigation guide (start here)
+HEAP-SORT-ANALYSIS.md        Full technical analysis
+VISUALIZATION-PATTERNS.md    Canvas techniques + animation
+APPLY-TO-HASHTABLE.md        Implementation templates
+QUICK-REFERENCE.txt          This file
+
+================================================================================
+12. FILE LOCATIONS
+================================================================================
+
+Repository:
+  https://github.com/sangampaudel530/Heap-Sort-Visualizer-Interactive-Web-Based-Learning-Tool.git
+
+Local Clone:
+  C:\Users\Admin\Desktop\bash\.claude\references\heap-sort-visualizer\
+
+Key Source Files:
+  heap.js (320 lines)        Algorithm + animation
+  visualizer.js (350 lines)  Canvas rendering
+  app.js (440 lines)         UI + playback
+  styles.css (300+ lines)    Design system
+  index.html (170 lines)     Markup
+
+================================================================================
+KEY PRINCIPLE: Archive every algorithm into animation steps, replay on demand.
+================================================================================
