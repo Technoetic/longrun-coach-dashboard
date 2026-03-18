@@ -1,0 +1,86 @@
+FADE-IN ANIMATION UTILITY
+       ============================================================ */
+    .fade-up {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ============================================================
+       RESPONSIVE
+       ============================================================ */
+    @media (max-width: 1023px) {
+      .timeline-axis-line { display: none; }
+      .timeline-row {
+        display: block;
+        margin-bottom: 24px;
+      }
+      .timeline-dot-col { display: none; }
+      .timeline-card-col--left,
+      .timeline-card-col--right {
+        display: block;
+      }
+      .milestone-card { width: 100%; max-width: 100%; }
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .phase-breakdown { grid-template-columns: 1fr; }
+      /* Tablet: hero stats still horizontal but compact */
+      .hero-stats {
+        flex-wrap: wrap;
+        width: 100%;
+        max-width: 480px;
+        justify-content: center;
+        border-radius: var(--radius-md);
+      }
+      .hero-stat {
+        flex: 1 1 auto;
+        min-width: 100px;
+        border-right: none;
+        border-bottom: 1px solid rgba(255,255,255,0.08);
+        justify-content: center;
+        padding: 10px 16px;
+      }
+      .hero-stat:nth-child(1),
+      .hero-stat:nth-child(2) { border-right: 1px solid rgba(255,255,255,0.08); }
+      .hero-stat:last-child { border-bottom: none; border-right: none; }
+      .dashboard-top { flex-direction: column; align-items: flex-start; }
+      .phase-block { padding: 80px 24px; }
+      .dashboard-section { padding: 80px 24px 100px; }
+      .hero { padding: 100px 24px 80px; }
+    }
+
+    @media (max-width: 767px) {
+      .header-container { padding: 0 20px; }
+      .header-nav { display: none; }
+      .hero { padding: 88px 20px 72px; min-height: 100svh; }
+      .hero-title { font-size: clamp(2.25rem, 8vw, 3.5rem); }
+      .hero-subtitle { font-size: 1rem; }
+      /* Mobile: hero stats horizontal 3-column strip, no vertical stacking */
+      .hero-stats {
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: nowrap;
+        width: 100%;
+        max-width: 100%;
+        border-radius: var(--radius-md);
+        overflow: hidden;
+      }
+      .hero-stat {
+        flex: 1 1 0;
+        padding: 10px 8px;
+        border-right: 1px solid rgba(255,255,255,0.08) !important;
+        border-bottom: none !important;
+        justify-content: center;
+        gap: 6px;
+        min-width: 0;
+      }
+      .hero-stat:last-child { border-right: none !important; }
+      .hero-stat-num { font-size: 1.25rem; }
+      .hero-stat-label { font-size: 0.6875rem; }
+      .phase-header { flex-direction: column; gap: 16px; margin-bottom: 48px; }
+      .phase-num { width: 48px; height: 48px; font-size: 1rem; }
+      .phase-block { padding: 64px 20px; }
+      .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+      .stat-num { font-size: 2rem; }
+      .footer { padding: 40px 20px; }
+      .footer-container { flex-direction: column; align-items: flex-start; }
+      .footer-right { gap: 20px; }
+    }

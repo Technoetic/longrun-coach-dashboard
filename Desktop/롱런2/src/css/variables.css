@@ -1,0 +1,46 @@
+:root {
+	--font-heading: "Space Grotesk", system-ui, -apple-system, sans-serif;
+	--font-body: "Pretendard", "Apple SD Gothic Neo", system-ui, sans-serif;
+
+	/* Core palette */
+	--dark: #0a0e1a;
+	--dark-2: #111827;
+	--dark-3: #1c2436;
+	--light: #f8f9fa;
+	--white: #ffffff;
+	--text: #0a0e1a;
+	--muted: #6b7280;
+	--muted-light: #9ca3af;
+	--border: rgba(255, 255, 255, 0.08);
+	--border-light: #e5e7eb;
+
+	/* Accent */
+	--indigo: #4f46e5;
+	--indigo-light: #818cf8;
+	--gold: #ffb703;
+	--gold-dim: #f59e0b;
+
+	/* Phase colors */
+	--p1-color: #4f46e5;
+	--p1-light: rgba(79, 70, 229, 0.15);
+	--p2-color: #0ea5e9;
+	--p2-light: rgba(14, 165, 233, 0.15);
+	--p3-color: #10b981;
+	--p3-light: rgba(16, 185, 129, 0.15);
+
+	/* Status colors */
+	--status-done: #4f46e5;
+	--status-prog: #0ea5e9;
+	--status-pend: #6b7280;
+	--status-del: #ef4444;
+
+	--radius-sm: 8px;
+	--radius-md: 16px;
+	--radius-lg: 24px;
+	--radius-full: 999px;
+
+	--shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.08);
+	--shadow-md: 0 4px 16px rgba(0, 0, 0, 0.12), 0 2px 6px rgba(0, 0, 0, 0.08);
+	--shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.16), 0 4px 12px rgba(0, 0, 0, 0.1);
+	--shadow-xl: 0 24px 64px rgba(0, 0, 0, 0.22), 0 8px 24px rgba(0, 0, 0, 0.14);
+}
