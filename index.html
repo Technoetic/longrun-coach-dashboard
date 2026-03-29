@@ -3719,17 +3719,19 @@ document.addEventListener("DOMContentLoaded", () => {
 			vis.classList.add("active");
 		}
 
-		// print PDF용 막대 높이 재계산 (284px 기준)
+		// print PDF용 막대 높이/너비 재계산
 		const barsRow = document.querySelector("#array-bars");
 		if (barsRow) {
 			const printRowH = 284;
 			const bars = Array.from(barsRow.querySelectorAll(".bar"));
 			if (bars.length > 0) {
 				const maxH = Math.max(...bars.map(b => parseFloat(b.style.height) || 0));
+				const barW = (100 / bars.length).toFixed(2) + "%";
 				if (maxH > 0) {
 					bars.forEach(bar => {
 						const ratio = (parseFloat(bar.style.height) || 0) / maxH;
 						bar.style.height = (ratio * printRowH) + "px";
+						bar.style.width = barW;
 					});
 				}
 			}
