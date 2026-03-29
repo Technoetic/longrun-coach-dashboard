@@ -227,22 +227,26 @@ button:focus-visible,
 	}
 
 	.visualization-container {
-		height: auto;
+		height: auto !important;
 		display: grid !important;
 		grid-template-columns: 3fr 2fr !important;
-		align-items: stretch;
+		gap: 16px !important;
+		align-items: stretch !important;
+		width: 100% !important;
 	}
 
 	.array-container {
 		position: relative;
-		overflow: visible;
-		height: 400px !important;
-		min-height: 400px !important;
+		overflow: visible !important;
+		height: 420px !important;
+		min-height: 420px !important;
+		width: 100% !important;
 		background-color: #161222 !important;
 		background-image: none !important;
 		border: 1px solid #3a3a4a !important;
 		display: flex !important;
 		flex-direction: column !important;
+		box-sizing: border-box !important;
 	}
 
 	.bars-row {
@@ -250,6 +254,7 @@ button:focus-visible,
 		min-height: 0 !important;
 		display: flex !important;
 		align-items: flex-end !important;
+		overflow: visible !important;
 	}
 
 	.pointer-container {
