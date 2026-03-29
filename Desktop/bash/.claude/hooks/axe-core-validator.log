@@ -1,9 +1,0 @@
-﻿[2026-03-13 23:01:12] [INFO] === axe-core Validator 시작 ===
-[2026-03-13 23:01:12] [INFO] @axe-core/playwright가 package.json에 등록되어 있습니다. (버전: ^4.11.1)
-[2026-03-13 23:01:12] [INFO] @axe-core/playwright 설치 확인 (실제 버전: 4.11.1)
-[2026-03-13 23:01:12] [INFO] axe-core 기본 패키지 설치 확인
-[2026-03-13 23:01:14] [INFO] Playwright 설치 확인: Version 1.58.2
-[2026-03-13 23:01:14] [INFO] @axe-core/playwright require 성공
-[2026-03-13 23:01:14] [INFO] 결과 파일 생성: C:\Users\Admin\Desktop\bash\.claude\step03_axe_core_test.md
-[2026-03-13 23:01:14] [INFO] === axe-core Validator 완료 ===
-[2026-03-13 23:01:14] [INFO] 모든 검증 통과

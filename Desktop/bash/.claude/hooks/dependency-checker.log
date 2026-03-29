@@ -1,9 +1,0 @@
-[2026-03-13 22:54:19] [INFO] === Dependency Checker 시작 ===
-[2026-03-13 22:54:19] [INFO] package.json 발견: C:\Users\Admin\Desktop\bash\package.json
-[2026-03-13 22:54:19] [INFO] Playwright가 devDependencies에 정의되어 있습니다.
-[2026-03-13 22:54:21] [INFO] Playwright 설치 확인: Version 1.58.2
-[2026-03-13 22:54:22] [WARN] Chromium 브라우저가 설치되지 않았습니다.
-[2026-03-13 22:54:22] [ERROR] === 미설치 패키지 발견 ===
-[2026-03-13 22:54:22] [ERROR] 다음 명령어로 설치하세요:
-[2026-03-13 22:54:22] [ERROR]   npx playwright install
-[2026-03-13 22:54:22] [ERROR] === Dependency Checker 실패 ===

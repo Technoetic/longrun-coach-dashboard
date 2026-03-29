@@ -1,7 +1,0 @@
-[2026-03-13 23:01:00] [INFO] === Playwright Validator 시작 ===
-[2026-03-13 23:01:02] [INFO] Playwright 버전: Version 1.58.2
-[2026-03-13 23:01:02] [INFO] chromium 브라우저가 설치되어 있습니다.
-[2026-03-13 23:01:04] [INFO] firefox 브라우저가 설치되어 있습니다.
-[2026-03-13 23:01:04] [INFO] webkit 브라우저가 설치되어 있습니다.
-[2026-03-13 23:01:04] [INFO] 결과 파일 생성: C:\Users\Admin\Desktop\bash\.claude\step02_playwright_test.md
-[2026-03-13 23:01:04] [INFO] === Playwright Validator 완료 ===

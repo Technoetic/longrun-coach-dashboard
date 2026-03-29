@@ -1,8 +1,0 @@
-﻿[2026-03-13 23:01:28] [INFO] === jscpd Validator 시작 ===
-[2026-03-13 23:01:28] [INFO] jscpd가 package.json에 등록되어 있습니다. (버전: ^4.0.8)
-[2026-03-13 23:01:28] [INFO] jscpd 설치 확인 (실제 버전: 4.0.8)
-[2026-03-13 23:01:29] [INFO] jscpd --version 성공: 4.0.8
-[2026-03-13 23:01:30] [INFO] jscpd --help 성공
-[2026-03-13 23:01:30] [INFO] 결과 파일 생성: C:\Users\Admin\Desktop\bash\.claude\step05_jscpd_test.md
-[2026-03-13 23:01:30] [INFO] === jscpd Validator 완료 ===
-[2026-03-13 23:01:30] [INFO] 모든 검증 통과

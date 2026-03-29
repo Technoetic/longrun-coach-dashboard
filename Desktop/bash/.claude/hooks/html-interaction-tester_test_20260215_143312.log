@@ -1,8 +1,0 @@
-﻿[2026-02-15 14:33:12] [INFO] === HTML Interaction Tester 시작 ===
-[2026-02-15 14:33:12] [INFO] 대상 파일: c:\Users\Admin\Desktop\평범한\test.html
-[2026-02-15 14:33:12] [INFO] 테스트 스크립트 생성: C:\Users\Admin\Desktop\평범한\.claude\playwright-interaction-test-temp.js
-[2026-02-15 14:33:12] [INFO] 테스트 시도 1/1
-[2026-02-15 14:33:12] [ERROR] 테스트 실행 오류: C:\Users\Admin\Desktop\평범한\.claude\playwright-interaction-test-temp.js:66
-[2026-02-15 14:33:12] [INFO] 결과 리포트 생성: C:\Users\Admin\Desktop\평범한\.claude\html_interaction_test_test_20260215_143312.md
-[2026-02-15 14:33:12] [INFO] 임시 스크립트 삭제
-[2026-02-15 14:33:12] [INFO] === HTML Interaction Tester 완료 ===
