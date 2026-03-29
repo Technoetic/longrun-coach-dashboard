@@ -3693,6 +3693,13 @@ document.addEventListener("DOMContentLoaded", () => {
 	const app = new App();
 	app.init();
 	window.app = app; // 디버깅용 전역 접근
+
+	// print 전 배열 시각화 강제 초기화
+	window.addEventListener("beforeprint", () => {
+		if (app && app.currentArray && app.currentArray.length > 0) {
+			app.startVisualization(app.currentArray, app.currentTarget);
+		}
+	});
 });
 
 </script>
