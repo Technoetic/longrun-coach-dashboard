@@ -3701,17 +3701,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 	// print 전 배열 시각화 강제 초기화 + 불필요 섹션 숨김
 	window.addEventListener("beforeprint", () => {
-		// array-container 높이를 print CSS 기준으로 강제 설정 (beforeprint 시점엔 @media print 미적용)
-		const arrContainers = document.querySelectorAll(".array-container");
-		arrContainers.forEach(el => {
-			el.style.height = "580px";
-			el.style.minHeight = "580px";
-			el.style.maxHeight = "580px";
-		});
-		if (app && app.currentArray && app.currentArray.length > 0) {
-			app.startVisualization(app.currentArray, app.currentTarget);
-		}
-		// visualization 섹션만 표시
+		// visualization 섹션 먼저 표시 (offsetWidth 계산을 위해)
 		["intro", "code", "quiz", "complexity"].forEach(id => {
 			const el = document.getElementById(id);
 			if (el) el.style.display = "none";
@@ -3722,6 +3712,48 @@ document.addEventListener("DOMContentLoaded", () => {
 			vis.classList.add("active");
 		}
 
+		// array-container 높이를 print CSS 기준으로 강제 설정 (beforeprint 시점엔 @media print 미적용)
+		const arrContainers = document.querySelectorAll(".array-container");
+		arrContainers.forEach(el => {
+			el.style.height = "580px";
+			el.style.minHeight = "580px";
+			el.style.maxHeight = "580px";
+			el.style.width = "100%";
+			el.style.overflow = "visible";
+		});
+
+		// visualization-container도 강제 설정
+		const vizContainer = document.querySelector(".visualization-container");
+		if (vizContainer) {
+			vizContainer.style.display = "grid";
+			vizContainer.style.gridTemplateColumns = "3fr 2fr";
+			vizContainer.style.overflow = "visible";
+		}
+
+		if (app && app.currentArray && app.currentArray.length > 0) {
+			app.startVisualization(app.currentArray, app.currentTarget);
+		}
+
+		// bars-row가 렌더된 후 막대 너비 명시적 설정 (flex:1 PDF 렌더링 버그 우회)
+		requestAnimationFrame(() => {
+			const barsRow = document.querySelector("#array-bars");
+			if (barsRow) {
+				const bars = barsRow.querySelectorAll(".bar");
+				if (bars.length > 0) {
+					// bars-row의 실제 너비를 측정하여 명시적 width 설정
+					const rowWidth = barsRow.getBoundingClientRect().width || barsRow.offsetWidth || 600;
+					const gap = parseFloat(getComputedStyle(barsRow).gap) || 2;
+					const barW = Math.floor((rowWidth - gap * (bars.length - 1)) / bars.length);
+					bars.forEach(bar => {
+						bar.style.flex = "none";
+						bar.style.width = Math.max(barW, 4) + "px";
+						bar.style.minWidth = Math.max(barW, 4) + "px";
+						bar.style.maxWidth = Math.max(barW, 4) + "px";
+					});
+					console.log("[print] bars:", bars.length, "rowWidth:", rowWidth, "barW:", barW);
+				}
+			}
+		});
 	});
 });
 
