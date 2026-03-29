@@ -305,17 +305,37 @@ button:focus-visible,
 
 	.code-panel-wrapper {
 		overflow: visible !important;
-		height: auto;
+		height: auto !important;
+		min-height: 0 !important;
+		max-height: none !important;
 		background-color: #161222 !important;
 		border: 1px solid #3a3a4a !important;
+		display: block !important;
 	}
 
 	.code-panel {
-		overflow: visible;
-		height: auto;
+		overflow: visible !important;
+		height: auto !important;
+		min-height: 0 !important;
+		max-height: none !important;
 		background-color: #0d1117 !important;
 		color: #e0e0ff !important;
 		border-color: #7b3fa0 !important;
+		flex: none !important;
+	}
+
+	.code-line {
+		display: flex !important;
+		white-space: pre-wrap !important;
+		color: #e0e0ff !important;
+	}
+
+	.line-number {
+		color: rgba(255,255,255,0.3) !important;
+	}
+
+	.line-text {
+		color: #e0e0ff !important;
 	}
 
 	.search-target {
