@@ -3726,12 +3726,16 @@ document.addEventListener("DOMContentLoaded", () => {
 			const bars = Array.from(barsRow.querySelectorAll(".bar"));
 			if (bars.length > 0) {
 				const maxH = Math.max(...bars.map(b => parseFloat(b.style.height) || 0));
-				const barW = (100 / bars.length).toFixed(2) + "%";
+				// 너비는 barsRow 실제 픽셀 기준 (print 레이아웃 반영)
+				const rowW = barsRow.getBoundingClientRect().width || barsRow.offsetWidth;
+				const barWpx = rowW > 0 ? Math.floor(rowW / bars.length) : 60;
 				if (maxH > 0) {
 					bars.forEach(bar => {
 						const ratio = (parseFloat(bar.style.height) || 0) / maxH;
 						bar.style.height = (ratio * printRowH) + "px";
-						bar.style.width = barW;
+						bar.style.width = barWpx + "px";
+						bar.style.minWidth = barWpx + "px";
+						bar.style.maxWidth = barWpx + "px";
 					});
 				}
 			}
