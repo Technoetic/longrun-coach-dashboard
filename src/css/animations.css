@@ -219,11 +219,21 @@ button:focus-visible,
 		height: auto;
 		overflow: visible;
 		background-color: #0d0d14 !important;
+		page-break-after: always;
+		break-after: page;
 	}
 
-	#visualization.section.active {
+	#visualization.section.active,
+	#visualization.section {
 		display: flex !important;
-		height: auto;
+		flex-direction: column !important;
+		height: auto !important;
+	}
+
+	#code.section {
+		display: flex !important;
+		flex-direction: column !important;
+		height: auto !important;
 	}
 
 	.visualization-container {
