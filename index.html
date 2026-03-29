@@ -2220,12 +2220,17 @@ button:focus-visible,
 	}
 
 	.pointer-container {
-		position: relative;
-		height: 48px;
+		position: absolute !important;
+		top: 0 !important;
+		left: 0 !important;
+		right: 0 !important;
+		height: 48px !important;
 		overflow: visible !important;
 		margin: 0 !important;
 		padding: 0 8px !important;
 		width: 100% !important;
+		z-index: 10 !important;
+		box-sizing: border-box !important;
 	}
 
 	.pointer,
@@ -2245,6 +2250,7 @@ button:focus-visible,
 		flex-direction: column !important;
 		align-items: center !important;
 		visibility: visible !important;
+		z-index: 10 !important;
 	}
 
 	.pointer-arrow,
