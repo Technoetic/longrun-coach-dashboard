@@ -3716,8 +3716,22 @@ document.addEventListener("DOMContentLoaded", () => {
 			vis.style.display = "flex";
 			vis.classList.add("active");
 		}
+
+		// PDF 렌더러에서 flex align-items:flex-end 미작동 → position:absolute로 바닥 정렬
+		const barsRow = document.querySelector("#array-bars");
+		if (barsRow) {
+			barsRow.style.position = "relative";
+			barsRow.style.height = "284px";
+			barsRow.style.display = "block";
+			Array.from(barsRow.children).forEach(bar => {
+				bar.style.position = "absolute";
+				bar.style.bottom = "0";
+				bar.style.top = "auto";
+			});
+		}
 	});
 });
+
 
 </script>
 </body>
