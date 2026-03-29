@@ -12,7 +12,7 @@ permissions:
 
 concurrency:
   group: pages
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   deploy:
@@ -22,14 +22,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Find and prepare dist
-        run: |
-          DIST_DIR=$(find . -path "*/dist/index.html" -not -path "./node_modules/*" | head -1 | xargs dirname)
-          echo "Found dist at: $DIST_DIR"
-          cp -r "$DIST_DIR" _site
-      - uses: actions/configure-pages@v4
+
+      - uses: actions/configure-pages@v5
+
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: _site
-      - id: deployment
-        uses: actions/deploy-pages@v4
+          path: "Desktop/롱런2/dist"
+
+      - uses: actions/deploy-pages@v4
+        id: deployment
