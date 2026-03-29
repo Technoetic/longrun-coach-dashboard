@@ -3701,6 +3701,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
 	// print 전 배열 시각화 강제 초기화 + 불필요 섹션 숨김
 	window.addEventListener("beforeprint", () => {
+		// array-container 높이를 print CSS 기준으로 강제 설정 (beforeprint 시점엔 @media print 미적용)
+		const arrContainers = document.querySelectorAll(".array-container");
+		arrContainers.forEach(el => {
+			el.style.height = "580px";
+			el.style.minHeight = "580px";
+			el.style.maxHeight = "580px";
+		});
 		if (app && app.currentArray && app.currentArray.length > 0) {
 			app.startVisualization(app.currentArray, app.currentTarget);
 		}
@@ -3715,25 +3722,6 @@ document.addEventListener("DOMContentLoaded", () => {
 			vis.classList.add("active");
 		}
 
-		// print CSS 적용 후 막대 재렌더링 (array-container 실제 크기 기준)
-		requestAnimationFrame(() => {
-			const arrContainer = document.querySelector(".array-container");
-			if (app && app.currentArray && arrContainer) {
-				const containerH = arrContainer.getBoundingClientRect().height || 580;
-				const bars = Array.from(document.querySelectorAll("#array-bars .bar"));
-				const maxVal = Math.max(...app.currentArray);
-				const rowH = containerH - 56 - 40; // padding top/bottom
-				bars.forEach((bar, i) => {
-					const val = app.currentArray[i];
-					if (val !== undefined) {
-						bar.style.height = ((val / maxVal) * rowH) + "px";
-						bar.style.width = "";
-						bar.style.minWidth = "";
-						bar.style.maxWidth = "";
-					}
-				});
-			}
-		});
 	});
 });
 
