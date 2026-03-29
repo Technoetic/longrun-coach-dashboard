@@ -2223,11 +2223,18 @@ button:focus-visible,
 	}
 
 	.bars-row {
+		display: -webkit-flex !important;
 		display: flex !important;
+		-webkit-align-items: flex-end !important;
 		align-items: flex-end !important;
 		height: 284px !important;
 		overflow: visible !important;
 		width: 100% !important;
+	}
+
+	.bar {
+		-webkit-align-self: flex-end !important;
+		align-self: flex-end !important;
 	}
 
 	.pointer-container {
