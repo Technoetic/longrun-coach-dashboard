@@ -338,6 +338,11 @@ button:focus-visible,
 		color: #e0e0ff !important;
 	}
 
+	#code-content,
+	#code-content-code {
+		display: block !important;
+	}
+
 	.search-target {
 		color: rgba(255, 255, 255, 0.9) !important;
 	}
