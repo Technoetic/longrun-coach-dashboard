@@ -186,15 +186,14 @@ class Visualizer {
 		}
 
 		// 오른쪽 끝에서 라벨이 잘리지 않도록 위치 보정
-		// translateX(-50%) 적용되므로 pos + 라벨절반 > containerWidth면 잘림
+		const ptrContainerWidth = this.pointerContainer.offsetWidth;
 		visiblePtrs.forEach((p) => {
 			const labelEl = p.ptr.querySelector(".pointer-label");
 			const halfLabel = labelEl ? (labelEl.textContent.length * 7) / 2 : 15;
-			if (p.pos + halfLabel > containerWidth) {
-				p.pos = containerWidth - halfLabel - 2;
+			if (p.pos + halfLabel > ptrContainerWidth) {
+				p.pos = ptrContainerWidth - halfLabel - 2;
 				p.ptr.style.left = p.pos + "px";
 			}
-			// 왼쪽 끝도 체크
 			if (p.pos - halfLabel < 0) {
 				p.pos = halfLabel + 2;
 				p.ptr.style.left = p.pos + "px";
