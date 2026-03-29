@@ -2223,20 +2223,16 @@ button:focus-visible,
 	}
 
 	.bars-row {
-		display: block !important;
+		display: flex !important;
+		align-items: flex-end !important;
 		height: 484px !important;
 		width: 100% !important;
 		overflow: visible !important;
-		white-space: nowrap !important;
-		font-size: 0 !important;
-		line-height: 484px !important;
 	}
 
 	.bar {
-		display: inline-block !important;
-		vertical-align: bottom !important;
-		line-height: normal !important;
-		font-size: 12px !important;
+		flex: 1 !important;
+		align-self: flex-end !important;
 	}
 
 	.pointer-container {
@@ -3719,27 +3715,25 @@ document.addEventListener("DOMContentLoaded", () => {
 			vis.classList.add("active");
 		}
 
-		// print PDF용 막대 높이/너비 재계산 (A3 landscape 기준 고정값)
-		// A3 landscape 420mm - 20mm margin = 400mm @ 96dpi ≈ 1512px
-		// grid 3fr/(3fr+2fr) = 60% → 907px, padding 8px → 약 890px / 10 bars = 89px
-		const barsRow = document.querySelector("#array-bars");
-		if (barsRow) {
-			const printRowH = 484;
-			const printBarW = 89;
-			const bars = Array.from(barsRow.querySelectorAll(".bar"));
-			if (bars.length > 0) {
-				const maxH = Math.max(...bars.map(b => parseFloat(b.style.height) || 0));
-				if (maxH > 0) {
-					bars.forEach(bar => {
-						const ratio = (parseFloat(bar.style.height) || 0) / maxH;
-						bar.style.height = (ratio * printRowH) + "px";
-						bar.style.width = printBarW + "px";
-						bar.style.minWidth = printBarW + "px";
-						bar.style.maxWidth = printBarW + "px";
-					});
-				}
+		// print CSS 적용 후 막대 재렌더링 (array-container 실제 크기 기준)
+		requestAnimationFrame(() => {
+			const arrContainer = document.querySelector(".array-container");
+			if (app && app.currentArray && arrContainer) {
+				const containerH = arrContainer.getBoundingClientRect().height || 580;
+				const bars = Array.from(document.querySelectorAll("#array-bars .bar"));
+				const maxVal = Math.max(...app.currentArray);
+				const rowH = containerH - 56 - 40; // padding top/bottom
+				bars.forEach((bar, i) => {
+					const val = app.currentArray[i];
+					if (val !== undefined) {
+						bar.style.height = ((val / maxVal) * rowH) + "px";
+						bar.style.width = "";
+						bar.style.minWidth = "";
+						bar.style.maxWidth = "";
+					}
+				});
 			}
-		}
+		});
 	});
 });
 
