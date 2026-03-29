@@ -2223,18 +2223,20 @@ button:focus-visible,
 	}
 
 	.bars-row {
-		display: table !important;
+		display: block !important;
 		height: 284px !important;
 		width: 100% !important;
 		overflow: visible !important;
-		border-collapse: collapse !important;
-		table-layout: fixed !important;
+		white-space: nowrap !important;
+		font-size: 0 !important;
+		line-height: 284px !important;
 	}
 
 	.bar {
-		display: table-cell !important;
+		display: inline-block !important;
 		vertical-align: bottom !important;
-		padding: 0 !important;
+		line-height: normal !important;
+		font-size: 12px !important;
 	}
 
 	.pointer-container {
