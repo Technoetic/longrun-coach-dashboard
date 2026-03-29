@@ -2210,9 +2210,9 @@ button:focus-visible,
 	.array-container {
 		position: relative;
 		overflow: visible !important;
-		height: 380px !important;
-		min-height: 380px !important;
-		max-height: 380px !important;
+		height: 580px !important;
+		min-height: 580px !important;
+		max-height: 580px !important;
 		width: 100% !important;
 		padding: 56px 4px 40px 4px !important;
 		background-color: #161222 !important;
@@ -2224,12 +2224,12 @@ button:focus-visible,
 
 	.bars-row {
 		display: block !important;
-		height: 284px !important;
+		height: 484px !important;
 		width: 100% !important;
 		overflow: visible !important;
 		white-space: nowrap !important;
 		font-size: 0 !important;
-		line-height: 284px !important;
+		line-height: 484px !important;
 	}
 
 	.bar {
@@ -3722,7 +3722,7 @@ document.addEventListener("DOMContentLoaded", () => {
 		// print PDF용 막대 높이/너비 재계산
 		const barsRow = document.querySelector("#array-bars");
 		if (barsRow) {
-			const printRowH = 284;
+			const printRowH = 484;
 			const bars = Array.from(barsRow.querySelectorAll(".bar"));
 			if (bars.length > 0) {
 				const maxH = Math.max(...bars.map(b => parseFloat(b.style.height) || 0));
