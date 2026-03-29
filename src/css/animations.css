@@ -271,18 +271,21 @@ button:focus-visible,
 	.pointer-container {
 		position: relative;
 		height: 48px;
-		overflow: visible;
+		overflow: visible !important;
 		margin: 0 !important;
-		padding: 0 !important;
+		padding: 0 8px !important;
+		width: 100% !important;
 	}
 
 	.pointer {
 		position: absolute;
 		opacity: 1 !important;
-		width: 0;
-		display: flex;
-		flex-direction: column;
-		align-items: center;
+		width: auto !important;
+		min-width: 40px !important;
+		transform: translateX(-50%) !important;
+		display: flex !important;
+		flex-direction: column !important;
+		align-items: center !important;
 	}
 
 	.pointer.active {
