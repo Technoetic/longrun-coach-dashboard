@@ -188,26 +188,141 @@ button:focus-visible,
    -------------------------------------------------------------------------- */
 
 @media print {
-	header,
-	footer,
-	.controls,
-	#theme-toggle,
-	#speed-slider {
+	footer {
 		display: none;
+	}
+
+	header {
+		position: static;
 	}
 
 	main {
 		position: static;
 		overflow: visible;
+		height: auto;
 	}
 
 	body {
 		background-image: none;
+		background-color: #fff;
 		color: #000;
+		overflow: visible;
+		height: auto;
 	}
 
 	.section {
-		display: block;
-		page-break-after: always;
+		display: block !important;
+		height: auto;
+		overflow: visible;
+	}
+
+	#visualization.section.active {
+		display: flex !important;
+		height: auto;
+	}
+
+	.visualization-container {
+		height: auto;
+	}
+
+	.array-container {
+		position: relative;
+		overflow: visible;
+		height: auto;
+		background-color: #f5f5f5;
+		border: 1px solid #ccc;
+	}
+
+	.pointer-container {
+		position: relative;
+		height: 48px;
+		overflow: visible;
+		margin: 0 -16px;
+		padding: 0 16px;
+	}
+
+	.pointer {
+		position: absolute;
+		opacity: 1 !important;
+		-webkit-print-color-adjust: exact;
+		print-color-adjust: exact;
+		width: 0;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+	}
+
+	.pointer.active {
+		opacity: 1 !important;
+	}
+
+	.pointer-arrow {
+		color: #333 !important;
+	}
+
+	.pointer-label {
+		color: #333 !important;
+	}
+
+	.pointer--low .pointer-arrow,
+	.pointer--low .pointer-label {
+		color: #d44 !important;
+	}
+
+	.pointer--mid .pointer-arrow,
+	.pointer--mid .pointer-label {
+		color: #44a !important;
+	}
+
+	.pointer--high .pointer-arrow,
+	.pointer--high .pointer-label {
+		color: #4a4 !important;
+	}
+
+	.bar {
+		-webkit-print-color-adjust: exact;
+		print-color-adjust: exact;
+		background-color: #9966cc !important;
+	}
+
+	.bar.bar--mid {
+		background-color: #88ccff !important;
+		box-shadow: none;
+	}
+
+	.bar.bar--found {
+		background-color: #4fc878 !important;
+		box-shadow: none;
+	}
+
+	.bar.bar--eliminated {
+		background-color: #ddd !important;
+		opacity: 0.5;
+	}
+
+	.bar-label {
+		color: #333 !important;
+	}
+
+	.code-panel-wrapper {
+		overflow: visible;
+		height: auto;
+	}
+
+	.code-panel {
+		overflow: visible;
+		height: auto;
+		background-color: #f8f8f8 !important;
+		color: #333 !important;
+		-webkit-print-color-adjust: exact;
+		print-color-adjust: exact;
+	}
+
+	.search-target {
+		color: #333 !important;
+	}
+
+	.search-target strong {
+		color: #d44 !important;
 	}
 }

@@ -125,16 +125,14 @@ class Visualizer {
 
 	updatePointers(low, mid, high) {
 		if (!this.pointerContainer) return;
+		if (this.bars.length === 0) return;
 
-		const containerWidth = this.container.offsetWidth;
-		const n = this.bars.length;
-		if (n === 0 || containerWidth === 0) return;
-
-		const barWidth = containerWidth / n;
-		const halfBar = barWidth / 2;
-
-		// 바 중앙 위치 (translateX(-50%)로 포인터 자체를 센터링)
-		const posOf = (idx) => idx * barWidth + halfBar;
+		// 실제 바 DOM 위치에서 중앙점 계산 (padding/flex 영향 무시)
+		const posOf = (idx) => {
+			const bar = this.bars[idx];
+			if (!bar) return 0;
+			return bar.offsetLeft + bar.offsetWidth / 2;
+		};
 
 		// 같은 인덱스 포인터는 라벨 합치기, 근접하면 가로 밀기
 		const minGap = 45;
