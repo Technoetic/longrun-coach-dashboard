@@ -3719,23 +3719,23 @@ document.addEventListener("DOMContentLoaded", () => {
 			vis.classList.add("active");
 		}
 
-		// print PDF용 막대 높이/너비 재계산
+		// print PDF용 막대 높이/너비 재계산 (A3 landscape 기준 고정값)
+		// A3 landscape 420mm - 20mm margin = 400mm @ 96dpi ≈ 1512px
+		// grid 3fr/(3fr+2fr) = 60% → 907px, padding 8px → 약 890px / 10 bars = 89px
 		const barsRow = document.querySelector("#array-bars");
 		if (barsRow) {
 			const printRowH = 484;
+			const printBarW = 89;
 			const bars = Array.from(barsRow.querySelectorAll(".bar"));
 			if (bars.length > 0) {
 				const maxH = Math.max(...bars.map(b => parseFloat(b.style.height) || 0));
-				// 너비는 barsRow 실제 픽셀 기준 (print 레이아웃 반영)
-				const rowW = barsRow.getBoundingClientRect().width || barsRow.offsetWidth;
-				const barWpx = rowW > 0 ? Math.floor(rowW / bars.length) : 60;
 				if (maxH > 0) {
 					bars.forEach(bar => {
 						const ratio = (parseFloat(bar.style.height) || 0) / maxH;
 						bar.style.height = (ratio * printRowH) + "px";
-						bar.style.width = barWpx + "px";
-						bar.style.minWidth = barWpx + "px";
-						bar.style.maxWidth = barWpx + "px";
+						bar.style.width = printBarW + "px";
+						bar.style.minWidth = printBarW + "px";
+						bar.style.maxWidth = printBarW + "px";
 					});
 				}
 			}
