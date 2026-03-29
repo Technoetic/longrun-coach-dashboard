@@ -2228,7 +2228,14 @@ button:focus-visible,
 		width: 100% !important;
 	}
 
-	.pointer {
+	.pointer,
+	.pointer.active,
+	.pointer--low,
+	.pointer--mid,
+	.pointer--high,
+	.pointer--low.active,
+	.pointer--mid.active,
+	.pointer--high.active {
 		position: absolute;
 		opacity: 1 !important;
 		width: auto !important;
@@ -2237,10 +2244,7 @@ button:focus-visible,
 		display: flex !important;
 		flex-direction: column !important;
 		align-items: center !important;
-	}
-
-	.pointer.active {
-		opacity: 1 !important;
+		visibility: visible !important;
 	}
 
 	.pointer-arrow,
