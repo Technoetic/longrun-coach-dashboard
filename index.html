@@ -2155,7 +2155,9 @@ button:focus-visible,
 	#intro,
 	#quiz,
 	#complexity,
-	#code {
+	#code,
+	#code.section,
+	#code.section.active {
 		display: none !important;
 	}
 
@@ -2186,6 +2188,7 @@ button:focus-visible,
 		display: flex !important;
 		flex-direction: column !important;
 		height: auto !important;
+		overflow: visible !important;
 	}
 
 	#code.section {
