@@ -3694,10 +3694,20 @@ document.addEventListener("DOMContentLoaded", () => {
 	app.init();
 	window.app = app; // 디버깅용 전역 접근
 
-	// print 전 배열 시각화 강제 초기화
+	// print 전 배열 시각화 강제 초기화 + 불필요 섹션 숨김
 	window.addEventListener("beforeprint", () => {
 		if (app && app.currentArray && app.currentArray.length > 0) {
 			app.startVisualization(app.currentArray, app.currentTarget);
+		}
+		// visualization 섹션만 표시
+		["intro", "code", "quiz", "complexity"].forEach(id => {
+			const el = document.getElementById(id);
+			if (el) el.style.display = "none";
+		});
+		const vis = document.getElementById("visualization");
+		if (vis) {
+			vis.style.display = "flex";
+			vis.classList.add("active");
 		}
 	});
 });
