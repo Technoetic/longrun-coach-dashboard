@@ -6,6 +6,7 @@ from collections import defaultdict
 from datetime import datetime, timedelta
 from typing import Optional
 
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, Depends, HTTPException, status, Query, Request
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi.middleware.cors import CORSMiddleware
@@ -114,13 +115,20 @@ def is_token_blacklisted(token: str) -> bool:
     return token in _token_blacklist
 
 # Initialize FastAPI app
-app = FastAPI(title="Health Tracking API", version="1.0.0")
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    Base.metadata.create_all(bind=engine)
+    logger.info("Application started, tables created")
+    yield
+
+app = FastAPI(title="Health Tracking API", version="1.0.0", lifespan=lifespan)
 
 # CORS middleware
 FRONTEND_URL = os.getenv("FRONTEND_URL", "https://frontend-production-f659.up.railway.app")
+FRONTEND_URL2 = os.getenv("FRONTEND_URL2", "https://longrun-frontend-production.up.railway.app")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[FRONTEND_URL, "http://localhost:3000", "http://localhost:5173"],
+    allow_origins=[FRONTEND_URL, FRONTEND_URL2, "http://localhost:3000", "http://localhost:5173"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -182,22 +190,10 @@ async def get_current_user(
         raise credentials_exception
     return user
 
-# Startup event
-@app.on_event("startup")
-def startup_event():
-    Base.metadata.create_all(bind=engine)
-    logger.info("Application started, tables created")
-
 # Health check
 @app.get("/api/health")
-async def health_check(request: Request):
-    return {
-        "status": "ok",
-        "timestamp": datetime.utcnow().isoformat(),
-        "client_ip": get_client_ip(request),
-        "x_forwarded_for": request.headers.get("X-Forwarded-For"),
-        "client_host": request.client.host if request.client else None,
-    }
+async def health_check():
+    return {"status": "ok", "timestamp": datetime.utcnow().isoformat()}
 
 # Auth endpoints
 @app.post("/api/auth/signup", response_model=TokenResponse)
@@ -326,6 +322,8 @@ async def update_user_profile(
 ):
     if user_update.name:
         current_user.name = user_update.name
+    if user_update.phone is not None:
+        current_user.phone = user_update.phone
     if user_update.gender:
         current_user.gender = user_update.gender
     if user_update.role:
@@ -334,6 +332,16 @@ async def update_user_profile(
         current_user.sport = user_update.sport
     if user_update.team_code:
         current_user.team_code = user_update.team_code
+    if user_update.team_name is not None:
+        current_user.team_name = user_update.team_name
+    if user_update.student_code is not None:
+        current_user.student_code = user_update.student_code
+    if user_update.training_frequency is not None:
+        current_user.training_frequency = user_update.training_frequency
+    if user_update.watch_device is not None:
+        current_user.watch_device = user_update.watch_device
+    if user_update.onboarding_done is not None:
+        current_user.onboarding_done = user_update.onboarding_done
 
     db.add(current_user)
     await db.commit()
@@ -347,6 +355,10 @@ async def create_condition(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
+    if all(v is None for v in [condition_data.sleep, condition_data.fatigue, condition_data.mood,
+                                condition_data.energy, condition_data.composite_score,
+                                condition_data.acwr, condition_data.srpe]):
+        raise HTTPException(status_code=422, detail="At least one condition field is required")
     new_condition = Condition(
         user_id=current_user.id,
         sleep=condition_data.sleep,
@@ -421,6 +433,23 @@ async def get_menstrual_cycles(
     data = [MenstrualCycleResponse.model_validate(r) for r in rows]
     cache_set(cache_key, data)
     return data
+
+@app.delete("/api/menstrual-cycles/{cycle_id}")
+async def delete_menstrual_cycle(
+    cycle_id: int,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    result = await db.execute(
+        select(MenstrualCycle).filter(MenstrualCycle.id == cycle_id, MenstrualCycle.user_id == current_user.id)
+    )
+    cycle = result.scalars().first()
+    if not cycle:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Cycle not found")
+    await db.delete(cycle)
+    await db.commit()
+    cache_invalidate(f"menstrual:{current_user.id}")
+    return {"deleted": True}
 
 # Workout endpoints
 @app.post("/api/workouts", response_model=WorkoutResponse)
@@ -513,9 +542,15 @@ async def create_todo(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
+    import re
+    clean_text = re.sub(r'<[^>]+>', '', todo_data.text).strip()
+    if not clean_text:
+        raise HTTPException(status_code=422, detail="Todo text cannot be empty")
+    if len(clean_text) > 500:
+        raise HTTPException(status_code=422, detail="Todo text must be 500 characters or less")
     new_todo = Todo(
         user_id=current_user.id,
-        text=todo_data.text,
+        text=clean_text,
         done=False,
         created_at=datetime.utcnow()
     )
