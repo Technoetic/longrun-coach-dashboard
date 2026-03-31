@@ -1,0 +1,273 @@
+/* =========================================================
+   quiz.css — 퀴즈 컴포넌트
+   퀴즈 문제, 선택지, 피드백, 결과 스타일
+   ========================================================= */
+
+/* ---------------------------------------------------------
+   10. 퀴즈 컴포넌트
+   각 질문 카드: is-answered/is-correct/is-wrong 상태 클래스로 시각 피드백
+   --------------------------------------------------------- */
+
+/* 질문 카드 기본 — 상태에 따라 테두리 색상 변경 */
+.quiz-question {
+	background: var(--bg-card);
+	border: 1px solid var(--border-color);
+	border-radius: var(--border-radius-lg);
+	padding: var(--space-6);
+	transition: border-color var(--transition-base);
+}
+
+.quiz-question.is-answered {
+	border-color: var(--border-color-strong);
+}
+
+.quiz-question.is-correct {
+	border-color: rgb(46 204 113 / 40%);
+	box-shadow: 0 0 16px rgb(46 204 113 / 8%);
+}
+
+.quiz-question.is-wrong {
+	border-color: rgb(229 57 53 / 40%);
+	box-shadow: 0 0 16px rgb(229 57 53 / 8%);
+}
+
+.quiz-question__header {
+	display: flex;
+	align-items: flex-start;
+	gap: var(--space-4);
+	margin-bottom: var(--space-5);
+}
+
+/* 오렌지 배지 번호 (Q1, Q2, Q3) */
+.quiz-number {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 32px;
+	height: 32px;
+	font-size: var(--font-size-xs);
+	font-weight: var(--font-weight-bold);
+	background: var(--accent);
+	color: #0f0f1a;
+	border: 1px solid var(--accent);
+	border-radius: var(--border-radius-md);
+	flex-shrink: 0;
+	letter-spacing: 0.02em;
+}
+
+.quiz-question__text {
+	font-size: var(--font-size-base);
+	font-weight: var(--font-weight-semibold);
+	color: var(--text-primary);
+	line-height: var(--line-height-snug);
+	margin: 0;
+}
+
+.quiz-question__text small {
+	display: block;
+	font-size: var(--font-size-xs);
+	color: var(--text-muted);
+	font-weight: var(--font-weight-normal);
+	margin-top: var(--space-2);
+	line-height: var(--line-height-relaxed);
+}
+
+/* 퀴즈 예시 격자 — 3×3 BFS 경로 시각화 미니맵 */
+.quiz-grid {
+	display: grid;
+	grid-template-columns: repeat(3, 40px);
+	grid-template-rows: repeat(3, 40px);
+	gap: 2px;
+	margin: var(--space-4) 0;
+	background: var(--bg-code);
+	padding: var(--space-3);
+	border-radius: var(--border-radius-md);
+	width: fit-content;
+}
+
+/* 격자 셀 — start(녹), goal(빨), 일반(회) 상태 표시 */
+.quiz-grid__cell {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: var(--font-size-xs);
+	font-weight: var(--font-weight-semibold);
+	font-family: var(--font-family-mono);
+	background: var(--color-unvisited);
+	color: #333;
+	border-radius: var(--border-radius-sm);
+	border: 1px solid rgb(0 0 0 / 12%);
+}
+
+.quiz-grid__cell--start {
+	background: var(--color-start);
+	color: #fff;
+}
+
+.quiz-grid__cell--goal {
+	background: var(--color-goal);
+	color: #fff;
+}
+
+/* 퀴즈 선택지 목록 — 세로 스택 */
+.quiz-options {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-2);
+	margin-top: var(--space-4);
+}
+
+/* 선택지 버튼 — selected/correct/wrong 상태 클래스로 색상 피드백 */
+.quiz-option {
+	display: flex;
+	align-items: center;
+	gap: var(--space-3);
+	width: 100%;
+	padding: var(--space-3) var(--space-4);
+	background: rgb(255 255 255 / 4%);
+	border: 1px solid var(--border-color);
+	border-radius: var(--border-radius-md);
+	color: var(--text-secondary);
+	font-size: var(--font-size-sm);
+	line-height: var(--line-height-snug);
+	cursor: pointer;
+	transition:
+		background var(--transition-fast),
+		border-color var(--transition-fast),
+		color var(--transition-fast);
+	text-align: left;
+}
+
+.quiz-option:hover:not(:disabled) {
+	background: rgb(255 255 255 / 8%);
+	border-color: rgb(255 255 255 / 20%);
+	color: var(--text-primary);
+}
+
+.quiz-option.selected {
+	background: rgb(33 150 243 / 12%);
+	border-color: rgb(33 150 243 / 45%);
+	color: var(--text-primary);
+}
+
+.quiz-option.correct {
+	background: rgb(46 204 113 / 12%);
+	border-color: rgb(46 204 113 / 50%);
+	color: var(--color-success);
+}
+
+.quiz-option.wrong {
+	background: rgb(229 57 53 / 10%);
+	border-color: rgb(229 57 53 / 40%);
+	color: var(--color-error);
+}
+
+.quiz-option:disabled {
+	cursor: not-allowed;
+}
+
+.quiz-option__key {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 24px;
+	height: 24px;
+	font-size: var(--font-size-xs);
+	font-weight: var(--font-weight-bold);
+	background: rgb(255 255 255 / 8%);
+	border: 1px solid var(--border-color-strong);
+	border-radius: var(--border-radius-sm);
+	flex-shrink: 0;
+	transition:
+		background var(--transition-fast),
+		border-color var(--transition-fast);
+}
+
+.quiz-option.correct .quiz-option__key {
+	background: rgb(46 204 113 / 20%);
+	border-color: var(--color-success);
+}
+
+.quiz-option.wrong .quiz-option__key {
+	background: rgb(229 57 53 / 15%);
+	border-color: var(--color-error);
+}
+
+.quiz-option__text {
+	flex: 1;
+}
+
+/* 정답/오답 인라인 피드백 — correct/wrong 클래스로 표시 전환 */
+.quiz-feedback {
+	margin-top: var(--space-3);
+	padding: var(--space-3) var(--space-4);
+	border-radius: var(--border-radius-md);
+	font-size: var(--font-size-sm);
+	line-height: var(--line-height-relaxed);
+	display: none;
+}
+
+.quiz-feedback.correct {
+	display: block;
+	background: rgb(46 204 113 / 10%);
+	border: 1px solid rgb(46 204 113 / 30%);
+	color: var(--color-success);
+}
+
+.quiz-feedback.wrong {
+	display: block;
+	background: rgb(229 57 53 / 8%);
+	border: 1px solid rgb(229 57 53 / 25%);
+	color: #ef9a9a;
+}
+
+.quiz-feedback::before {
+	display: inline-block;
+	margin-right: var(--space-2);
+	font-weight: var(--font-weight-bold);
+}
+
+.quiz-feedback.correct::before {
+	content: "✓";
+}
+
+.quiz-feedback.wrong::before {
+	content: "✗";
+}
+
+/* 전체 퀴즈 완료 결과 화면 */
+.quiz-result__icon {
+	font-size: 3rem;
+	margin-bottom: var(--space-4);
+	line-height: 1;
+}
+
+.quiz-result__title {
+	font-size: var(--font-size-2xl);
+	font-weight: var(--font-weight-extrabold);
+	color: var(--text-primary);
+	margin-bottom: var(--space-3);
+}
+
+.quiz-result__score {
+	font-size: var(--font-size-lg);
+	color: var(--text-secondary);
+	margin-bottom: var(--space-6);
+}
+
+/* ---------------------------------------------------------
+   모바일 반응형 — 퀴즈 컴포넌트
+   --------------------------------------------------------- */
+@media (width <= 767px) {
+	.quiz-question {
+		padding: var(--space-4);
+	}
+
+	.quiz-question__header {
+		gap: var(--space-3);
+	}
+
+	.quiz-option {
+		padding: var(--space-3);
+	}
+}

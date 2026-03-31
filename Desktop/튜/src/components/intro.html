@@ -1,0 +1,82 @@
+<!-- =====================================================
+     intro.html — BFS 개념 소개 섹션 컴포넌트
+     ===================================================== -->
+    <!-- ===== INTRO SECTION ===== -->
+    <section id="intro" class="intro-section" aria-labelledby="intro-heading">
+      <div class="section-container">
+        <h2 id="intro-heading" class="section-title">BFS란?</h2>
+        <p class="section-subtitle">
+          너비 우선 탐색(Breadth-First Search)은 시작점에서 출발해<br>
+          가장 가까운 노드부터 차례로 탐색하는 알고리즘입니다.
+        </p>
+
+        <div class="intro-cards">
+          <div class="intro-card">
+            <div class="intro-card__icon" aria-hidden="true">🌊</div>
+            <h3 class="intro-card__title">파도처럼 퍼진다</h3>
+            <p class="intro-card__desc">
+              시작점에서 동심원처럼 모든 방향으로 동시에 확산합니다.
+              가까운 노드부터 탐색하기 때문에 항상 최단 거리를 보장합니다.
+            </p>
+          </div>
+          <div class="intro-card">
+            <div class="intro-card__icon" aria-hidden="true">📋</div>
+            <h3 class="intro-card__title">큐(Queue) 구조</h3>
+            <p class="intro-card__desc">
+              탐색 대기 중인 노드를 큐(FIFO)에 저장합니다.
+              먼저 들어온 노드를 먼저 처리하여 최단 경로를 찾습니다.
+            </p>
+          </div>
+          <div class="intro-card">
+            <div class="intro-card__icon" aria-hidden="true">🗺️</div>
+            <h3 class="intro-card__title">최단 경로 보장</h3>
+            <p class="intro-card__desc">
+              모든 간선의 가중치가 동일하다면, BFS는 항상
+              시작점에서 목표점까지의 최단 경로를 찾아냅니다.
+            </p>
+          </div>
+        </div>
+
+        <!-- BFS 개념 요약 -->
+        <div class="intro-concept">
+          <div class="concept-text">
+            <h3>핵심 개념: 확장하는 경계(Frontier)</h3>
+            <p>
+              BFS에서 핵심 개념은 <strong class="highlight">Frontier(경계)</strong>입니다.
+              현재 탐색 중인 노드들의 집합으로, 방문한 영역과 아직 방문하지 않은 영역의 경계선입니다.
+            </p>
+            <p>
+              매 단계마다 Frontier가 한 칸씩 바깥으로 확장되고,
+              탐색이 끝난 노드는 Visited(방문 완료) 상태로 바뀝니다.
+            </p>
+            <ul class="concept-list">
+              <li><span class="color-dot" style="background:var(--color-start)"></span> <strong>시작점(Start)</strong>: BFS 탐색의 출발점</li>
+              <li><span class="color-dot" style="background:var(--color-frontier)"></span> <strong>경계(Frontier)</strong>: 큐에 대기 중인 노드</li>
+              <li><span class="color-dot" style="background:var(--color-visited)"></span> <strong>방문 완료(Visited)</strong>: 탐색이 끝난 노드</li>
+              <li><span class="color-dot" style="background:var(--color-goal)"></span> <strong>목표(Goal)</strong>: 도착점</li>
+              <li><span class="color-dot" style="background:var(--color-path)"></span> <strong>최단 경로(Path)</strong>: 탐색 결과 경로</li>
+            </ul>
+          </div>
+          <div class="concept-code">
+            <div class="pseudocode">
+              <div class="pseudocode__header">BFS 의사코드 (Python)</div>
+              <pre class="pseudocode__body"><code><span class="code-keyword">frontier</span> = Queue()
+frontier.put(<span class="code-start">start</span>)
+came_from = dict()
+came_from[<span class="code-start">start</span>] = None
+
+<span class="code-keyword">while not</span> frontier.empty():
+    current = frontier.get()
+
+    <span class="code-keyword">if</span> current == <span class="code-goal">goal</span>:
+        <span class="code-keyword">break</span>
+
+    <span class="code-keyword">for</span> next <span class="code-keyword">in</span> graph.neighbors(current):
+        <span class="code-keyword">if</span> next <span class="code-keyword">not in</span> came_from:
+            frontier.put(next)
+            came_from[next] = current</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>

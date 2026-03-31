@@ -1,0 +1,798 @@
+/* =========================================================
+   components.css — BFS Explorer UI 컴포넌트
+   버튼, 카드, 패널, 퀴즈, 슬라이더, 의사코드 등
+   ========================================================= */
+
+/* ---------------------------------------------------------
+   1. 버튼 컴포넌트
+   --------------------------------------------------------- */
+
+/* 기본 버튼 (ghost — secondary 역할) */
+.btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: var(--space-2);
+	padding: var(--space-2) var(--space-5);
+	font-size: var(--font-size-sm);
+	font-weight: var(--font-weight-semibold);
+	line-height: 1;
+	border-radius: var(--border-radius-md);
+	border: 1px solid transparent;
+	cursor: pointer;
+	transition:
+		background var(--transition-fast),
+		color var(--transition-fast),
+		border-color var(--transition-fast),
+		box-shadow var(--transition-fast),
+		transform var(--transition-fast);
+	white-space: nowrap;
+	user-select: none;
+	min-height: 36px;
+	text-decoration: none;
+
+	/* ghost(secondary): 아웃라인 스타일 */
+	color: var(--text-secondary);
+	background: transparent;
+	border-color: var(--border-color-strong);
+}
+
+.btn:hover:not(:disabled) {
+	background: rgb(255 255 255 / 8%);
+	color: var(--text-primary);
+	border-color: rgb(255 255 255 / 35%);
+	text-decoration: none;
+}
+
+.btn:active:not(:disabled) {
+	transform: scale(0.97);
+}
+
+.btn:disabled {
+	opacity: 0.35;
+	cursor: not-allowed;
+}
+
+/* 프라이머리 버튼 — 오렌지 채움, 강한 시각 계층 */
+.btn-primary {
+	background: var(--accent);
+	color: #0f0f1a;
+	border-color: var(--accent);
+	font-weight: var(--font-weight-bold);
+	letter-spacing: 0.01em;
+	box-shadow: 0 2px 8px rgb(255 152 0 / 30%);
+}
+
+.btn-primary:hover:not(:disabled) {
+	background: var(--accent-hover);
+	border-color: var(--accent-hover);
+	color: #0f0f1a;
+	box-shadow: var(--shadow-glow-accent);
+	text-decoration: none;
+}
+
+/* secondary 버튼 — 반투명 채움, 테두리 강조 */
+.btn-secondary {
+	background: rgb(255 255 255 / 6%);
+	color: var(--text-secondary);
+	border-color: rgb(255 255 255 / 25%);
+}
+
+.btn-secondary:hover:not(:disabled) {
+	background: rgb(255 255 255 / 12%);
+	color: var(--text-primary);
+	border-color: rgb(255 255 255 / 40%);
+	text-decoration: none;
+}
+
+/* 아이콘 버튼 */
+.btn-icon {
+	padding: var(--space-2) var(--space-4);
+	gap: var(--space-2);
+}
+
+.btn-icon svg {
+	flex-shrink: 0;
+	width: 16px;
+	height: 16px;
+}
+
+/* 재생/일시정지 버튼 */
+.btn-play {
+	min-width: 120px;
+	padding: var(--space-3) var(--space-6);
+	font-size: var(--font-size-base);
+	min-height: 44px;
+	border-radius: var(--border-radius-full);
+}
+
+.btn-play svg {
+	width: 18px;
+	height: 18px;
+	flex-shrink: 0;
+}
+
+/* 히어로 CTA 버튼 — d3gt 스타일: 아웃라인 + 흰 텍스트 */
+.btn-hero {
+	background: transparent;
+	color: var(--text-primary);
+	border: 2px solid rgb(255 255 255 / 70%);
+	border-radius: var(--border-radius-full);
+	padding: var(--space-4) var(--space-10);
+	font-size: var(--font-size-md);
+	font-weight: var(--font-weight-semibold);
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	backdrop-filter: blur(4px);
+	box-shadow: 0 0 0 0 rgb(255 255 255 / 0%);
+	transition:
+		background var(--transition-base),
+		border-color var(--transition-base),
+		box-shadow var(--transition-base),
+		transform var(--transition-fast);
+}
+
+.btn-hero:hover:not(:disabled) {
+	background: rgb(255 255 255 / 10%);
+	border-color: rgb(255 255 255 / 100%);
+	box-shadow: 0 0 24px rgb(255 255 255 / 15%);
+	color: var(--text-primary);
+	transform: translateY(-1px);
+	text-decoration: none;
+}
+
+/* 프리셋 버튼 */
+.btn-preset {
+	padding: var(--space-1) var(--space-3);
+	font-size: var(--font-size-xs);
+	min-height: 30px;
+	border-radius: var(--border-radius-sm);
+	background: rgb(255 255 255 / 4%);
+	border-color: var(--border-color);
+	color: var(--text-muted);
+}
+
+.btn-preset:hover:not(:disabled) {
+	background: rgb(255 255 255 / 8%);
+	color: var(--text-secondary);
+}
+
+.btn-preset--active,
+.btn-preset:focus-visible {
+	background: var(--accent-dim);
+	color: var(--accent);
+	border-color: var(--accent);
+}
+
+/* ---------------------------------------------------------
+   2. 컨트롤 패널
+   --------------------------------------------------------- */
+.controls-panel {
+	background: var(--bg-card);
+	border: 1px solid var(--border-color);
+	border-radius: var(--border-radius-lg);
+	padding: var(--space-3) var(--space-4);
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-2);
+}
+
+.controls-panel__row {
+	display: flex;
+	align-items: center;
+	gap: var(--space-3);
+	flex-wrap: wrap;
+}
+
+/* 메인 컨트롤 행 */
+.controls-panel__row--main {
+	justify-content: center;
+	gap: var(--space-3);
+	padding: var(--space-2) 0;
+}
+
+/* 속도 행 */
+.controls-panel__row--speed {
+	align-items: center;
+	gap: var(--space-3);
+	padding: var(--space-2) 0;
+}
+
+/* 프리셋 행 */
+.controls-panel__row--presets {
+	flex-wrap: wrap;
+	gap: var(--space-2);
+}
+
+/* 정보 행 */
+.controls-panel__row--info {
+	justify-content: space-between;
+	padding-top: var(--space-1);
+	border-top: 1px solid var(--border-color);
+}
+
+/* ---------------------------------------------------------
+   3. 속도 슬라이더
+   --------------------------------------------------------- */
+.speed-label {
+	display: flex;
+	align-items: center;
+	gap: var(--space-1);
+	font-size: var(--font-size-xs);
+	color: var(--text-muted);
+	white-space: nowrap;
+	flex-shrink: 0;
+}
+
+.speed-value-min,
+.speed-value-max {
+	font-size: var(--font-size-xs);
+	color: var(--text-muted);
+	flex-shrink: 0;
+}
+
+#speed-slider,
+.speed-slider {
+	appearance: none;
+	flex: 1;
+	min-width: 80px;
+	max-width: 240px;
+	height: 4px;
+	background: var(--border-color-strong);
+	border-radius: var(--border-radius-full);
+	outline: none;
+	cursor: pointer;
+	transition: background var(--transition-fast);
+}
+
+#speed-slider:hover,
+.speed-slider:hover {
+	background: rgb(255 255 255 / 20%);
+}
+
+/* 웹킷 슬라이더 thumb */
+#speed-slider::-webkit-slider-thumb,
+.speed-slider::-webkit-slider-thumb {
+	appearance: none;
+	width: 14px;
+	height: 14px;
+	margin-top: -5px;
+	border-radius: 50%;
+	background: var(--accent);
+	cursor: pointer;
+	box-shadow: 0 0 0 2px rgb(255 152 0 / 25%);
+	transition:
+		box-shadow var(--transition-fast),
+		transform var(--transition-fast);
+}
+
+#speed-slider::-webkit-slider-thumb:hover,
+.speed-slider::-webkit-slider-thumb:hover {
+	box-shadow: 0 0 0 4px rgb(255 152 0 / 35%);
+	transform: scale(1.15);
+}
+
+/* 파이어폭스 슬라이더 thumb */
+#speed-slider::-moz-range-thumb,
+.speed-slider::-moz-range-thumb {
+	width: 14px;
+	height: 14px;
+	border-radius: 50%;
+	background: var(--accent);
+	cursor: pointer;
+	border: none;
+	box-shadow: 0 0 0 2px rgb(255 152 0 / 25%);
+}
+
+/* 슬라이더 fill (웹킷) */
+#speed-slider::-webkit-slider-runnable-track,
+.speed-slider::-webkit-slider-runnable-track {
+	height: 4px;
+	border-radius: var(--border-radius-full);
+}
+
+.speed-current {
+	font-size: var(--font-size-xs);
+	font-family: var(--font-family-mono);
+	color: var(--accent);
+	font-weight: var(--font-weight-semibold);
+	min-width: 36px;
+	text-align: right;
+}
+
+/* ---------------------------------------------------------
+   4. 단계 표시 / 진행바
+   --------------------------------------------------------- */
+.step-indicator {
+	font-size: var(--font-size-sm);
+	font-family: var(--font-family-mono);
+	color: var(--text-secondary);
+	font-weight: var(--font-weight-medium);
+}
+
+.status-badge {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--space-1);
+	padding: 2px var(--space-2);
+	font-size: var(--font-size-xs);
+	font-weight: var(--font-weight-semibold);
+	border-radius: var(--border-radius-full);
+	background: rgb(255 255 255 / 6%);
+	color: var(--text-muted);
+	border: 1px solid var(--border-color);
+	text-transform: uppercase;
+	letter-spacing: var(--letter-spacing-wide);
+}
+
+.status-badge--playing {
+	background: rgb(255 152 0 / 12%);
+	color: var(--accent);
+	border-color: var(--accent);
+}
+
+.status-badge--done {
+	background: rgb(0 188 212 / 10%);
+	color: var(--color-visited);
+	border-color: var(--color-visited);
+}
+
+.status-badge--found {
+	background: rgb(156 39 176 / 12%);
+	color: var(--color-path);
+	border-color: var(--color-path);
+}
+
+/* 현재 단계 표시 */
+.step-display {
+	display: flex;
+	align-items: baseline;
+	gap: var(--space-2);
+}
+
+.step-display__number {
+	font-size: var(--font-size-xl);
+	font-weight: var(--font-weight-extrabold);
+	font-family: var(--font-family-mono);
+	color: var(--accent);
+	line-height: 1;
+}
+
+.step-display__label {
+	font-size: var(--font-size-sm);
+	color: var(--text-muted);
+}
+
+/* 진행 바 */
+.progress-bar-wrap {
+	display: flex;
+	align-items: center;
+	gap: var(--space-2);
+}
+
+.progress-bar {
+	flex: 1;
+	height: 6px;
+	background: var(--border-color-strong);
+	border-radius: var(--border-radius-full);
+	overflow: hidden;
+}
+
+.progress-bar__fill {
+	height: 100%;
+	width: 0%;
+	background: linear-gradient(90deg, var(--color-visited), var(--accent));
+	border-radius: var(--border-radius-full);
+	transition: width var(--transition-base);
+}
+
+.progress-bar__label {
+	font-size: var(--font-size-xs);
+	color: var(--text-muted);
+	min-width: 32px;
+	text-align: right;
+	font-family: var(--font-family-mono);
+}
+
+/* ---------------------------------------------------------
+   5. 설명 패널 내부 섹션
+   --------------------------------------------------------- */
+.explanation-panel__section {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-2);
+	flex-shrink: 0;
+}
+
+/* 의사코드 섹션 — 남은 공간 차지하도록 늘어남 */
+.explanation-panel__section:has(.pseudocode--compact) {
+	flex: 1;
+	min-height: 0;
+}
+
+.explanation-panel__section + .explanation-panel__section {
+	padding-top: var(--space-2);
+	border-top: 1px solid var(--border-color);
+}
+
+.explanation-panel__title {
+	font-size: var(--font-size-xs);
+	font-weight: var(--font-weight-semibold);
+	color: var(--text-muted);
+	text-transform: uppercase;
+	letter-spacing: var(--letter-spacing-wide);
+	margin: 0;
+}
+
+.explanation-panel__text {
+	font-size: var(--font-size-sm);
+	color: var(--text-secondary);
+	line-height: var(--line-height-relaxed);
+	overflow-wrap: break-word;
+	word-break: break-word;
+}
+
+/* 큐 표시 */
+.queue-display {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--space-1);
+	min-height: 28px;
+	align-items: center;
+}
+
+.queue-display__empty {
+	font-size: var(--font-size-xs);
+	color: var(--text-muted);
+	font-style: italic;
+}
+
+.queue-item {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 28px;
+	height: 28px;
+	font-size: var(--font-size-xs);
+	font-family: var(--font-family-mono);
+	font-weight: var(--font-weight-bold);
+	background: var(--accent-dim);
+	color: var(--accent);
+	border: 1px solid rgb(255 152 0 / 30%);
+	border-radius: var(--border-radius-sm);
+}
+
+/* ---------------------------------------------------------
+   6. 의사코드 블록
+   --------------------------------------------------------- */
+.pseudocode {
+	background: var(--bg-code);
+	border: 1px solid var(--border-color);
+	border-radius: var(--border-radius-md);
+	overflow: hidden;
+}
+
+.pseudocode__header {
+	padding: var(--space-2) var(--space-4);
+	font-size: var(--font-size-xs);
+	font-weight: var(--font-weight-semibold);
+	color: var(--text-muted);
+	background: rgb(255 255 255 / 4%);
+	border-bottom: 1px solid var(--border-color);
+	letter-spacing: var(--letter-spacing-wide);
+	text-transform: uppercase;
+}
+
+.pseudocode__body {
+	padding: var(--space-4);
+	margin: 0;
+	overflow-x: auto;
+	font-family: var(--font-family-mono);
+	font-size: var(--font-size-sm);
+	line-height: 1.7;
+	color: var(--text-code);
+	/* pre 요소 내 줄바꿈 텍스트노드 높이 제거 */
+	font-size: 0;
+	line-height: 0;
+}
+
+.pseudocode__body code {
+	font-family: inherit;
+	font-size: var(--font-size-sm);
+	display: block;
+}
+
+/* 코드 하이라이트 색상 */
+.code-keyword {
+	color: #ff7b72; /* 빨강 - 키워드 */
+	font-weight: var(--font-weight-semibold);
+}
+
+.code-start {
+	color: #7ee787; /* 초록 - 시작점 */
+	font-weight: var(--font-weight-semibold);
+}
+
+.code-goal {
+	color: #f85149; /* 빨강 - 목표점 */
+	font-weight: var(--font-weight-semibold);
+}
+
+.code-comment {
+	color: var(--text-muted);
+	font-style: italic;
+}
+
+/* 의사코드 컴팩트 (패널용) */
+.pseudocode--compact {
+	flex: 1;
+	min-height: 0;
+	overflow: hidden;
+	display: flex;
+	flex-direction: column;
+}
+
+.pseudocode--compact .pseudocode__body {
+	font-size: 0;
+	line-height: 0;
+	padding: var(--space-2);
+	flex: 1;
+	min-height: 0;
+	overflow-y: auto;
+}
+
+.pseudocode--compact .pseudocode__body code {
+	font-size: 11px;
+	line-height: 1.45;
+}
+
+/* 현재 실행 줄 하이라이트 */
+.pc-line {
+	display: block;
+	padding: 1px var(--space-2);
+	border-radius: var(--border-radius-sm);
+	transition:
+		background var(--transition-fast),
+		color var(--transition-fast);
+	border-left: 2px solid transparent;
+}
+
+.pc-line--active {
+	background: rgb(255 152 0 / 15%);
+	color: var(--accent);
+	border-left-color: var(--accent);
+}
+
+/* ---------------------------------------------------------
+   7. 범례 (Legend)
+   --------------------------------------------------------- */
+.legend-list {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-2);
+}
+
+.legend-item {
+	display: flex;
+	align-items: center;
+	gap: var(--space-3);
+	font-size: var(--font-size-xs);
+	color: var(--text-secondary);
+}
+
+.legend-dot {
+	display: inline-block;
+	width: 14px;
+	height: 14px;
+	border-radius: var(--border-radius-sm);
+	flex-shrink: 0;
+	box-shadow: var(--shadow-sm);
+}
+
+.legend-dot--dashed {
+	border: 2px dashed;
+	background: transparent;
+	opacity: 0.8;
+}
+
+/* ---------------------------------------------------------
+   8. 인트로 카드
+   --------------------------------------------------------- */
+.intro-card {
+	background: var(--bg-card);
+	border: 1px solid rgb(255 255 255 / 14%); /* N3: border-color(8%)→14% 대비 강화 */
+	border-bottom: 3px solid rgb(255 152 0 / 22%); /* N3: 오렌지 하단 강조선 */
+	border-radius: var(--border-radius-lg);
+	padding: var(--space-6);
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-3);
+	box-shadow:
+		var(--shadow-md),
+		inset 0 1px 0 rgb(255 255 255 / 5%); /* N3: 그림자 강화 */
+
+	transition:
+		border-color var(--transition-base),
+		box-shadow var(--transition-base),
+		transform var(--transition-base);
+}
+
+.intro-card:hover {
+	border-color: rgb(255 152 0 / 40%);
+	border-bottom-color: rgb(255 152 0 / 50%);
+	box-shadow:
+		var(--shadow-md),
+		0 0 24px rgb(255 152 0 / 10%);
+	transform: translateY(-2px);
+}
+
+.intro-card__icon {
+	font-size: 2.75rem; /* 2.25rem → 2.75rem 확대 */
+	line-height: 1;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 56px;
+	height: 56px;
+	background: var(--accent-dim);
+	border-radius: var(--border-radius-md);
+	border: 1px solid rgb(255 152 0 / 20%);
+	box-shadow: 0 0 12px rgb(255 152 0 / 15%);
+}
+
+.intro-card__title {
+	font-size: var(--font-size-md);
+	font-weight: var(--font-weight-semibold);
+	color: var(--text-primary);
+}
+
+.intro-card__desc {
+	font-size: var(--font-size-sm);
+	color: var(--text-secondary);
+	line-height: var(--line-height-relaxed);
+}
+
+/* ---------------------------------------------------------
+   9. 앱 카드 (실생활 사례)
+   --------------------------------------------------------- */
+.app-card {
+	background: var(--bg-card);
+	border: 1px solid rgb(0 188 212 / 18%); /* N3: 시안 테두리로 대비 강화 */
+	border-bottom: 3px solid rgb(0 188 212 / 25%); /* N3: 시안 하단 강조선 */
+	border-radius: var(--border-radius-lg);
+	padding: var(--space-6);
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-3);
+	box-shadow:
+		var(--shadow-md),
+		inset 0 1px 0 rgb(255 255 255 / 5%); /* N3: 그림자 강화 */
+
+	transition:
+		border-color var(--transition-base),
+		box-shadow var(--transition-base),
+		transform var(--transition-base);
+	cursor: default;
+}
+
+.app-card:hover {
+	border-color: rgb(0 188 212 / 45%);
+	border-bottom-color: rgb(0 188 212 / 55%);
+	box-shadow:
+		var(--shadow-md),
+		0 0 28px rgb(0 188 212 / 12%);
+	transform: translateY(-3px);
+}
+
+.app-card__icon {
+	font-size: 2.75rem; /* 아이콘 크기 통일 확대 */
+	line-height: 1;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 56px;
+	height: 56px;
+	background: var(--accent-secondary-dim);
+	border-radius: var(--border-radius-md);
+	border: 1px solid rgb(0 188 212 / 20%);
+	box-shadow: 0 0 12px rgb(0 188 212 / 12%);
+}
+
+.app-card__title {
+	font-size: var(--font-size-md);
+	font-weight: var(--font-weight-semibold);
+	color: var(--text-primary);
+	margin: 0;
+}
+
+.app-card__desc {
+	font-size: var(--font-size-sm);
+	color: var(--text-secondary);
+	line-height: var(--line-height-relaxed);
+	flex: 1;
+}
+
+.app-card__tag {
+	display: inline-flex;
+	align-items: center;
+	padding: 2px var(--space-2);
+	font-size: var(--font-size-xs);
+	font-weight: var(--font-weight-semibold);
+	border-radius: var(--border-radius-full);
+	background: rgb(0 188 212 / 10%);
+	color: var(--color-visited);
+	border: 1px solid rgb(0 188 212 / 25%);
+	letter-spacing: 0.03em;
+	width: fit-content;
+}
+
+/* ---------------------------------------------------------
+   11. 네비게이션 바 — 추가 상태
+   --------------------------------------------------------- */
+.navbar__hamburger[aria-expanded="true"] .hamburger-bar:nth-child(1) {
+	transform: translateY(7px) rotate(45deg);
+}
+
+.navbar__hamburger[aria-expanded="true"] .hamburger-bar:nth-child(2) {
+	opacity: 0;
+	transform: scaleX(0);
+}
+
+.navbar__hamburger[aria-expanded="true"] .hamburger-bar:nth-child(3) {
+	transform: translateY(-7px) rotate(-45deg);
+}
+
+/* ---------------------------------------------------------
+   12. 모바일 컨트롤 패널 반응형
+   --------------------------------------------------------- */
+@media (width <= 767px) {
+	.controls-panel {
+		padding: var(--space-3) var(--space-4);
+	}
+
+	.controls-panel__row--main {
+		gap: var(--space-2);
+	}
+
+	.btn-play {
+		min-width: 100px;
+		font-size: var(--font-size-sm);
+		padding: var(--space-3) var(--space-4);
+	}
+
+	.btn-icon .btn-label {
+		display: none; /* 모바일에서 레이블 숨김 */
+	}
+
+	.btn-icon {
+		padding: var(--space-3);
+		min-height: 44px;
+		min-width: 44px;
+	}
+
+	.btn-play .btn-label {
+		display: inline;
+	}
+
+	.controls-panel__row--speed {
+		gap: var(--space-2);
+	}
+
+	#speed-slider,
+	.speed-slider {
+		min-width: 60px;
+	}
+
+	.controls-panel__row--presets {
+		gap: var(--space-1);
+	}
+
+	.btn-preset {
+		font-size: 11px;
+		padding: var(--space-1) var(--space-2);
+	}
+
+	.step-display__number {
+		font-size: var(--font-size-2xl);
+	}
+}

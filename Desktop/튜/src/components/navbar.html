@@ -1,0 +1,30 @@
+<!-- =====================================================
+     navbar.html — 네비게이션 바 컴포넌트
+     빌드 시 html-bundler.ps1이 index.html에 인라인화
+     ===================================================== -->
+<header class="navbar" role="banner">
+  <div class="navbar__inner">
+    <div class="navbar__logo">
+      <span class="navbar__logo-icon" aria-hidden="true">⬡</span>
+      <span class="navbar__logo-text">BFS Explorer</span>
+    </div>
+    <nav class="navbar__nav" role="navigation" aria-label="주요 메뉴">
+      <a href="#intro" class="navbar__link">BFS란?</a>
+      <a href="#bfs-explorer" class="navbar__link">시각화</a>
+      <a href="#real-world" class="navbar__link">실생활 사례</a>
+      <a href="#quiz" class="navbar__link">퀴즈</a>
+    </nav>
+    <button type="button" class="navbar__hamburger" aria-label="메뉴 열기" aria-expanded="false" aria-controls="mobile-menu">
+      <span class="hamburger-bar"></span>
+      <span class="hamburger-bar"></span>
+      <span class="hamburger-bar"></span>
+    </button>
+  </div>
+  <!-- 모바일 메뉴 -->
+  <div class="navbar__mobile-menu" id="mobile-menu" aria-hidden="true">
+    <a href="#intro" class="navbar__mobile-link">BFS란?</a>
+    <a href="#bfs-explorer" class="navbar__mobile-link">시각화</a>
+    <a href="#real-world" class="navbar__mobile-link">실생활 사례</a>
+    <a href="#quiz" class="navbar__mobile-link">퀴즈</a>
+  </div>
+</header>

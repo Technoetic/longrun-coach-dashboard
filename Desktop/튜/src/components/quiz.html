@@ -1,0 +1,151 @@
+<!-- =====================================================
+     quiz.html — 퀴즈 섹션 컴포넌트
+     ===================================================== -->
+    <!-- ===== QUIZ SECTION ===== -->
+    <section id="quiz" class="quiz-section" aria-labelledby="quiz-heading">
+      <div class="section-container">
+        <h2 id="quiz-heading" class="section-title">이해도 확인 퀴즈</h2>
+        <p class="section-subtitle">
+          BFS를 제대로 이해했는지 3문제로 확인해 보세요.
+        </p>
+
+        <div class="quiz-container" role="list">
+
+          <!-- 퀴즈 1 -->
+          <article class="quiz-question" role="listitem" data-question="1" data-answer="b">
+            <div class="quiz-question__header">
+              <span class="quiz-number">Q1</span>
+              <h3 class="quiz-question__text">
+                BFS에서 Frontier(경계)란 무엇인가요?
+              </h3>
+            </div>
+            <ul class="quiz-options" role="group" aria-label="Q1 선택지">
+              <li>
+                <button type="button" class="quiz-option" data-value="a" aria-pressed="false">
+                  <span class="quiz-option__key">A</span>
+                  <span class="quiz-option__text">이미 방문을 완료한 노드들의 집합</span>
+                </button>
+              </li>
+              <li>
+                <button type="button" class="quiz-option" data-value="b" aria-pressed="false">
+                  <span class="quiz-option__key">B</span>
+                  <span class="quiz-option__text">큐에 대기 중인, 다음에 탐색할 노드들의 집합</span>
+                </button>
+              </li>
+              <li>
+                <button type="button" class="quiz-option" data-value="c" aria-pressed="false">
+                  <span class="quiz-option__key">C</span>
+                  <span class="quiz-option__text">아직 방문하지 않은 모든 노드들의 집합</span>
+                </button>
+              </li>
+              <li>
+                <button type="button" class="quiz-option" data-value="d" aria-pressed="false">
+                  <span class="quiz-option__key">D</span>
+                  <span class="quiz-option__text">최단 경로에 포함된 노드들의 집합</span>
+                </button>
+              </li>
+            </ul>
+            <div class="quiz-feedback" id="q1-feedback" aria-live="polite"></div>
+          </article>
+
+          <!-- 퀴즈 2 -->
+          <article class="quiz-question" role="listitem" data-question="2" data-answer="c">
+            <div class="quiz-question__header">
+              <span class="quiz-number">Q2</span>
+              <h3 class="quiz-question__text">
+                BFS가 사용하는 자료구조는 무엇인가요?
+              </h3>
+            </div>
+            <ul class="quiz-options" role="group" aria-label="Q2 선택지">
+              <li>
+                <button type="button" class="quiz-option" data-value="a" aria-pressed="false">
+                  <span class="quiz-option__key">A</span>
+                  <span class="quiz-option__text">스택 (Stack) — LIFO 방식</span>
+                </button>
+              </li>
+              <li>
+                <button type="button" class="quiz-option" data-value="b" aria-pressed="false">
+                  <span class="quiz-option__key">B</span>
+                  <span class="quiz-option__text">우선순위 큐 (Priority Queue)</span>
+                </button>
+              </li>
+              <li>
+                <button type="button" class="quiz-option" data-value="c" aria-pressed="false">
+                  <span class="quiz-option__key">C</span>
+                  <span class="quiz-option__text">큐 (Queue) — FIFO 방식</span>
+                </button>
+              </li>
+              <li>
+                <button type="button" class="quiz-option" data-value="d" aria-pressed="false">
+                  <span class="quiz-option__key">D</span>
+                  <span class="quiz-option__text">해시 테이블 (Hash Table)</span>
+                </button>
+              </li>
+            </ul>
+            <div class="quiz-feedback" id="q2-feedback" aria-live="polite"></div>
+          </article>
+
+          <!-- 퀴즈 3 -->
+          <article class="quiz-question" role="listitem" data-question="3" data-answer="a">
+            <div class="quiz-question__header">
+              <span class="quiz-number">Q3</span>
+              <h3 class="quiz-question__text">
+                아래 격자에서 S(시작)→G(목표)까지 BFS로 탐색할 때,
+                가장 먼저 방문하는 순서는?
+                <br>
+                <small>(S는 (0,0), G는 (2,2), 벽 없음, 상하좌우 이동)</small>
+              </h3>
+            </div>
+            <div class="quiz-grid" aria-label="3x3 예시 격자" role="img">
+              <div class="quiz-grid__cell quiz-grid__cell--start">S</div>
+              <div class="quiz-grid__cell">1</div>
+              <div class="quiz-grid__cell">2</div>
+              <div class="quiz-grid__cell">3</div>
+              <div class="quiz-grid__cell">4</div>
+              <div class="quiz-grid__cell">5</div>
+              <div class="quiz-grid__cell">6</div>
+              <div class="quiz-grid__cell">7</div>
+              <div class="quiz-grid__cell quiz-grid__cell--goal">G</div>
+            </div>
+            <ul class="quiz-options" role="group" aria-label="Q3 선택지">
+              <li>
+                <button type="button" class="quiz-option" data-value="a" aria-pressed="false">
+                  <span class="quiz-option__key">A</span>
+                  <span class="quiz-option__text">S → (0,1) → (1,0) → (0,2) → (1,1) → (2,0) → ... → G</span>
+                </button>
+              </li>
+              <li>
+                <button type="button" class="quiz-option" data-value="b" aria-pressed="false">
+                  <span class="quiz-option__key">B</span>
+                  <span class="quiz-option__text">S → (1,0) → (2,0) → (2,1) → (2,2)=G (직선)</span>
+                </button>
+              </li>
+              <li>
+                <button type="button" class="quiz-option" data-value="c" aria-pressed="false">
+                  <span class="quiz-option__key">C</span>
+                  <span class="quiz-option__text">S → (0,1) → (0,2) → (1,2) → G (직선)</span>
+                </button>
+              </li>
+              <li>
+                <button type="button" class="quiz-option" data-value="d" aria-pressed="false">
+                  <span class="quiz-option__key">D</span>
+                  <span class="quiz-option__text">S에서 G까지 한 번에 이동</span>
+                </button>
+              </li>
+            </ul>
+            <div class="quiz-feedback" id="q3-feedback" aria-live="polite"></div>
+          </article>
+
+        </div>
+        <!-- /quiz-container -->
+
+        <!-- 퀴즈 결과 -->
+        <div class="quiz-result" id="quiz-result" aria-live="polite" hidden>
+          <div class="quiz-result__icon" id="quiz-result-icon" aria-hidden="true">🎉</div>
+          <h3 class="quiz-result__title" id="quiz-result-title">완료!</h3>
+          <p class="quiz-result__score" id="quiz-result-score">3문제 중 0개 정답</p>
+          <button type="button" class="btn btn-primary" id="btn-quiz-retry">다시 풀기</button>
+        </div>
+
+      </div>
+    </section>
