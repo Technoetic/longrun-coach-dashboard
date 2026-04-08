@@ -1,14 +1,17 @@
-from fastapi import FastAPI, HTTPException, Depends, status
+from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel
 from passlib.context import CryptContext
-from jose import jwt
-from datetime import datetime, timedelta
+from jose import jwt, JWTError
+from sqlalchemy.orm import Session
+from datetime import datetime, timedelta, timezone
 import math
-import random
 import os
+
+from database import engine, get_db, Base
+from models import Account, Team, TeamMember, Player, DailyData, Dday
 
 # ── App ──
 app = FastAPI(title="LongRun Coach API", version="1.0.0")
@@ -24,14 +27,28 @@ app.add_middleware(
 # ── Auth ──
 SECRET_KEY = os.getenv("SECRET_KEY", "longrun-dev-secret-change-in-production")
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 1440  # 24h
+ACCESS_TOKEN_EXPIRE_MINUTES = 1440
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-# ── In-Memory DB (프로토타입) ──
-db_accounts = []
-db_teams = []
-db_dday = {}
+
+# ── DB Init ──
+@app.on_event("startup")
+def startup():
+    Base.metadata.create_all(bind=engine)
+    # 시드 데이터: 선수 5명 (팀 없이 독립)
+    db = next(get_db())
+    if db.query(Player).count() == 0:
+        players = [
+            Player(code="KM", name="김민수", number=7, status="g"),
+            Player(code="PK", name="박서진", number=11, status="r"),
+            Player(code="LJ", name="이준호", number=4, status="y"),
+            Player(code="CH", name="최하은", number=9, status="g"),
+            Player(code="JG", name="정기훈", number=22, status="y"),
+        ]
+        db.add_all(players)
+        db.commit()
+    db.close()
 
 
 # ── Models ──
@@ -75,23 +92,12 @@ class FindPwRequest(BaseModel):
 
 # ── Helpers ──
 def create_token(email: str) -> str:
-    expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     return jwt.encode({"sub": email, "exp": expire}, SECRET_KEY, algorithm=ALGORITHM)
 
 
-def get_current_user(token: str) -> dict:
-    try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        email = payload.get("sub")
-        account = next((a for a in db_accounts if a["email"] == email), None)
-        if not account:
-            raise HTTPException(status_code=401, detail="User not found")
-        return account
-    except jwt.JWTError:
-        raise HTTPException(status_code=401, detail="Invalid token")
-
-
 def generate_code() -> str:
+    import random
     chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
     return "".join(random.choice(chars) for _ in range(6))
 
@@ -103,42 +109,41 @@ def seed_random(seed: int) -> float:
 
 # ── Auth API ──
 @app.post("/api/auth/signup", response_model=TokenResponse)
-def signup(req: SignupRequest):
-    if any(a["email"] == req.email for a in db_accounts):
+def signup(req: SignupRequest, db: Session = Depends(get_db)):
+    if db.query(Account).filter(Account.email == req.email).first():
         raise HTTPException(status_code=409, detail="이미 등록된 이메일입니다")
-    account = {
-        "email": req.email,
-        "password": pwd_context.hash(req.password),
-        "phone": req.phone,
-        "teams": [],
-    }
-    db_accounts.append(account)
+    account = Account(
+        email=req.email,
+        password=pwd_context.hash(req.password),
+        phone=req.phone,
+    )
+    db.add(account)
+    db.commit()
     return TokenResponse(access_token=create_token(req.email))
 
 
 @app.post("/api/auth/login", response_model=TokenResponse)
-def login(req: LoginRequest):
-    account = next((a for a in db_accounts if a["email"] == req.email), None)
-    if not account or not pwd_context.verify(req.password, account["password"]):
+def login(req: LoginRequest, db: Session = Depends(get_db)):
+    account = db.query(Account).filter(Account.email == req.email).first()
+    if not account or not pwd_context.verify(req.password, account.password):
         raise HTTPException(status_code=401, detail="계정정보가 없거나 일치하지 않습니다")
     return TokenResponse(access_token=create_token(req.email))
 
 
 @app.post("/api/auth/find-id")
-def find_id(req: FindIdRequest):
+def find_id(req: FindIdRequest, db: Session = Depends(get_db)):
     phone = req.phone.replace("-", "")
-    account = next(
-        (a for a in db_accounts if a["phone"].replace("-", "") == phone), None
-    )
+    accounts = db.query(Account).all()
+    account = next((a for a in accounts if a.phone and a.phone.replace("-", "") == phone), None)
     if not account:
         raise HTTPException(status_code=404, detail="해당 전화번호로 가입된 계정이 없습니다")
-    masked = account["email"][:2] + "****" + account["email"][account["email"].index("@"):]
+    masked = account.email[:2] + "****" + account.email[account.email.index("@"):]
     return {"email": masked}
 
 
 @app.post("/api/auth/find-pw")
-def find_pw(req: FindPwRequest):
-    account = next((a for a in db_accounts if a["email"] == req.email), None)
+def find_pw(req: FindPwRequest, db: Session = Depends(get_db)):
+    account = db.query(Account).filter(Account.email == req.email).first()
     if not account:
         raise HTTPException(status_code=404, detail="해당 이메일로 가입된 계정이 없습니다")
     return {"message": "비밀번호 재설정 링크가 발송되었습니다"}
@@ -146,75 +151,87 @@ def find_pw(req: FindPwRequest):
 
 # ── Team API ──
 @app.post("/api/teams")
-def create_team(req: TeamCreateRequest):
+def create_team(req: TeamCreateRequest, db: Session = Depends(get_db)):
     code = generate_code()
-    team = {"sport": req.sport, "name": req.name, "code": code, "players": []}
-    db_teams.append(team)
-    return team
+    while db.query(Team).filter(Team.code == code).first():
+        code = generate_code()
+    team = Team(sport=req.sport, name=req.name, code=code)
+    db.add(team)
+    db.commit()
+    db.refresh(team)
+    return {"id": team.id, "sport": team.sport, "name": team.name, "code": team.code}
 
 
 @app.post("/api/teams/join")
-def join_team(req: TeamJoinRequest):
-    team = next((t for t in db_teams if t["code"] == req.code.upper()), None)
+def join_team(req: TeamJoinRequest, db: Session = Depends(get_db)):
+    team = db.query(Team).filter(Team.code == req.code.upper()).first()
     if not team:
         raise HTTPException(status_code=404, detail="팀을 찾을 수 없습니다")
-    return team
+    return {"id": team.id, "sport": team.sport, "name": team.name, "code": team.code}
 
 
 @app.get("/api/teams")
-def list_teams():
-    return db_teams
+def list_teams(db: Session = Depends(get_db)):
+    teams = db.query(Team).all()
+    return [{"id": t.id, "sport": t.sport, "name": t.name, "code": t.code} for t in teams]
 
 
 @app.delete("/api/teams/{code}")
-def delete_team(code: str):
-    team = next((t for t in db_teams if t["code"] == code), None)
+def delete_team(code: str, db: Session = Depends(get_db)):
+    team = db.query(Team).filter(Team.code == code).first()
     if not team:
         raise HTTPException(status_code=404, detail="팀을 찾을 수 없습니다")
-    db_teams.remove(team)
+    db.delete(team)
+    db.commit()
     return {"message": "삭제되었습니다"}
 
 
 # ── D-Day API ──
 @app.get("/api/dday")
-def get_dday():
-    if not db_dday:
+def get_dday(db: Session = Depends(get_db)):
+    dday = db.query(Dday).first()
+    if not dday:
         return None
-    return db_dday
+    return {"name": dday.name, "date": dday.date}
 
 
 @app.post("/api/dday")
-def save_dday(req: DdayRequest):
-    db_dday.update({"name": req.name, "date": req.date})
-    return db_dday
+def save_dday(req: DdayRequest, db: Session = Depends(get_db)):
+    dday = db.query(Dday).first()
+    if dday:
+        dday.name = req.name
+        dday.date = req.date
+    else:
+        dday = Dday(account_id=0, name=req.name, date=req.date)
+        db.add(dday)
+    db.commit()
+    return {"name": dday.name, "date": dday.date}
 
 
 @app.delete("/api/dday")
-def delete_dday():
-    db_dday.clear()
+def delete_dday(db: Session = Depends(get_db)):
+    db.query(Dday).delete()
+    db.commit()
     return {"message": "삭제되었습니다"}
 
 
-# ── Player Data API (시드 기반 생성 — 프론트엔드와 동일) ──
+# ── Player API ──
 @app.get("/api/players")
-def get_players():
-    players = [
-        {"id": "KM", "name": "김민수", "number": 7, "status": "g"},
-        {"id": "PK", "name": "박서진", "number": 11, "status": "r"},
-        {"id": "LJ", "name": "이준호", "number": 4, "status": "y"},
-        {"id": "CH", "name": "최하은", "number": 9, "status": "g"},
-        {"id": "JG", "name": "정기훈", "number": 22, "status": "y"},
-    ]
-    return players
+def get_players(db: Session = Depends(get_db)):
+    players = db.query(Player).all()
+    return [{"id": p.code, "name": p.name, "number": p.number, "status": p.status} for p in players]
 
 
-@app.get("/api/players/{player_id}/day/{year}/{month}/{day}")
-def get_day_data(player_id: str, year: int, month: int, day: int):
-    today = datetime.now()
-    target = datetime(year, month + 1, day) if month < 12 else datetime(year + 1, 1, day)
-
+@app.get("/api/players/{player_code}/day/{year}/{month}/{day}")
+def get_day_data(player_code: str, year: int, month: int, day: int):
     seed = year * 10000 + month * 100 + day
     rv = seed_random(seed)
+
+    today = datetime.now(timezone.utc)
+    try:
+        target = datetime(year, month + 1, day, tzinfo=timezone.utc)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="잘못된 날짜")
 
     if target > today:
         raise HTTPException(status_code=404, detail="미래 날짜 데이터 없음")
@@ -240,7 +257,17 @@ def get_day_data(player_id: str, year: int, month: int, day: int):
     }
 
 
-# ── Static Files (프론트엔드 서빙) ──
+# ── Health Check ──
+@app.get("/api/health")
+def health(db: Session = Depends(get_db)):
+    try:
+        db.execute("SELECT 1")
+        return {"status": "ok", "db": "connected"}
+    except Exception:
+        return {"status": "ok", "db": "disconnected"}
+
+
+# ── Static Files ──
 app.mount("/src", StaticFiles(directory="src"), name="src")
 app.mount("/pages", StaticFiles(directory="pages", html=True), name="pages")
 
