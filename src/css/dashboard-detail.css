@@ -1,0 +1,490 @@
+/* ══════════════════════════════════
+   SLIDE PANELS (Weekly / Monthly)
+══════════════════════════════════ */
+.panel-overlay {
+	display: none;
+	position: fixed;
+	inset: 0;
+	background: rgba(0, 0, 0, 0.6);
+	backdrop-filter: blur(6px);
+	z-index: 200;
+}
+
+.panel-overlay.show {
+	display: block;
+}
+
+.panel {
+	position: fixed;
+	top: 0;
+	right: -100%;
+	width: 100%;
+	max-width: 820px;
+	height: 100vh;
+	background: var(--bg);
+	z-index: 201;
+	overflow-y: auto;
+	transition: right 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+	scrollbar-width: none;
+	-ms-overflow-style: none;
+}
+
+.panel::-webkit-scrollbar {
+	display: none;
+}
+
+.panel.open {
+	right: 0;
+}
+
+.panel-header {
+	position: sticky;
+	top: 0;
+	z-index: 10;
+	background: rgba(0, 0, 0, 0.88);
+	backdrop-filter: blur(24px);
+	padding: 16px 28px;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	border-bottom: 1px solid var(--border);
+}
+
+.panel-header-left {
+	display: flex;
+	align-items: center;
+	gap: 14px;
+}
+
+.panel-close {
+	width: 36px;
+	height: 36px;
+	border-radius: 50%;
+	border: 1px solid var(--border);
+	background: transparent;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.panel-close svg {
+	width: 18px;
+	height: 18px;
+	stroke: var(--text-secondary);
+	fill: none;
+	stroke-width: 2;
+}
+
+.panel-title {
+	font-size: 16px;
+	font-weight: 700;
+}
+
+.panel-subtitle {
+	font-size: 12px;
+	color: var(--text-tertiary);
+}
+
+.btn-monthly {
+	padding: 8px 16px;
+	border-radius: 8px;
+	border: 1px solid var(--border-2);
+	background: transparent;
+	color: var(--text-secondary);
+	font-family: inherit;
+	font-size: 12px;
+	font-weight: 600;
+	cursor: pointer;
+	transition: all 0.2s;
+}
+
+.btn-monthly:hover {
+	border-color: var(--green);
+	color: var(--green);
+}
+
+.panel-body {
+	padding: 24px 28px 100px;
+}
+
+/* ══════════════════════════════════
+   DETAIL PANEL — Clean Style
+══════════════════════════════════ */
+
+/* ── Tab Switch ── */
+.dp-tabs {
+	display: flex;
+	border-bottom: 1px solid var(--border);
+}
+
+.dp-tab {
+	flex: 1;
+	padding: 14px 0;
+	text-align: center;
+	font-size: 14px;
+	font-weight: 600;
+	color: var(--text-tertiary);
+	background: none;
+	border: none;
+	border-bottom: 2px solid transparent;
+	cursor: pointer;
+	font-family: inherit;
+	transition: all 0.2s;
+}
+
+.dp-tab.active {
+	color: var(--text-primary);
+	border-bottom-color: var(--green);
+}
+
+.dp-tab:hover:not(.active) {
+	color: var(--text-secondary);
+}
+
+.dp-view {
+	display: none;
+	animation: fadeUp 0.35s ease-out;
+}
+.dp-view.active {
+	display: block;
+}
+
+@keyframes fadeUp {
+	from {
+		opacity: 0;
+		transform: translateY(10px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+/* ── Rings Area ── */
+.dp-rings {
+	display: flex;
+	justify-content: center;
+	align-items: flex-end;
+	gap: 24px;
+	padding: 32px 0 28px;
+	border-bottom: 1px solid var(--border);
+}
+
+.dp-ring-item {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 8px;
+}
+
+.dp-ring-wrap {
+	position: relative;
+}
+
+.dp-ring-wrap svg {
+	transform: rotate(-90deg);
+}
+
+.dp-ring-wrap .track {
+	fill: none;
+	stroke: var(--surface-2);
+}
+
+.dp-ring-wrap .fill {
+	fill: none;
+	stroke-linecap: round;
+	transition: stroke-dashoffset 1.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.dp-ring-center {
+	position: absolute;
+	inset: 0;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+}
+
+.dp-ring-val {
+	font-weight: 800;
+	letter-spacing: -1px;
+	line-height: 1;
+}
+
+.dp-ring-sub {
+	font-size: 10px;
+	font-weight: 500;
+	color: var(--text-tertiary);
+	text-transform: uppercase;
+	letter-spacing: 1px;
+	margin-top: 2px;
+}
+
+.dp-ring-label {
+	font-size: 12px;
+	font-weight: 600;
+	color: var(--text-secondary);
+}
+
+/* ── List Rows ── */
+.dp-section-title {
+	font-size: 11px;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 3px;
+	color: var(--text-tertiary);
+	padding: 20px 0 10px;
+}
+
+.dp-list {
+	list-style: none;
+	padding: 0;
+}
+
+.dp-list li {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 14px 0;
+	border-bottom: 1px solid var(--border);
+}
+
+.dp-list li:last-child {
+	border-bottom: none;
+}
+
+.dp-list-label {
+	font-size: 14px;
+	font-weight: 500;
+	color: var(--text-secondary);
+}
+
+.dp-list-val {
+	font-size: 15px;
+	font-weight: 700;
+	font-variant-numeric: tabular-nums;
+	letter-spacing: -0.3px;
+}
+
+.dp-list-unit {
+	font-size: 12px;
+	font-weight: 400;
+	color: var(--text-tertiary);
+	margin-left: 2px;
+}
+
+.dp-v-green {
+	color: var(--green);
+}
+.dp-v-yellow {
+	color: var(--yellow);
+}
+.dp-v-red {
+	color: var(--red);
+}
+.dp-v-blue {
+	color: var(--blue);
+}
+.dp-v-white {
+	color: var(--text-primary);
+}
+
+/* ── Calendar ── */
+.cal-wrap {
+	margin-bottom: 24px;
+}
+
+.cal-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 12px 0;
+	margin-bottom: 8px;
+}
+
+.cal-header-title {
+	font-size: 16px;
+	font-weight: 700;
+	letter-spacing: -0.3px;
+}
+
+.cal-nav {
+	display: flex;
+	gap: 6px;
+}
+
+.cal-nav-btn {
+	width: 32px;
+	height: 32px;
+	border-radius: 50%;
+	border: 1px solid var(--border);
+	background: transparent;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	transition: all 0.2s;
+}
+
+.cal-nav-btn:hover {
+	border-color: var(--border-focus);
+	background: var(--surface);
+}
+
+.cal-nav-btn svg {
+	width: 14px;
+	height: 14px;
+	stroke: var(--text-secondary);
+	fill: none;
+	stroke-width: 2;
+}
+
+.cal-grid {
+	display: grid;
+	grid-template-columns: repeat(7, 1fr);
+	gap: 4px;
+}
+
+.cal-dow {
+	text-align: center;
+	font-size: 11px;
+	font-weight: 600;
+	color: var(--text-tertiary);
+	padding: 6px 0;
+}
+
+.cal-day {
+	text-align: center;
+	padding: 10px 0;
+	border-radius: 10px;
+	font-size: 13px;
+	font-weight: 500;
+	color: var(--text-secondary);
+	cursor: pointer;
+	transition: all 0.15s;
+	position: relative;
+}
+
+.cal-day:hover {
+	background: var(--surface);
+}
+.cal-day.empty {
+	cursor: default;
+}
+.cal-day.empty:hover {
+	background: transparent;
+}
+.cal-day.today {
+	color: var(--text-primary);
+	font-weight: 700;
+}
+
+.cal-day.selected {
+	background: var(--green);
+	color: #000;
+	font-weight: 700;
+}
+
+.cal-day .cal-dot {
+	width: 4px;
+	height: 4px;
+	border-radius: 50%;
+	position: absolute;
+	bottom: 4px;
+	left: 50%;
+	transform: translateX(-50%);
+}
+
+.cal-dot.g {
+	background: var(--green);
+}
+.cal-dot.y {
+	background: var(--yellow);
+}
+.cal-dot.r {
+	background: var(--red);
+}
+
+.cal-day.selected .cal-dot {
+	background: #000;
+}
+
+/* ── Selected Day Data ── */
+.day-data {
+	animation: fadeUp 0.3s ease-out;
+}
+
+.day-data-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: 16px;
+}
+
+.day-data-date {
+	font-size: 15px;
+	font-weight: 700;
+}
+
+.day-data-status {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	font-size: 13px;
+	font-weight: 600;
+}
+
+.day-data-dot {
+	width: 10px;
+	height: 10px;
+	border-radius: 50%;
+}
+
+/* ── AI Insight ── */
+.ai-insight {
+	margin-top: 20px;
+	padding: 20px;
+	border-radius: 14px;
+	background: var(--surface);
+	border: 1px solid var(--border);
+}
+
+.ai-insight-tag {
+	font-size: 10px;
+	font-weight: 700;
+	color: var(--green);
+	text-transform: uppercase;
+	letter-spacing: 1.5px;
+	margin-bottom: 10px;
+}
+
+.ai-insight p {
+	font-size: 14px;
+	color: var(--text-secondary);
+	line-height: 1.7;
+}
+
+.ai-insight ul {
+	list-style: none;
+	padding: 0;
+}
+
+.ai-insight ul li {
+	font-size: 14px;
+	color: var(--text-secondary);
+	line-height: 1.8;
+	padding-left: 14px;
+	position: relative;
+}
+
+.ai-insight ul li::before {
+	content: "";
+	position: absolute;
+	left: 0;
+	top: 11px;
+	width: 4px;
+	height: 4px;
+	border-radius: 50%;
+	background: var(--green);
+}

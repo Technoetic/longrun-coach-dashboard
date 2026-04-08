@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LongRun Coach — 대시보드</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap">
+  <link rel="stylesheet" href="../src/css/tokens.css">
+  <link rel="stylesheet" href="../src/css/dashboard-layout.css">
+  <link rel="stylesheet" href="../src/css/dashboard-fab.css">
+  <link rel="stylesheet" href="../src/css/dashboard-detail.css">
+  <link rel="stylesheet" href="../src/css/dashboard-responsive.css">
+  <link rel="stylesheet" href="../src/css/dashboard-chat.css">
+</head>
+<body>
+
+  <!-- ══════ HEADER ══════ -->
+  <div class="header">
+    <div class="header-left">
+      <h1>코치 대시보드</h1>
+      <button class="team-code-btn" id="headerCodeBtn" onclick="copyHeaderCode()">
+        <span class="tcode-val" id="headerCodeVal">——</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+      </button>
+      <button class="d-day" id="ddayBtn" onclick="openDday()">D-31 전국체전</button>
+    </div>
+    <div class="header-right">
+      <button class="settings-btn" onclick="openSettings()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- ══════ SUB HEADER — Team Selector ══════ -->
+  <div class="sub-header">
+    <div class="team-selector" id="teamSelector">
+      <button class="team-chip active" id="initialTeamChip" onclick="selectTeam(this)"></button>
+      <button class="btn-add-team" onclick="openAddTeam()" title="팀 추가">+</button>
+    </div>
+  </div>
+
+  <!-- ══════ ADD TEAM MODAL ══════ -->
+  <div class="modal-bg" id="addTeamBg" onclick="if(event.target===this)closeAddTeam()">
+    <div class="modal-sheet">
+      <div class="modal-head">
+        <h3 id="addTeamTitle">팀 추가</h3>
+        <button class="modal-x" onclick="closeAddTeam()">
+          <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="modal-body">
+
+        <!-- Step 1: 종목 선택 -->
+        <div class="modal-step active" id="addStep1">
+          <div class="modal-label">종목을 선택하세요</div>
+          <div class="m-sport-grid">
+            <div class="m-sport-item" onclick="pickSport(this,'철인3종')"><div class="emoji">🏊</div><div class="name">철인3종</div></div>
+            <div class="m-sport-item" onclick="pickSport(this,'봅슬레이')"><div class="emoji">🛷</div><div class="name">봅슬레이</div></div>
+            <div class="m-sport-item" onclick="pickSport(this,'스켈레톤')"><div class="emoji">🏂</div><div class="name">스켈레톤</div></div>
+            <div class="m-sport-item" onclick="pickSport(this,'태권도')"><div class="emoji">🥋</div><div class="name">태권도</div></div>
+            <div class="m-sport-item" onclick="pickSport(this,'축구')"><div class="emoji">⚽</div><div class="name">축구</div></div>
+          </div>
+          <button class="m-btn m-btn-next" id="addNext1" disabled onclick="goAddStep(2)">다음</button>
+        </div>
+
+        <!-- Step 2: 팀 이름 + 코드 생성 -->
+        <div class="modal-step" id="addStep2">
+          <div class="modal-label">팀 이름을 입력하세요</div>
+          <input type="text" class="m-input" id="newTeamName" placeholder="예: 태권도 국가대표팀" oninput="onTeamNameInput()">
+
+          <div class="m-code-display" id="newCodeDisplay" style="display:none;">
+            <div class="m-code-label">Team Code</div>
+            <div class="m-code-val" id="newCodeVal">—</div>
+            <div class="m-code-hint">이 코드를 선수들에게 공유하세요</div>
+          </div>
+
+          <button class="m-btn-copy" id="newCopyBtn" style="display:none;" onclick="copyNewCode()">
+            <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+            코드 복사
+          </button>
+
+          <button class="m-btn m-btn-done" id="addDone" style="display:none;" onclick="addTeamDone()">팀 추가 완료</button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════ PLAYER LIST ══════ -->
+  <div class="section">
+    <div class="section-title">선수 리스트 <span class="badge">Daily</span></div>
+    <div class="player-list">
+
+      <!-- 김OO -->
+      <div class="player-card" onclick="openWeekly('김OO','g')">
+        <div class="player-photo">
+          <img src="https://api.dicebear.com/9.x/initials/svg?seed=KM&backgroundColor=1a1a1a&textColor=00F19F" alt="김OO">
+          <span class="signal g"></span>
+        </div>
+        <div class="player-main">
+          <div class="player-top">
+            <span class="player-name">김OO</span>
+            <span class="player-num">#1</span>
+          </div>
+          <div class="player-stats">
+            <div class="ps-item"><div class="ps-val val-up">+5%</div><div class="ps-label">HRV</div></div>
+            <div class="ps-item"><div class="ps-val val-normal">58</div><div class="ps-label">RHR</div></div>
+            <div class="ps-item"><div class="ps-val val-normal">7.3h</div><div class="ps-label">수면</div></div>
+            <div class="ps-item"><div class="ps-val val-normal">32</div><div class="ps-label">스트레스</div></div>
+            <div class="ps-item"><div class="ps-val val-normal">1.12</div><div class="ps-label">ACWR</div></div>
+            <div class="ps-item"><div class="ps-val val-up">0</div><div class="ps-label">통증</div></div>
+          </div>
+        </div>
+        <div class="player-arrow">
+          <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+        </div>
+      </div>
+
+      <!-- 박OO -->
+      <div class="player-card" onclick="openWeekly('박OO','g')">
+        <div class="player-photo">
+          <img src="https://api.dicebear.com/9.x/initials/svg?seed=PK&backgroundColor=1a1a1a&textColor=00F19F" alt="박OO">
+          <span class="signal g"></span>
+        </div>
+        <div class="player-main">
+          <div class="player-top">
+            <span class="player-name">박OO</span>
+            <span class="player-num">#2</span>
+          </div>
+          <div class="player-stats">
+            <div class="ps-item"><div class="ps-val val-up">+2%</div><div class="ps-label">HRV</div></div>
+            <div class="ps-item"><div class="ps-val val-normal">55</div><div class="ps-label">RHR</div></div>
+            <div class="ps-item"><div class="ps-val val-normal">7.1h</div><div class="ps-label">수면</div></div>
+            <div class="ps-item"><div class="ps-val val-normal">28</div><div class="ps-label">스트레스</div></div>
+            <div class="ps-item"><div class="ps-val val-normal">1.08</div><div class="ps-label">ACWR</div></div>
+            <div class="ps-item"><div class="ps-val val-up">0</div><div class="ps-label">통증</div></div>
+          </div>
+        </div>
+        <div class="player-arrow">
+          <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+        </div>
+      </div>
+
+      <!-- 이OO -->
+      <div class="player-card" onclick="openWeekly('이OO','y')">
+        <div class="player-photo">
+          <img src="https://api.dicebear.com/9.x/initials/svg?seed=LJ&backgroundColor=1a1a1a&textColor=FFD60A" alt="이OO">
+          <span class="signal y"></span>
+        </div>
+        <div class="player-main">
+          <div class="player-top">
+            <span class="player-name">이OO</span>
+            <span class="player-num">#3</span>
+          </div>
+          <div class="player-stats">
+            <div class="ps-item"><div class="ps-val val-down">-12%</div><div class="ps-label">HRV</div></div>
+            <div class="ps-item"><div class="ps-val val-normal">64</div><div class="ps-label">RHR</div></div>
+            <div class="ps-item"><div class="ps-val val-down">5.8h</div><div class="ps-label">수면</div></div>
+            <div class="ps-item"><div class="ps-val val-down">61</div><div class="ps-label">스트레스</div></div>
+            <div class="ps-item"><div class="ps-val val-down">1.35</div><div class="ps-label">ACWR</div></div>
+            <div class="ps-item"><div class="ps-val val-down">2</div><div class="ps-label">통증</div></div>
+          </div>
+        </div>
+        <div class="player-arrow">
+          <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+        </div>
+      </div>
+
+      <!-- 최OO -->
+      <div class="player-card" onclick="openWeekly('최OO','r')">
+        <div class="player-photo">
+          <img src="https://api.dicebear.com/9.x/initials/svg?seed=CH&backgroundColor=1a1a1a&textColor=FF3B30" alt="최OO">
+          <span class="signal r"></span>
+        </div>
+        <div class="player-main">
+          <div class="player-top">
+            <span class="player-name">최OO</span>
+            <span class="player-num">#4</span>
+          </div>
+          <div class="player-stats">
+            <div class="ps-item"><div class="ps-val val-down">-18%</div><div class="ps-label">HRV</div></div>
+            <div class="ps-item"><div class="ps-val val-down">68</div><div class="ps-label">RHR</div></div>
+            <div class="ps-item"><div class="ps-val val-down">4.5h</div><div class="ps-label">수면</div></div>
+            <div class="ps-item"><div class="ps-val val-down">72</div><div class="ps-label">스트레스</div></div>
+            <div class="ps-item"><div class="ps-val val-down">1.58</div><div class="ps-label">ACWR</div></div>
+            <div class="ps-item"><div class="ps-val val-down">6</div><div class="ps-label">통증</div></div>
+          </div>
+        </div>
+        <div class="player-arrow">
+          <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+        </div>
+      </div>
+
+      <!-- 정OO -->
+      <div class="player-card" onclick="openWeekly('정OO','g')">
+        <div class="player-photo">
+          <img src="https://api.dicebear.com/9.x/initials/svg?seed=JG&backgroundColor=1a1a1a&textColor=00F19F" alt="정OO">
+          <span class="signal g"></span>
+        </div>
+        <div class="player-main">
+          <div class="player-top">
+            <span class="player-name">정OO</span>
+            <span class="player-num">#5</span>
+          </div>
+          <div class="player-stats">
+            <div class="ps-item"><div class="ps-val val-up">+8%</div><div class="ps-label">HRV</div></div>
+            <div class="ps-item"><div class="ps-val val-normal">52</div><div class="ps-label">RHR</div></div>
+            <div class="ps-item"><div class="ps-val val-normal">7.5h</div><div class="ps-label">수면</div></div>
+            <div class="ps-item"><div class="ps-val val-normal">25</div><div class="ps-label">스트레스</div></div>
+            <div class="ps-item"><div class="ps-val val-normal">1.05</div><div class="ps-label">ACWR</div></div>
+            <div class="ps-item"><div class="ps-val val-up">0</div><div class="ps-label">통증</div></div>
+          </div>
+        </div>
+        <div class="player-arrow">
+          <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══════ SUMMARY BAR ══════ -->
+  <div class="summary-bar">
+    <div class="summary-item"><span class="summary-dot g"></span> <span class="summary-count">8명</span></div>
+    <div class="summary-item"><span class="summary-dot y"></span> <span class="summary-count">2명</span></div>
+    <div class="summary-item"><span class="summary-dot r"></span> <span class="summary-count">1명</span></div>
+    <div class="summary-item"><span class="summary-dot d"></span> <span class="summary-count">1명</span></div>
+  </div>
+
+  <!-- ══════ DRAGGABLE CHAT FAB ══════ -->
+  <div class="fab-chat" id="fabChat">
+    <div class="fab-inner">
+      <span class="fab-dot"></span>
+      <span class="fab-label">챗봇</span>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       WEEKLY PANEL
+  ══════════════════════════════════════════ -->
+  <div class="panel-overlay" id="weeklyOverlay" onclick="closeWeekly()"></div>
+  <div class="panel" id="weeklyPanel">
+    <div class="panel-header">
+      <div class="panel-header-left">
+        <button class="panel-close" onclick="closeWeekly()">
+          <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
+        <div>
+          <div class="panel-title" id="weeklyName">이OO 선수</div>
+          <div class="panel-subtitle" id="dpDateRange">4/1 ~ 4/7</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab -->
+    <div class="dp-tabs">
+      <button class="dp-tab active" onclick="switchTab('weekly')">주간</button>
+      <button class="dp-tab" onclick="switchTab('monthly')">월간</button>
+      <button class="dp-tab" onclick="switchTab('daily')">일별 기록</button>
+    </div>
+
+    <!-- ═══ 주간 View ═══ -->
+    <div class="panel-body dp-view active" id="viewWeekly">
+
+      <!-- 링 3개: 회복 / 수면 / 활동 -->
+      <div class="dp-rings">
+        <div class="dp-ring-item">
+          <div class="dp-ring-wrap" style="width:140px;height:140px;">
+            <svg viewBox="0 0 140 140" width="140" height="140">
+              <circle class="track" cx="70" cy="70" r="58" stroke-width="8"/>
+              <circle class="fill" cx="70" cy="70" r="58" stroke="var(--green)" stroke-width="8" stroke-dasharray="364" stroke-dashoffset="364" id="rRecovery"/>
+            </svg>
+            <div class="dp-ring-center">
+              <div class="dp-ring-val dp-v-green" style="font-size:36px;" id="rRecoveryVal">86</div>
+              <div class="dp-ring-sub">Recovery</div>
+            </div>
+          </div>
+          <div class="dp-ring-label">회복</div>
+        </div>
+        <div class="dp-ring-item">
+          <div class="dp-ring-wrap" style="width:100px;height:100px;">
+            <svg viewBox="0 0 100 100" width="100" height="100">
+              <circle class="track" cx="50" cy="50" r="40" stroke-width="7"/>
+              <circle class="fill" cx="50" cy="50" r="40" stroke="var(--blue)" stroke-width="7" stroke-dasharray="251" stroke-dashoffset="251" id="rSleep"/>
+            </svg>
+            <div class="dp-ring-center">
+              <div class="dp-ring-val dp-v-blue" style="font-size:22px;">7.1<span style="font-size:11px">h</span></div>
+              <div class="dp-ring-sub">Sleep</div>
+            </div>
+          </div>
+          <div class="dp-ring-label">수면</div>
+        </div>
+        <div class="dp-ring-item">
+          <div class="dp-ring-wrap" style="width:100px;height:100px;">
+            <svg viewBox="0 0 100 100" width="100" height="100">
+              <circle class="track" cx="50" cy="50" r="40" stroke-width="7"/>
+              <circle class="fill" cx="50" cy="50" r="40" stroke="var(--yellow)" stroke-width="7" stroke-dasharray="251" stroke-dashoffset="251" id="rStrain"/>
+            </svg>
+            <div class="dp-ring-center">
+              <div class="dp-ring-val dp-v-yellow" style="font-size:22px;">14.2</div>
+              <div class="dp-ring-sub">Strain</div>
+            </div>
+          </div>
+          <div class="dp-ring-label">부하</div>
+        </div>
+      </div>
+
+      <!-- 심박 · 심혈관 -->
+      <div class="dp-section-title">심박 · 심혈관</div>
+      <ul class="dp-list">
+        <li><span class="dp-list-label">심박수</span><span class="dp-list-val dp-v-white">72<span class="dp-list-unit">bpm</span></span></li>
+        <li><span class="dp-list-label">안정심박</span><span class="dp-list-val dp-v-green">58<span class="dp-list-unit">bpm</span></span></li>
+        <li><span class="dp-list-label">보행심박</span><span class="dp-list-val dp-v-white">95<span class="dp-list-unit">bpm</span></span></li>
+        <li><span class="dp-list-label">HRV</span><span class="dp-list-val dp-v-green">63<span class="dp-list-unit">ms</span></span></li>
+        <li><span class="dp-list-label">SpO2</span><span class="dp-list-val dp-v-green">98<span class="dp-list-unit">%</span></span></li>
+      </ul>
+
+      <!-- 활동 -->
+      <div class="dp-section-title">활동</div>
+      <ul class="dp-list">
+        <li><span class="dp-list-label">걸음수</span><span class="dp-list-val dp-v-white">8,432</span></li>
+        <li><span class="dp-list-label">거리</span><span class="dp-list-val dp-v-white">5.2<span class="dp-list-unit">km</span></span></li>
+        <li><span class="dp-list-label">활동칼로리</span><span class="dp-list-val dp-v-yellow">420<span class="dp-list-unit">kcal</span></span></li>
+        <li><span class="dp-list-label">기초칼로리</span><span class="dp-list-val dp-v-white">1,580<span class="dp-list-unit">kcal</span></span></li>
+        <li><span class="dp-list-label">운동</span><span class="dp-list-val dp-v-green">42<span class="dp-list-unit">분</span></span></li>
+        <li><span class="dp-list-label">서있기</span><span class="dp-list-val dp-v-yellow">9<span class="dp-list-unit">시간</span></span></li>
+        <li><span class="dp-list-label">계단</span><span class="dp-list-val dp-v-blue">14<span class="dp-list-unit">층</span></span></li>
+      </ul>
+
+      <!-- 수면 -->
+      <div class="dp-section-title">수면</div>
+      <ul class="dp-list">
+        <li><span class="dp-list-label">수면 시간</span><span class="dp-list-val dp-v-blue">7.1<span class="dp-list-unit">시간</span></span></li>
+        <li><span class="dp-list-label">취침 — 기상</span><span class="dp-list-val dp-v-white">23:20 — 06:40</span></li>
+      </ul>
+
+      <!-- 환경 -->
+      <div class="dp-section-title">환경 · 청각</div>
+      <ul class="dp-list">
+        <li><span class="dp-list-label">환경소음</span><span class="dp-list-val dp-v-green">42<span class="dp-list-unit">dB</span></span></li>
+        <li><span class="dp-list-label">이어폰음량</span><span class="dp-list-val dp-v-yellow">68<span class="dp-list-unit">dB</span></span></li>
+      </ul>
+
+      <!-- AI -->
+      <div class="ai-insight">
+        <div class="ai-insight-tag">AI 인사이트</div>
+        <p>수면 질 개선으로 HRV가 8.6% 상승. 안정심박 58bpm, 회복 상태 양호. 현재 컨디션 유지 권장.</p>
+      </div>
+    </div>
+
+    <!-- ═══ 월간 View ═══ -->
+    <div class="panel-body dp-view" id="viewMonthly">
+
+      <!-- 링 3개 (월간 평균) -->
+      <div class="dp-rings">
+        <div class="dp-ring-item">
+          <div class="dp-ring-wrap" style="width:140px;height:140px;">
+            <svg viewBox="0 0 140 140" width="140" height="140">
+              <circle class="track" cx="70" cy="70" r="58" stroke-width="8"/>
+              <circle class="fill" cx="70" cy="70" r="58" stroke="var(--green)" stroke-width="8" stroke-dasharray="364" stroke-dashoffset="364" id="mRecovery"/>
+            </svg>
+            <div class="dp-ring-center">
+              <div class="dp-ring-val dp-v-green" style="font-size:36px;">78</div>
+              <div class="dp-ring-sub">Avg</div>
+            </div>
+          </div>
+          <div class="dp-ring-label">월평균 회복</div>
+        </div>
+        <div class="dp-ring-item">
+          <div class="dp-ring-wrap" style="width:100px;height:100px;">
+            <svg viewBox="0 0 100 100" width="100" height="100">
+              <circle class="track" cx="50" cy="50" r="40" stroke-width="7"/>
+              <circle class="fill" cx="50" cy="50" r="40" stroke="var(--blue)" stroke-width="7" stroke-dasharray="251" stroke-dashoffset="251" id="mSleep"/>
+            </svg>
+            <div class="dp-ring-center">
+              <div class="dp-ring-val dp-v-blue" style="font-size:22px;">6.8<span style="font-size:11px">h</span></div>
+              <div class="dp-ring-sub">Avg</div>
+            </div>
+          </div>
+          <div class="dp-ring-label">월평균 수면</div>
+        </div>
+        <div class="dp-ring-item">
+          <div class="dp-ring-wrap" style="width:100px;height:100px;">
+            <svg viewBox="0 0 100 100" width="100" height="100">
+              <circle class="track" cx="50" cy="50" r="40" stroke-width="7"/>
+              <circle class="fill" cx="50" cy="50" r="40" stroke="var(--yellow)" stroke-width="7" stroke-dasharray="251" stroke-dashoffset="251" id="mStrain"/>
+            </svg>
+            <div class="dp-ring-center">
+              <div class="dp-ring-val dp-v-yellow" style="font-size:22px;">13.5</div>
+              <div class="dp-ring-sub">Avg</div>
+            </div>
+          </div>
+          <div class="dp-ring-label">월평균 부하</div>
+        </div>
+      </div>
+
+      <!-- 월간 추이 -->
+      <div class="dp-section-title">30일 추이</div>
+      <ul class="dp-list">
+        <li><span class="dp-list-label">HRV</span><span class="dp-list-val dp-v-green">48 → 63<span class="dp-list-unit">ms (+31%)</span></span></li>
+        <li><span class="dp-list-label">안정심박</span><span class="dp-list-val dp-v-green">64 → 58<span class="dp-list-unit">bpm</span></span></li>
+        <li><span class="dp-list-label">수면</span><span class="dp-list-val dp-v-blue">6.2 → 7.1<span class="dp-list-unit">h (+14.5%)</span></span></li>
+        <li><span class="dp-list-label">ACWR</span><span class="dp-list-val dp-v-yellow">1.35 → 1.15</span></li>
+        <li><span class="dp-list-label">스트레스</span><span class="dp-list-val dp-v-green">61 → 38</span></li>
+      </ul>
+
+      <!-- 위험 구간 -->
+      <div class="dp-section-title">부상 위험 지표</div>
+      <ul class="dp-list">
+        <li><span class="dp-list-label">ACWR 위험구간(1.5+) 진입</span><span class="dp-list-val dp-v-green">0<span class="dp-list-unit">회</span></span></li>
+        <li><span class="dp-list-label">지난달 위험구간 진입</span><span class="dp-list-val dp-v-red">2<span class="dp-list-unit">회</span></span></li>
+        <li><span class="dp-list-label">통증 보고</span><span class="dp-list-val dp-v-yellow">무릎 2/10</span></li>
+      </ul>
+
+      <!-- 빌드 적합도 -->
+      <div class="dp-section-title">대회 준비</div>
+      <ul class="dp-list">
+        <li><span class="dp-list-label">전국체전(D-31) 빌드 적합도</span><span class="dp-list-val dp-v-green">92<span class="dp-list-unit">%</span></span></li>
+        <li><span class="dp-list-label">컨디션 궤도</span><span class="dp-list-val dp-v-green">상승</span></li>
+      </ul>
+
+      <!-- AI 월간 -->
+      <div class="ai-insight">
+        <div class="ai-insight-tag">AI 월간 인사이트</div>
+        <ul>
+          <li>한 달간 전체 지표가 꾸준히 상승</li>
+          <li>수면 습관 개선이 핵심 요인</li>
+          <li>전국체전 대비 컨디션 상승 궤도</li>
+          <li>현재 빌드 단계 적합도 92%</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ═══ 일별 기록 View ═══ -->
+    <div class="panel-body dp-view" id="viewDaily">
+
+      <!-- Calendar -->
+      <div class="cal-wrap">
+        <div class="cal-header">
+          <div class="cal-nav">
+            <button class="cal-nav-btn" onclick="calNav(-1)">
+              <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+            </button>
+          </div>
+          <div class="cal-header-title" id="calTitle">2026년 4월</div>
+          <div class="cal-nav">
+            <button class="cal-nav-btn" onclick="calNav(1)">
+              <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="cal-grid" id="calGrid"></div>
+      </div>
+
+      <!-- Selected Day Data -->
+      <div class="day-data" id="dayData" style="display:none;">
+        <div class="day-data-header">
+          <div class="day-data-date" id="dayDataDate">4월 7일 (월)</div>
+          <div class="day-data-status">
+            <span class="day-data-dot" id="dayDataDot"></span>
+            <span id="dayDataStatus">양호</span>
+          </div>
+        </div>
+
+        <div class="dp-section-title">심박 · 심혈관</div>
+        <ul class="dp-list">
+          <li><span class="dp-list-label">심박수</span><span class="dp-list-val dp-v-white" id="dd-hr">—</span></li>
+          <li><span class="dp-list-label">안정심박</span><span class="dp-list-val" id="dd-rhr">—</span></li>
+          <li><span class="dp-list-label">HRV</span><span class="dp-list-val" id="dd-hrv">—</span></li>
+          <li><span class="dp-list-label">SpO2</span><span class="dp-list-val" id="dd-spo2">—</span></li>
+        </ul>
+
+        <div class="dp-section-title">활동</div>
+        <ul class="dp-list">
+          <li><span class="dp-list-label">걸음수</span><span class="dp-list-val dp-v-white" id="dd-steps">—</span></li>
+          <li><span class="dp-list-label">활동칼로리</span><span class="dp-list-val" id="dd-cal">—</span></li>
+          <li><span class="dp-list-label">운동</span><span class="dp-list-val" id="dd-exercise">—</span></li>
+        </ul>
+
+        <div class="dp-section-title">수면</div>
+        <ul class="dp-list">
+          <li><span class="dp-list-label">수면 시간</span><span class="dp-list-val" id="dd-sleep">—</span></li>
+          <li><span class="dp-list-label">취침 — 기상</span><span class="dp-list-val dp-v-white" id="dd-bed">—</span></li>
+        </ul>
+
+        <div class="dp-section-title">컨디션</div>
+        <ul class="dp-list">
+          <li><span class="dp-list-label">스트레스</span><span class="dp-list-val" id="dd-stress">—</span></li>
+          <li><span class="dp-list-label">ACWR</span><span class="dp-list-val" id="dd-acwr">—</span></li>
+          <li><span class="dp-list-label">통증</span><span class="dp-list-val" id="dd-pain">—</span></li>
+        </ul>
+
+        <div class="dp-section-title">환경</div>
+        <ul class="dp-list">
+          <li><span class="dp-list-label">환경소음</span><span class="dp-list-val" id="dd-noise">—</span></li>
+          <li><span class="dp-list-label">이어폰음량</span><span class="dp-list-val" id="dd-earphone">—</span></li>
+        </ul>
+      </div>
+
+      <!-- No data placeholder -->
+      <div id="dayNoData" style="text-align:center; padding:40px 0; color:var(--text-tertiary); font-size:14px;">
+        날짜를 선택하면 해당 일자의 기록을 확인할 수 있습니다.
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- ══════ SETTINGS PANEL ══════ -->
+  <div class="set-overlay" id="setOverlay" onclick="closeSettings()"></div>
+  <div class="set-panel" id="setPanel">
+    <div class="set-head">
+      <button class="set-close" onclick="closeSettings()">
+        <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+      </button>
+      <h3>설정</h3>
+    </div>
+    <div class="set-body">
+
+      <div class="set-section">
+        <div class="set-section-title">팀 관리</div>
+        <div class="set-item" onclick="openDeleteTeam()">
+          <div class="set-item-left">
+            <div class="set-item-icon red">
+              <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+            </div>
+            <div class="set-item-text">
+              <h4>팀 삭제</h4>
+              <p>현재 선택된 팀을 삭제합니다</p>
+            </div>
+          </div>
+          <div class="set-item-arrow">
+            <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+          </div>
+        </div>
+      </div>
+
+      <div class="set-section">
+        <div class="set-section-title">계정</div>
+        <div class="set-item" onclick="doLogout()">
+          <div class="set-item-left">
+            <div class="set-item-icon blue">
+              <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            </div>
+            <div class="set-item-text">
+              <h4>로그아웃</h4>
+              <p>계정에서 로그아웃합니다</p>
+            </div>
+          </div>
+          <div class="set-item-arrow">
+            <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+          </div>
+        </div>
+      </div>
+
+      <div class="set-section">
+        <div class="set-section-title">약관 및 정책</div>
+
+        <div class="set-item" onclick="openLegal('tos')">
+          <div class="set-item-left">
+            <div class="set-item-icon blue">
+              <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            </div>
+            <div class="set-item-text"><h4>서비스 이용약관</h4></div>
+          </div>
+          <div class="set-item-arrow"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></div>
+        </div>
+
+        <div class="set-item" onclick="openLegal('privacy')">
+          <div class="set-item-left">
+            <div class="set-item-icon blue">
+              <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+            </div>
+            <div class="set-item-text"><h4>개인정보 처리방침</h4></div>
+          </div>
+          <div class="set-item-arrow"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></div>
+        </div>
+
+        <div class="set-item" onclick="openLegal('thirdparty')">
+          <div class="set-item-left">
+            <div class="set-item-icon blue">
+              <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+            </div>
+            <div class="set-item-text"><h4>개인정보 제3자 제공</h4></div>
+          </div>
+          <div class="set-item-arrow"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></div>
+        </div>
+
+        <div class="set-item" onclick="openLegal('location')">
+          <div class="set-item-left">
+            <div class="set-item-icon blue">
+              <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            </div>
+            <div class="set-item-text"><h4>위치기반서비스 이용약관</h4></div>
+          </div>
+          <div class="set-item-arrow"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></div>
+        </div>
+
+        <div class="set-item" onclick="openLegal('telecom')">
+          <div class="set-item-left">
+            <div class="set-item-icon blue">
+              <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.362 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.338 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+            </div>
+            <div class="set-item-text"><h4>통신사업 신고번호</h4></div>
+          </div>
+          <div class="set-item-arrow"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></div>
+        </div>
+
+        <div class="set-item" onclick="openLegal('marketing')">
+          <div class="set-item-left">
+            <div class="set-item-icon blue">
+              <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            </div>
+            <div class="set-item-text"><h4>마케팅 정보 수신 설정</h4></div>
+          </div>
+          <div class="set-item-arrow"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></div>
+        </div>
+
+        <div class="set-item" onclick="openLegal('opensource')">
+          <div class="set-item-left">
+            <div class="set-item-icon blue">
+              <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+            </div>
+            <div class="set-item-text"><h4>오픈소스 라이선스</h4></div>
+          </div>
+          <div class="set-item-arrow"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></div>
+        </div>
+      </div>
+
+      <div class="set-section" style="text-align:center; padding: 12px 0;">
+        <p style="font-size:12px; color:var(--text-tertiary);">LongRun Coach v1.0.0</p>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══════ LEGAL DETAIL PANEL ══════ -->
+  <div class="set-panel" id="legalPanel" style="z-index:402;">
+    <div class="set-head">
+      <button class="set-close" onclick="closeLegal()">
+        <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+      </button>
+      <h3 id="legalTitle">약관</h3>
+    </div>
+    <div class="set-body" id="legalBody" style="font-size:14px; color:var(--text-secondary); line-height:1.85;"></div>
+  </div>
+
+  <!-- ══════ DELETE TEAM CONFIRM ══════ -->
+  <div class="confirm-overlay" id="delConfirmOverlay">
+    <div class="confirm-box">
+      <div class="confirm-icon">
+        <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      </div>
+      <div class="confirm-title">팀을 삭제하시겠습니까?</div>
+      <div class="confirm-desc">삭제하면 해당 팀의 모든 데이터가 영구적으로 제거됩니다. 이 작업은 되돌릴 수 없습니다.</div>
+      <div class="confirm-code-label">확인을 위해 팀 코드를 입력하세요</div>
+      <input type="text" class="confirm-code-input" id="delCodeInput" placeholder="XXXXXX" maxlength="6" oninput="checkDelCode(this)">
+      <p class="confirm-hint" id="delCodeHint"></p>
+      <div class="confirm-btns">
+        <button class="confirm-btn-cancel" onclick="closeDeleteTeam()">취소</button>
+        <button class="confirm-btn-delete" id="delConfirmBtn" disabled onclick="executeDeleteTeam()">삭제</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════ D-DAY MODAL ══════ -->
+  <div class="dday-overlay" id="ddayOverlay" onclick="if(event.target===this)closeDday()">
+    <div class="dday-modal">
+      <div class="dday-head">
+        <h3>대회 D-Day 설정</h3>
+        <button class="dday-close" onclick="closeDday()">
+          <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="dday-body">
+        <div class="dday-field">
+          <label>대회명</label>
+          <input type="text" class="dday-input" id="ddayName" placeholder="예: 전국체전">
+        </div>
+        <div class="dday-field">
+          <label>대회 날짜</label>
+          <input type="date" class="dday-input" id="ddayDate">
+        </div>
+        <div class="dday-preview" id="ddayPreview" style="display:none;">
+          <div class="dday-preview-num" id="ddayPreviewNum">D-31</div>
+          <div class="dday-preview-label" id="ddayPreviewLabel">전국체전</div>
+        </div>
+        <div class="dday-actions">
+          <button class="dday-btn-del" onclick="deleteDday()">삭제</button>
+          <button class="dday-btn-save" onclick="saveDday()">저장</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════ CHATBOT ══════ -->
+  <div class="chat-overlay" id="chatOverlay" onclick="closeChat()"></div>
+  <div class="chat-panel" id="chatPanel">
+    <div class="chat-head">
+      <div class="chat-head-left">
+        <div class="chat-avatar"><span class="ca-dot"></span></div>
+        <div class="chat-head-info">
+          <h3>LongRun AI</h3>
+          <p>스포츠 과학 논문 기반 어시스턴트</p>
+        </div>
+      </div>
+      <button class="chat-close" onclick="closeChat()">
+        <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+
+    <div class="chat-messages" id="chatMessages">
+      <!-- Welcome -->
+      <div class="chat-msg ai">
+        <span class="sender">LongRun AI</span>
+        <div class="chat-bubble">안녕하세요, 코치님. 스포츠 관련 논문과 데이터를 바탕으로 성심성의껏 답변드리겠습니다. 궁금한 점을 질문해주세요.</div>
+      </div>
+      <div class="chat-msg ai">
+        <span class="sender"></span>
+        <div class="chat-quick">
+          <button class="chat-quick-btn" onclick="sendQuick(this)">ACWR 1.5 이상일 때 대응법</button>
+          <button class="chat-quick-btn" onclick="sendQuick(this)">햄스트링 부상 예방 훈련</button>
+          <button class="chat-quick-btn" onclick="sendQuick(this)">수면과 회복의 상관관계</button>
+          <button class="chat-quick-btn" onclick="sendQuick(this)">시합 전 테이퍼링 전략</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="chat-input-area">
+      <input type="text" class="chat-input" id="chatInput" placeholder="질문을 입력하세요..." onkeydown="if(event.key==='Enter')sendMsg()">
+      <button class="chat-send" onclick="sendMsg()">
+        <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <script>
+    // Navigation guard
+    if (sessionStorage.getItem('lr_nav') !== 'dashboard') { location.replace('onboarding.html'); }
+    sessionStorage.removeItem('lr_nav');
+  </script>
+  <script defer src="../src/js/utils.js"></script>
+  <script defer src="../src/js/TeamManager.js"></script>
+  <script defer src="../src/js/SettingsManager.js"></script>
+  <script defer src="../src/js/DdayManager.js"></script>
+  <script defer src="../src/js/DetailPanel.js"></script>
+  <script defer src="../src/js/ChatBot.js"></script>
+  <script defer src="../src/js/DraggableFab.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LongRun Coach — 팀 설정</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap">
+  <link rel="stylesheet" href="../src/css/tokens.css">
+  <link rel="stylesheet" href="../src/css/team-setup.css">
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="header">
+    <button class="back-btn" onclick="goBack()">
+      <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+    </button>
+    <span class="header-title">팀 설정</span>
+  </div>
+
+  <!-- Progress -->
+  <div class="progress-wrap">
+    <div class="prog-bar active" id="pb1"><div class="fill"></div></div>
+    <div class="prog-bar" id="pb2"><div class="fill"></div></div>
+  </div>
+
+  <!-- Content -->
+  <div class="content">
+
+    <!-- ═══ Step 1: 종목 선택 ═══ -->
+    <div class="step active" id="step1">
+      <div class="step-label">Step 1</div>
+      <h2 class="step-title">종목 선택</h2>
+      <p class="step-desc">관리할 팀의 종목을 선택하세요.</p>
+
+      <div class="sport-grid">
+        <div class="sport-card" onclick="selectSport(this, '철인3종')">
+          <div class="sport-check">
+            <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <div class="sport-icon">🏊</div>
+          <div class="sport-name">철인3종</div>
+          <div class="sport-name-en">Triathlon</div>
+        </div>
+
+        <div class="sport-card" onclick="selectSport(this, '봅슬레이')">
+          <div class="sport-check">
+            <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <div class="sport-icon">🛷</div>
+          <div class="sport-name">봅슬레이</div>
+          <div class="sport-name-en">Bobsled</div>
+        </div>
+
+        <div class="sport-card" onclick="selectSport(this, '스켈레톤')">
+          <div class="sport-check">
+            <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <div class="sport-icon">🏂</div>
+          <div class="sport-name">스켈레톤</div>
+          <div class="sport-name-en">Skeleton</div>
+        </div>
+
+        <div class="sport-card" onclick="selectSport(this, '태권도')">
+          <div class="sport-check">
+            <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <div class="sport-icon">🥋</div>
+          <div class="sport-name">태권도</div>
+          <div class="sport-name-en">Taekwondo</div>
+        </div>
+
+        <div class="sport-card" onclick="selectSport(this, '축구')">
+          <div class="sport-check">
+            <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <div class="sport-icon">⚽</div>
+          <div class="sport-name">축구</div>
+          <div class="sport-name-en">Football</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ Step 2: 팀 코드 ═══ -->
+    <div class="step" id="step2">
+      <div class="step-label">Step 2</div>
+      <h2 class="step-title">팀 참여</h2>
+      <p class="step-desc">새 팀을 만들거나 기존 팀에 참여하세요.</p>
+
+      <div class="team-option-group">
+        <div class="team-option" onclick="selectOption('create')">
+          <div class="team-option-radio"></div>
+          <div class="team-option-text">
+            <h4>새 팀 만들기</h4>
+            <p>팀 코드를 생성하고 선수를 초대합니다</p>
+          </div>
+        </div>
+
+        <div class="team-option" onclick="selectOption('join')">
+          <div class="team-option-radio"></div>
+          <div class="team-option-text">
+            <h4>기존 팀 참여</h4>
+            <p>받은 팀 코드를 입력하여 참여합니다</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Create Team -->
+      <div class="code-section" id="createSection">
+        <label class="field-label">팀 이름</label>
+        <input type="text" class="team-name-input" id="teamName" placeholder="예: 한국 철인3종 대표팀" oninput="checkTeamName()">
+
+        <div class="code-display">
+          <div class="code-display-label">Team Code</div>
+          <div class="code-value" id="codeValue">—</div>
+          <div class="code-hint">이 코드를 선수들에게 공유하면<br>선수 앱에서 팀에 참여할 수 있습니다.</div>
+        </div>
+
+        <button class="btn-copy" id="copyBtn" onclick="copyCode()">
+          <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+          코드 복사
+        </button>
+      </div>
+
+      <!-- Join Team -->
+      <div class="join-section" id="joinSection">
+        <label class="field-label">팀 코드 입력</label>
+        <input type="text" class="join-input" id="joinCode" placeholder="XXXXXX" maxlength="6" oninput="checkJoinCode(this)">
+        <p class="join-hint" id="joinHint">코치 또는 팀 관리자에게 받은 6자리 코드를 입력하세요</p>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Bottom CTA -->
+  <div class="bottom-cta">
+    <button class="btn-submit" id="subBtn" disabled onclick="nextStep()">다음</button>
+  </div>
+
+  <script src="../src/js/utils.js" defer></script>
+  <script src="../src/js/TeamSetupApp.js" defer></script>
+
+</body>
+</html>

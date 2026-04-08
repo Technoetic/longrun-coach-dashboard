@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LongRun Coach</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap">
+  <link rel="stylesheet" href="../src/css/tokens.css">
+  <link rel="stylesheet" href="../src/css/onboarding.css">
+</head>
+<body>
+
+  <!-- Top Bar -->
+  <div class="top-bar">
+    <div class="logo">
+      <div class="logo-mark">
+        <svg viewBox="0 0 32 32" fill="none">
+          <circle cx="16" cy="16" r="14" stroke="var(--green)" stroke-width="2.5" opacity="0.3"/>
+          <path d="M16 6 C20 10, 24 14, 16 26 C8 14, 12 10, 16 6Z" fill="var(--green)"/>
+        </svg>
+      </div>
+      <div class="logo-type">LongRun <span>coach</span></div>
+    </div>
+  </div>
+
+  <div class="onboarding">
+
+    <!-- ═══ Slide 1: 선수 관리 ═══ -->
+    <div class="slide active" data-slide="0">
+      <div class="visual">
+        <div class="ring-container">
+          <svg class="ring-svg" viewBox="0 0 280 280">
+            <circle class="ring-track" cx="140" cy="140" r="120"/>
+            <circle class="ring-fill ring-blue" cx="140" cy="140" r="120"/>
+            <circle class="ring-track" cx="140" cy="140" r="105"/>
+            <circle class="ring-fill ring-yellow" cx="140" cy="140" r="105"/>
+            <circle class="ring-track" cx="140" cy="140" r="90"/>
+            <circle class="ring-fill ring-green" cx="140" cy="140" r="90"/>
+          </svg>
+          <div class="ring-center">
+            <div class="ring-number">86</div>
+            <div class="ring-label">Team Score</div>
+          </div>
+        </div>
+        <div class="ring-metrics">
+          <div class="ring-metric">
+            <div class="ring-metric-val val-green">92%</div>
+            <div class="ring-metric-label">컨디션</div>
+          </div>
+          <div class="ring-metric">
+            <div class="ring-metric-val val-yellow">14.2</div>
+            <div class="ring-metric-label">부하</div>
+          </div>
+          <div class="ring-metric">
+            <div class="ring-metric-val val-blue">7.8h</div>
+            <div class="ring-metric-label">수면</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide-content">
+        <div class="slide-eyebrow eyebrow-green">All in one</div>
+        <h2 class="slide-title">
+          선수의 모든 것을<br><span class="t-green">한눈에</span> 관리하세요
+        </h2>
+        <p class="slide-desc">
+          컨디션, 훈련 부하, 수면까지.<br>
+          흩어진 데이터를 하나의 스코어로 확인합니다.
+        </p>
+      </div>
+    </div>
+
+    <!-- ═══ Slide 2: 실시간 모니터링 ═══ -->
+    <div class="slide" data-slide="1">
+      <div class="visual">
+        <div class="live-stack">
+          <div class="live-card">
+            <div class="lc-avatar green">김</div>
+            <div class="lc-info">
+              <div class="lc-name">김민수</div>
+              <div class="lc-sub"><span class="lc-dot green"></span>3분 전 업데이트</div>
+            </div>
+            <div class="lc-score green">94</div>
+          </div>
+          <div class="live-card">
+            <div class="lc-avatar yellow">이</div>
+            <div class="lc-info">
+              <div class="lc-name">이준호</div>
+              <div class="lc-sub"><span class="lc-dot yellow"></span>8분 전 업데이트</div>
+            </div>
+            <div class="lc-score yellow">67</div>
+          </div>
+          <div class="live-card">
+            <div class="lc-avatar red">박</div>
+            <div class="lc-info">
+              <div class="lc-name">박서진</div>
+              <div class="lc-sub"><span class="lc-dot red"></span>1분 전 업데이트</div>
+            </div>
+            <div class="lc-score red">38</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide-content">
+        <div class="slide-eyebrow eyebrow-yellow">Real-time</div>
+        <h2 class="slide-title">
+          부상 위험 신호를<br><span class="t-yellow">실시간</span>으로 감지
+        </h2>
+        <p class="slide-desc">
+          선수별 컨디션 점수가 실시간 업데이트됩니다.<br>
+          위험 구간 진입 시 즉시 알림을 받으세요.
+        </p>
+      </div>
+    </div>
+
+    <!-- ═══ Slide 3: AI 조언 ═══ -->
+    <div class="slide" data-slide="2">
+      <div class="visual">
+        <div class="ai-preview">
+          <div class="ai-msg msg-user">
+            박서진 선수 오른쪽 햄스트링 불편감 호소 중입니다. 훈련 강도 어떻게 조절할까요?
+          </div>
+          <div class="ai-msg msg-ai">
+            <div class="msg-ai-tag">LongRun AI</div>
+            최근 2주간 누적 부하가 높고 햄스트링 반복 호소 이력이 있습니다. <strong>훈련 강도 50% 감소</strong> 후 개별 스트레칭 프로그램 전환을 권장합니다.
+          </div>
+          <div class="ai-msg msg-user">
+            대체 훈련 프로그램 추천해줘
+          </div>
+        </div>
+      </div>
+
+      <div class="slide-content">
+        <div class="slide-eyebrow eyebrow-green">AI Assistant</div>
+        <h2 class="slide-title">
+          데이터 기반의<br><span class="t-green">AI 코칭</span> 조언
+        </h2>
+        <p class="slide-desc">
+          훈련 강도 조절, 부상 예방, 대체 훈련까지.<br>
+          LongRun AI가 코치의 판단을 도와드립니다.
+        </p>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Bottom Nav -->
+  <div class="bottom-nav">
+    <div class="dots">
+      <div class="dot active" onclick="goTo(0)"></div>
+      <div class="dot" onclick="goTo(1)"></div>
+      <div class="dot" onclick="goTo(2)"></div>
+    </div>
+    <div class="nav-buttons">
+      <button class="btn-skip" onclick="skip()">건너뛰기</button>
+      <button class="btn-next" id="nextBtn" onclick="next()">다음</button>
+    </div>
+  </div>
+
+  <script src="../src/js/OnboardingApp.js" defer></script>
+
+</body>
+</html>
