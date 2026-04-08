@@ -35,6 +35,7 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 # ── DB Init ──
 @app.on_event("startup")
 def startup():
+    Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
     # 시드 데이터: 선수 5명 (팀 없이 독립)
     db = next(get_db())
