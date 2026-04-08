@@ -44,7 +44,7 @@ class Player(Base):
     __tablename__ = "players"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    team_id = Column(Integer, ForeignKey("teams.id"), nullable=False)
+    team_id = Column(Integer, ForeignKey("teams.id"), nullable=True)
     code = Column(String(10), nullable=False)
     name = Column(String(50), nullable=False)
     number = Column(Integer, nullable=True)
