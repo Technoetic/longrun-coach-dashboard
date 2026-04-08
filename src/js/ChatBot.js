@@ -77,38 +77,22 @@ class ChatBot {
 		wrap.appendChild(typing);
 		wrap.scrollTop = wrap.scrollHeight;
 
-		// KG 챗 API 호출 (코치는 인증 없이 검색 API 사용)
-		const keywords = question.replace(/[?!.,~을를이가은는에서도의로하면해줘야돼요어때나요인가요]/g, ' ')
-			.split(/\s+/).filter(w => w.length >= 2).slice(0, 5).join(',');
-
-		fetch("https://ravishing-grace-production.up.railway.app/api/kg/context?keywords=" + encodeURIComponent(keywords))
-			.then(r => r.json())
-			.then(kg => {
-				const kgCtx = kg.triples && kg.triples.length > 0
-					? kg.triples.slice(0, 5).map(t =>
-						`- ${t.subject} → ${t.relation} → ${t.object} (${t.evidence || ''}) [${t.authors || ''} (${t.year || ''}), DOI: ${t.doi || ''}]`
-					).join('\n')
-					: '';
-				return fetch("https://api.bizrouter.ai/v1/chat/completions", {
-					method: "POST",
-					headers: { "Authorization": "Bearer sk-br-v1-ab47dd953c844611a9dda14f3a60fa54_uE2bL5jqIHgfnYnvP7pSxieymu10ORU9I_H-Gn7aCgU", "Content-Type": "application/json" },
-					body: JSON.stringify({
-						model: "google/gemini-2.5-flash-lite",
-						messages: [
-							{ role: "system", content: "당신은 스포츠 AI 코치 '루니'입니다. 코치를 대상으로 전문적이고 논문 근거 기반으로 답변합니다. 존댓말을 사용하세요. 제공된 [논문 근거]만 인용하세요. 근거가 없으면 솔직히 말하세요." },
-							{ role: "user", content: `[논문 근거]\n${kgCtx || '관련 논문 없음'}\n\n[질문]\n${question}` }
-						],
-						max_tokens: 500,
-						temperature: 0.3
-					})
-				});
-			})
+		// KG 코치 챗 API 호출 (백엔드 경유)
+		fetch("https://ravishing-grace-production.up.railway.app/api/kg/coach-chat", {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({ message: question })
+		})
 			.then(r => r.json())
 			.then(data => {
 				typing.remove();
-				const reply = data.choices?.[0]?.message?.content || '';
-				if (reply) {
+				const reply = data.reply || '';
+				if (reply && !reply.startsWith('AI 응답 오류')) {
 					this.addMsg("ai", reply.replace(/\n/g, '<br>'));
+					if (data.papers && data.papers.length > 0) {
+						const refText = data.papers.map(p => p.doi ? `<a href="https://doi.org/${p.doi}" target="_blank">${p.citation}</a>` : p.citation).join('<br>');
+						this.addRef('📚 ' + refText);
+					}
 				} else {
 					// KG/LLM 실패 시 하드코딩 폴백
 					const { answer, ref } = this.getReply(question);
