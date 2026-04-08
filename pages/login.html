@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LongRun Coach — 로그인</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap">
+  <link rel="stylesheet" href="../src/css/tokens.css">
+  <link rel="stylesheet" href="../src/css/login.css">
+</head>
+<body>
+
+  <div class="login-wrap">
+    <!-- Logo -->
+    <div class="logo">
+      <div class="logo-mark">
+        <svg viewBox="0 0 32 32" fill="none">
+          <circle cx="16" cy="16" r="14" stroke="var(--green)" stroke-width="2.5" opacity="0.3"/>
+          <path d="M16 6 C20 10, 24 14, 16 26 C8 14, 12 10, 16 6Z" fill="var(--green)"/>
+        </svg>
+      </div>
+      <div class="logo-type">LongRun <span>coach</span></div>
+    </div>
+
+    <h2 class="login-title">로그인</h2>
+    <p class="login-desc">코치 계정으로 로그인하세요</p>
+
+    <!-- Email -->
+    <div class="field">
+      <label class="field-label">이메일</label>
+      <input type="email" id="loginEmail" placeholder="name@example.com" oninput="checkLogin()">
+    </div>
+
+    <!-- Password -->
+    <div class="field">
+      <label class="field-label">비밀번호</label>
+      <input type="password" id="loginPw" placeholder="비밀번호를 입력하세요" oninput="checkLogin()">
+      <p class="hint" id="loginHint"></p>
+    </div>
+
+    <!-- Options -->
+    <div class="options-row">
+      <div class="remember" onclick="toggleRemember()">
+        <div class="remember-chk" id="rememberChk">
+          <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <span class="remember-text">로그인 유지</span>
+      </div>
+      <button class="forgot-btn" onclick="openFind()">아이디 / 비밀번호 찾기</button>
+    </div>
+
+    <!-- Login Button -->
+    <button class="btn-login" id="loginBtn" disabled onclick="doLogin()">로그인</button>
+
+    <!-- Divider -->
+    <div class="divider">
+      <div class="divider-line"></div>
+      <span class="divider-text">계정이 없으신가요?</span>
+      <div class="divider-line"></div>
+    </div>
+
+    <!-- Signup Button -->
+    <button class="btn-signup" onclick="goSignup()">회원가입</button>
+  </div>
+
+  <!-- ══════ 아이디/비밀번호 찾기 모달 ══════ -->
+  <div class="find-overlay" id="findOverlay" onclick="if(event.target===this)closeFind()">
+    <div class="find-sheet">
+      <div class="find-head">
+        <h3 id="findTitle">아이디 / 비밀번호 찾기</h3>
+        <button class="find-close" onclick="closeFind()">
+          <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="find-body">
+        <!-- 탭 -->
+        <div class="find-tabs">
+          <button class="find-tab active" onclick="switchFind('id')">아이디 찾기</button>
+          <button class="find-tab" onclick="switchFind('pw')">비밀번호 찾기</button>
+        </div>
+
+        <!-- 아이디 찾기 -->
+        <div class="find-view active" id="findId">
+          <p class="find-desc">가입 시 등록한 전화번호를 입력하세요.</p>
+          <div class="field">
+            <label class="field-label">전화번호</label>
+            <input type="tel" id="findPhone" placeholder="010-0000-0000" maxlength="13" oninput="fmtFindPhone(this)">
+          </div>
+          <button class="btn-find-action" onclick="doFindId()">아이디 찾기</button>
+          <p class="find-result" id="findIdResult"></p>
+        </div>
+
+        <!-- 비밀번호 찾기 -->
+        <div class="find-view" id="findPw">
+          <p class="find-desc">가입 시 등록한 이메일을 입력하시면 비밀번호 재설정 링크를 보내드립니다.</p>
+          <div class="field">
+            <label class="field-label">이메일</label>
+            <input type="email" id="findEmail" placeholder="name@example.com">
+          </div>
+          <button class="btn-find-action" onclick="doFindPw()">재설정 링크 발송</button>
+          <p class="find-result" id="findPwResult"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="../src/js/utils.js" defer></script>
+  <script src="../src/js/LoginApp.js" defer></script>
+
+</body>
+</html>

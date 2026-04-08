@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LongRun Coach — 회원가입</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap">
+  <link rel="stylesheet" href="../src/css/tokens.css">
+  <link rel="stylesheet" href="../src/css/signup.css">
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="header">
+    <button class="back-btn" onclick="goBack()">
+      <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+    </button>
+    <span class="header-title">회원가입</span>
+  </div>
+
+  <!-- Progress -->
+  <div class="progress-wrap">
+    <div class="prog-bar active" id="pb1"><div class="fill"></div></div>
+    <div class="prog-bar" id="pb2"><div class="fill"></div></div>
+    <div class="prog-bar" id="pb3"><div class="fill"></div></div>
+  </div>
+
+  <!-- Form -->
+  <div class="form-area">
+
+    <!-- ═══ Step 1 ═══ -->
+    <div class="step active" id="step1">
+      <div class="step-label">Step 1</div>
+      <h2 class="step-title">계정 정보</h2>
+      <p class="step-desc">로그인에 사용할 이메일과 비밀번호를 설정하세요.</p>
+
+      <div class="field">
+        <label class="field-label">이메일 <span class="req">*</span></label>
+        <input type="email" id="email" placeholder="name@example.com" oninput="valEmail()">
+        <p class="hint" id="emailH"></p>
+      </div>
+
+      <div class="field">
+        <label class="field-label">비밀번호 <span class="req">*</span></label>
+        <input type="password" id="pw" placeholder="8자 이상, 영문·숫자·특수문자" oninput="valPw()">
+        <div class="strength" id="strBar">
+          <div class="str-bar"></div><div class="str-bar"></div><div class="str-bar"></div>
+        </div>
+        <p class="hint" id="pwH">영문, 숫자, 특수문자를 포함해 8자 이상</p>
+      </div>
+
+      <div class="field">
+        <label class="field-label">비밀번호 확인 <span class="req">*</span></label>
+        <input type="password" id="pwc" placeholder="비밀번호를 다시 입력하세요" oninput="valPwc()">
+        <p class="hint" id="pwcH"></p>
+      </div>
+    </div>
+
+    <!-- ═══ Step 2 ═══ -->
+    <div class="step" id="step2">
+      <div class="step-label">Step 2</div>
+      <h2 class="step-title">본인 인증</h2>
+      <p class="step-desc">전화번호로 본인 확인을 진행합니다.</p>
+
+      <div class="field">
+        <label class="field-label">전화번호 <span class="req">*</span></label>
+        <div class="input-row">
+          <input type="tel" id="phone" placeholder="010-0000-0000" oninput="fmtPhone(this);valPhone()" maxlength="13">
+          <button class="btn-verify" id="sendBtn" onclick="sendCode()" disabled>인증요청</button>
+        </div>
+      </div>
+
+      <div class="code-area" id="codeArea">
+        <div class="field">
+          <label class="field-label">인증번호</label>
+          <div class="code-row">
+            <input type="text" id="code" placeholder="000000" maxlength="6" oninput="chkCode()">
+            <span class="timer" id="timer">03:00</span>
+          </div>
+          <button class="btn-resend" onclick="sendCode()">인증번호 재발송</button>
+          <p class="hint" id="codeH"></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ Step 3 ═══ -->
+    <div class="step" id="step3">
+      <div class="step-label">Step 3</div>
+      <h2 class="step-title">이용약관 동의</h2>
+      <p class="step-desc">서비스 이용을 위해 약관에 동의해주세요.</p>
+
+      <div class="agree-all-wrap">
+        <div class="chk-wrap" onclick="toggleAll()">
+          <div class="chk" id="ckAll">
+            <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <span class="chk-text main">전체 동의</span>
+        </div>
+      </div>
+
+      <div class="agree-item">
+        <div class="chk-wrap" onclick="toggle('ck1')">
+          <div class="chk" id="ck1"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <span class="chk-text">서비스 이용약관 <span class="badge-req">필수</span></span>
+        </div>
+        <button class="btn-view" onclick="openModal('서비스 이용약관', T1)">보기</button>
+      </div>
+
+      <div class="agree-item">
+        <div class="chk-wrap" onclick="toggle('ck2')">
+          <div class="chk" id="ck2"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <span class="chk-text">개인정보 수집 및 이용 동의 <span class="badge-req">필수</span></span>
+        </div>
+        <button class="btn-view" onclick="openModal('개인정보 수집 및 이용 동의', T2)">보기</button>
+      </div>
+
+      <div class="agree-item">
+        <div class="chk-wrap" onclick="toggle('ck3')">
+          <div class="chk" id="ck3"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <span class="chk-text">개인정보 제3자 제공 동의 <span class="badge-req">필수</span></span>
+        </div>
+        <button class="btn-view" onclick="openModal('개인정보 제3자 제공 동의', T3)">보기</button>
+      </div>
+
+      <div class="agree-item">
+        <div class="chk-wrap" onclick="toggle('ck4')">
+          <div class="chk" id="ck4"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <span class="chk-text">마케팅 정보 수신 동의 <span class="badge-opt">선택</span></span>
+        </div>
+        <button class="btn-view" onclick="openModal('마케팅 정보 수신 동의', T4)">보기</button>
+      </div>
+
+      <div class="agree-item">
+        <div class="chk-wrap" onclick="toggle('ck5')">
+          <div class="chk" id="ck5"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <span class="chk-text">위치정보 이용 동의 <span class="badge-opt">선택</span></span>
+        </div>
+        <button class="btn-view" onclick="openModal('위치정보 이용 동의', T5)">보기</button>
+      </div>
+    </div>
+
+    <!-- ═══ Complete ═══ -->
+    <div class="complete" id="done">
+      <div class="complete-ring">
+        <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <h2>환영합니다</h2>
+      <p>LongRun Coach 가입이 완료되었습니다.<br>지금 바로 선수 관리를 시작하세요.</p>
+      <button class="btn-go" onclick="sessionStorage.setItem('lr_nav','login');location.href='login.html'">로그인하기</button>
+    </div>
+
+  </div>
+
+  <!-- Bottom CTA -->
+  <div class="bottom-cta" id="btmCta">
+    <button class="btn-submit" id="subBtn" disabled onclick="nextStep()">다음</button>
+  </div>
+
+  <!-- Modal -->
+  <div class="modal-bg" id="modalBg" onclick="if(event.target===this)closeModal()">
+    <div class="modal">
+      <div class="modal-head">
+        <h3 id="mTitle"></h3>
+        <button class="modal-x" onclick="closeModal()">
+          <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="modal-content" id="mBody"></div>
+    </div>
+  </div>
+
+  <script src="../src/js/utils.js" defer></script>
+  <script src="../src/js/SignupApp.js" defer></script>
+
+</body>
+</html>
