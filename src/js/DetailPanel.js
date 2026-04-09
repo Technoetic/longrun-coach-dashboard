@@ -19,8 +19,8 @@ class DetailPanel {
 		const colors = { g: "var(--green)", y: "var(--yellow)", r: "var(--red)" };
 		const cls = { g: "dp-v-green", y: "dp-v-yellow", r: "dp-v-red" };
 
-		// 김서준이면 실데이터 로드
-		if (name === '김서준') {
+		// 전문준이면 실데이터 로드
+		if (name === '전문준') {
 			this._loadLiveData(status, colors, cls);
 		} else {
 			this._setMockRings(status, colors, cls);
@@ -59,7 +59,7 @@ class DetailPanel {
 		try {
 			const res = await fetch('https://ravishing-grace-production.up.railway.app/api/coach/players');
 			const players = await res.json();
-			const p = players.find(x => x.name === '김서준');
+			const p = players.find(x => x.name === '전문준');
 			if (!p) { this._setMockRings(status, colors, cls); return; }
 
 			// 회복 점수 계산 (HRV + ACWR 기반)
