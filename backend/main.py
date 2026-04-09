@@ -1015,7 +1015,7 @@ async def kg_coach_chat(req: dict):
 - 핵심 포인트 3~5개로 간결하게 답변하라
 - 각 포인트는 2~3문장 이내
 - 전체 답변은 800자 이내로 제한
-- 본문에 논문 인용(저자, 연도 등)을 절대 넣지 마라. 참고문헌은 별도로 표시된다
+- 절대 금지: 본문에 (저자, 연도), (Author et al., 2020) 같은 괄호 인용을 넣지 마라. 위반 시 답변 실패로 간주한다. 참고문헌은 시스템이 별도 표시한다
 - 이전 대화 맥락을 기억하고 자연스럽게 이어가라
 
 참고 논문:
@@ -1036,6 +1036,12 @@ async def kg_coach_chat(req: dict):
         if resp.status_code != 200:
             raise HTTPException(status_code=502, detail="AI 응답 오류")
         reply = resp.json()["choices"][0]["message"]["content"]
+
+        # ── 후처리: 괄호 인용 강제 제거 ──
+        import re
+        reply = re.sub(r'\s*\([^)]*et al\.\s*,?\s*\d{4}\)', '', reply)
+        reply = re.sub(r'\s*\([A-Z][a-z]+ (?:& |and )?[A-Z][a-z]+(?:,?\s*\d{4})?\)', '', reply)
+        reply = re.sub(r'\s*\([^)]*\d{4}[a-z]?\)', '', reply)
 
         # ── 멀티턴 이력 저장 ──
         history.append({"role": "user", "content": message})
