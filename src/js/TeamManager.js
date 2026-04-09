@@ -243,7 +243,7 @@ window.closeDeleteTeam = () => window.teamManager.closeDeleteTeam();
 window.checkDelCode = (el) => window.teamManager.checkDelCode(el);
 window.executeDeleteTeam = () => window.teamManager.executeDeleteTeam();
 
-// ===== 김서준 실데이터 카드를 맨 위에 삽입 =====
+// ===== 전문준 실데이터 카드를 맨 위에 삽입 =====
 async function loadTopPlayer() {
 	const list = document.querySelector('.player-list');
 	if (!list) return;
@@ -253,19 +253,19 @@ async function loadTopPlayer() {
 		const players = await res.json();
 		if (!Array.isArray(players)) return;
 
-		const p = players.find(x => x.name === '김서준');
+		const p = players.find(x => x.name === '전문준');
 		if (!p) return;
 
 		const hrvText = p.hrv ? Math.round(p.hrv) : '-';
 		const hrvClass = p.hrv ? (p.hrv >= 50 ? 'val-up' : p.hrv >= 35 ? 'val-normal' : 'val-down') : 'val-normal';
 		const acwrClass = p.acwr >= 1.5 ? 'val-down' : p.acwr >= 1.3 ? 'val-warn' : 'val-normal';
 
-		const card = '<div class="player-card" onclick="openWeekly(\'김서준\',\'' + p.status + '\')">' +
+		const card = '<div class="player-card" onclick="openWeekly(\'전문준\',\'' + p.status + '\')">' +
 			'<div class="player-photo">' +
-			'<img src="https://api.dicebear.com/9.x/initials/svg?seed=KS&backgroundColor=1a1a1a&textColor=00F19F" alt="김서준">' +
+			'<img src="https://api.dicebear.com/9.x/initials/svg?seed=JM&backgroundColor=1a1a1a&textColor=00F19F" alt="전문준">' +
 			'<span class="signal ' + p.status + '"></span></div>' +
 			'<div class="player-main"><div class="player-top">' +
-			'<span class="player-name">김서준</span>' +
+			'<span class="player-name">전문준</span>' +
 			'<span class="player-num">#1</span></div>' +
 			'<div class="player-stats">' +
 			'<div class="ps-item"><div class="ps-val ' + hrvClass + '">' + hrvText + '</div><div class="ps-label">HRV</div></div>' +
