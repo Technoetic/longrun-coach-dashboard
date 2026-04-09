@@ -100,7 +100,7 @@ class ChatBot {
 				if (reply && !reply.startsWith('AI 응답 오류')) {
 					this.addMsg("ai", reply.replace(/\n/g, '<br>'));
 					if (data.papers && data.papers.length > 0) {
-						const refText = data.papers.map(p => p.doi ? `<a href="https://doi.org/${p.doi}" target="_blank">${p.citation}</a>` : p.citation).join('<br>');
+						const refText = data.papers.map(p => (p.doi && p.doi !== 'N/A' && p.doi !== '') ? `<a href="https://doi.org/${p.doi}" target="_blank">${p.citation}</a>` : p.citation).join('<br>');
 						this.addRef('📚 ' + refText);
 					}
 				} else {
