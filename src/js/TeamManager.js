@@ -249,7 +249,7 @@ async function loadTopPlayer() {
 	if (!list) return;
 
 	try {
-		const res = await fetch('https://ravishing-grace-production.up.railway.app/api/coach/players');
+		const res = await fetch('/api/coach/players');
 		const players = await res.json();
 		if (!Array.isArray(players)) return;
 

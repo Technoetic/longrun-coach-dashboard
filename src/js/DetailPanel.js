@@ -57,7 +57,7 @@ class DetailPanel {
 
 	async _loadLiveData(status, colors, cls) {
 		try {
-			const res = await fetch('https://ravishing-grace-production.up.railway.app/api/coach/players');
+			const res = await fetch('/api/coach/players');
 			const players = await res.json();
 			const p = players.find(x => x.name === '전문준');
 			if (!p) { this._setMockRings(status, colors, cls); return; }

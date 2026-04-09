@@ -95,7 +95,7 @@ class ChatBot {
 		wrap.scrollTop = wrap.scrollHeight;
 
 		// KG 코치 챗 API 호출 (백엔드 경유)
-		fetch("https://ravishing-grace-production.up.railway.app/api/kg/coach-chat", {
+		fetch("/api/kg/coach-chat", {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify({ message: question, session_id: this.sessionId })
