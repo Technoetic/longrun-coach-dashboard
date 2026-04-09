@@ -77,7 +77,7 @@ def coach_players():
                     FROM conditions GROUP BY user_id
                 ) latest ON co.user_id = latest.user_id AND co.recorded_at = latest.max_at
             ) c ON u.id = c.user_id
-            WHERE u.role = 'player' OR u.role IS NULL
+            WHERE u.role = 'athlete' OR u.role IS NULL
             ORDER BY u.id
         """)).fetchall()
 
