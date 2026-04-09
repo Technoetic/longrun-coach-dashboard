@@ -12,11 +12,30 @@ class DetailPanel {
 
 	openWeekly(name, status) {
 		this.currentStatus = status;
+		this.currentPlayer = name;
 		document.getElementById("weeklyName").textContent = name + " 선수";
 		this.switchTab("weekly");
-		const scores = { g: 86, y: 62, r: 38 };
+
 		const colors = { g: "var(--green)", y: "var(--yellow)", r: "var(--red)" };
 		const cls = { g: "dp-v-green", y: "dp-v-yellow", r: "dp-v-red" };
+
+		// 김서준이면 실데이터 로드
+		if (name === '김서준') {
+			this._loadLiveData(status, colors, cls);
+		} else {
+			this._setMockRings(status, colors, cls);
+		}
+
+		document.getElementById("weeklyOverlay").classList.add("show");
+		setTimeout(
+			() => document.getElementById("weeklyPanel").classList.add("open"),
+			10,
+		);
+		document.body.style.overflow = "hidden";
+	}
+
+	_setMockRings(status, colors, cls) {
+		const scores = { g: 86, y: 62, r: 38 };
 		const score = scores[status] || 86;
 		const valEl = document.getElementById("rRecoveryVal");
 		valEl.textContent = score;
@@ -34,12 +53,95 @@ class DetailPanel {
 				el.style.strokeDashoffset = String(r.circ - r.circ * r.pct);
 			}, 100);
 		});
-		document.getElementById("weeklyOverlay").classList.add("show");
-		setTimeout(
-			() => document.getElementById("weeklyPanel").classList.add("open"),
-			10,
-		);
-		document.body.style.overflow = "hidden";
+	}
+
+	async _loadLiveData(status, colors, cls) {
+		try {
+			const res = await fetch('https://ravishing-grace-production.up.railway.app/api/coach/players');
+			const players = await res.json();
+			const p = players.find(x => x.name === '김서준');
+			if (!p) { this._setMockRings(status, colors, cls); return; }
+
+			// 회복 점수 계산 (HRV + ACWR 기반)
+			const hrvScore = p.hrv ? Math.min(100, Math.round(p.hrv * 1.5)) : 50;
+			const acwrPenalty = p.acwr > 1.3 ? (p.acwr - 1.3) * 50 : 0;
+			const recovery = Math.max(0, Math.min(100, hrvScore - Math.round(acwrPenalty)));
+			const sleepPct = p.sleep ? Math.min(1, p.sleep / 9) : 0;
+			const strainVal = p.acwr ? (p.acwr * 10).toFixed(1) : '0';
+			const strainPct = p.acwr ? Math.min(1, p.acwr / 2) : 0;
+
+			const rColor = recovery >= 70 ? 'var(--green)' : recovery >= 40 ? 'var(--yellow)' : 'var(--red)';
+			const rCls = recovery >= 70 ? 'dp-v-green' : recovery >= 40 ? 'dp-v-yellow' : 'dp-v-red';
+
+			const valEl = document.getElementById("rRecoveryVal");
+			valEl.textContent = recovery;
+			valEl.className = "dp-ring-val " + rCls;
+			valEl.style.fontSize = "36px";
+
+			const rings = [
+				{ id: "rRecovery", circ: 364, pct: recovery / 100, color: rColor },
+				{ id: "rSleep", circ: 251, pct: sleepPct, color: "var(--blue)" },
+				{ id: "rStrain", circ: 251, pct: strainPct, color: "var(--yellow)" },
+			];
+			rings.forEach((r) => {
+				const el = document.getElementById(r.id);
+				el.style.stroke = r.color;
+				el.style.strokeDashoffset = String(r.circ);
+				setTimeout(() => { el.style.strokeDashoffset = String(r.circ - r.circ * r.pct); }, 100);
+			});
+
+			// 수면 링 값
+			const sleepCenter = document.querySelector('#rSleep').closest('.dp-ring-wrap').querySelector('.dp-ring-val');
+			if (sleepCenter) sleepCenter.innerHTML = (p.sleep || '-') + '<span style="font-size:11px">h</span>';
+
+			// 부하 링 값
+			const strainCenter = document.querySelector('#rStrain').closest('.dp-ring-wrap').querySelector('.dp-ring-val');
+			if (strainCenter) strainCenter.textContent = strainVal;
+
+			// 주간 뷰 상세 리스트 업데이트
+			const weekly = document.getElementById('viewWeekly');
+			if (!weekly) return;
+			const lists = weekly.querySelectorAll('.dp-list');
+
+			// 심박·심혈관
+			if (lists[0]) {
+				const items = lists[0].querySelectorAll('li');
+				if (items[0]) items[0].querySelector('.dp-list-val').innerHTML = (p.hr || '-') + '<span class="dp-list-unit">bpm</span>';
+				if (items[1]) items[1].querySelector('.dp-list-val').innerHTML = (p.rhr || '-') + '<span class="dp-list-unit">bpm</span>';
+				if (items[2]) items[2].querySelector('.dp-list-val').innerHTML = '-<span class="dp-list-unit">bpm</span>';
+				if (items[3]) items[3].querySelector('.dp-list-val').innerHTML = (p.hrv ? Math.round(p.hrv) : '-') + '<span class="dp-list-unit">ms</span>';
+				if (items[4]) items[4].querySelector('.dp-list-val').innerHTML = (p.spo2 || '-') + '<span class="dp-list-unit">%</span>';
+			}
+
+			// 활동
+			if (lists[1]) {
+				const items = lists[1].querySelectorAll('li');
+				if (items[0]) items[0].querySelector('.dp-list-val').textContent = p.steps ? p.steps.toLocaleString() : '-';
+				if (items[1]) items[1].querySelector('.dp-list-val').innerHTML = '-<span class="dp-list-unit">km</span>';
+				if (items[2]) items[2].querySelector('.dp-list-val').innerHTML = (p.active_cal ? Math.round(p.active_cal) : '-') + '<span class="dp-list-unit">kcal</span>';
+				if (items[3]) items[3].querySelector('.dp-list-val').innerHTML = '-<span class="dp-list-unit">kcal</span>';
+				if (items[4]) items[4].querySelector('.dp-list-val').innerHTML = (p.exercise_min || '-') + '<span class="dp-list-unit">분</span>';
+			}
+
+			// 수면
+			if (lists[2]) {
+				const items = lists[2].querySelectorAll('li');
+				if (items[0]) items[0].querySelector('.dp-list-val').innerHTML = (p.sleep || '-') + '<span class="dp-list-unit">시간</span>';
+			}
+
+			// AI 인사이트
+			const aiP = weekly.querySelector('.ai-insight p');
+			if (aiP) {
+				const hrvStatus = p.hrv >= 50 ? '양호' : p.hrv >= 35 ? '보통' : '낮음';
+				aiP.textContent = 'HRV ' + (p.hrv ? Math.round(p.hrv) : '-') + 'ms (' + hrvStatus + '). ' +
+					'안정심박 ' + (p.rhr || '-') + 'bpm. ' +
+					'ACWR ' + (p.acwr || '-') + '. ' +
+					(p.acwr > 1.3 ? '훈련 부하 조절 권장.' : '현재 컨디션 유지 권장.');
+			}
+		} catch (e) {
+			console.warn('Live data load failed:', e);
+			this._setMockRings(status, colors, cls);
+		}
 	}
 
 	closeWeekly() {
