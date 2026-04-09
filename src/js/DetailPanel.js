@@ -121,7 +121,7 @@ class DetailPanel {
 				if (items[2]) items[2].querySelector('.dp-list-val').innerHTML = (p.active_cal ? Math.round(p.active_cal) : '-') + '<span class="dp-list-unit">kcal</span>';
 				if (items[3]) items[3].querySelector('.dp-list-val').innerHTML = (p.basal_cal || '-') + '<span class="dp-list-unit">kcal</span>';
 				if (items[4]) items[4].querySelector('.dp-list-val').innerHTML = (p.exercise_min || '-') + '<span class="dp-list-unit">분</span>';
-				if (items[5]) items[5].querySelector('.dp-list-val').innerHTML = (p.stand_min || '-') + '<span class="dp-list-unit">시간</span>';
+				if (items[5]) items[5].querySelector('.dp-list-val').innerHTML = (p.stand_min || '-') + '<span class="dp-list-unit">분</span>';
 				if (items[6]) items[6].querySelector('.dp-list-val').innerHTML = (p.flights || '-') + '<span class="dp-list-unit">층</span>';
 			}
 
