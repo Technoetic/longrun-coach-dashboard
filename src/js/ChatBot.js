@@ -1,6 +1,6 @@
 class ChatBot {
 	constructor() {
-		// No special initialization needed
+		this.sessionId = 'coach_' + Math.random().toString(36).substring(2, 10);
 	}
 
 	renderMd(text) {
@@ -98,7 +98,7 @@ class ChatBot {
 		fetch("https://ravishing-grace-production.up.railway.app/api/kg/coach-chat", {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify({ message: question })
+			body: JSON.stringify({ message: question, session_id: this.sessionId })
 		})
 			.then(r => r.json())
 			.then(data => {
