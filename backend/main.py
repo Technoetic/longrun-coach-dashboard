@@ -938,6 +938,13 @@ def coach_players(db: Session = Depends(get_db)):
     return players
 
 
+@app.post("/api/kg/chat")
+async def kg_chat(req: dict, current_user: User = Depends(get_current_user)):
+    """선수용 KG 챗 (인증 필요)"""
+    req["_user"] = current_user.name
+    return await kg_coach_chat(req)
+
+
 @app.post("/api/kg/coach-chat")
 async def kg_coach_chat(req: dict):
     """코치용 KG 챗 (오케스트레이터 + 멀티턴)"""
