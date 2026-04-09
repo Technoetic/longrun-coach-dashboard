@@ -1075,11 +1075,37 @@ async def kg_coach_chat(req: dict):
         if guard_resp.status_code == 200:
             reply = guard_resp.json()["choices"][0]["message"]["content"]
 
-        # ── 후처리: 괄호 인용 강제 제거 (보험) ──
+        # ── 후처리: 괄호 인용 강제 제거 ──
         import re
         reply = re.sub(r'\s*\([^)]*et al\.\s*,?\s*\d{4}\)', '', reply)
         reply = re.sub(r'\s*\([A-Z][a-z]+ (?:& |and )?[A-Z][a-z]+(?:,?\s*\d{4})?\)', '', reply)
         reply = re.sub(r'\s*\([^)]*\d{4}[a-z]?\)', '', reply)
+
+        # ── 규칙 기반 필터: 의학적 처방/구체적 수치 문장 삭제 ──
+        BANNED_PATTERNS = [
+            r'하루\s*\d+\s*[mg]',           # 하루 20mg, 하루 5g
+            r'\d+\s*mg',                     # 300mg
+            r'체중\s*\d*\s*kg당\s*[\d.]+',   # 체중 1kg당 0.3
+            r'\d+~?\d*\s*주차',              # 4주차, 4~12주차
+            r'수술\s*(후|직후)',              # 수술 후, 수술 직후
+            r'\d+회\s*/\s*일',               # 4회/일
+            r'처방',                          # 처방
+            r'투약|복용량',                   # 투약, 복용량
+        ]
+        banned_re = re.compile('|'.join(BANNED_PATTERNS))
+
+        lines = reply.split('\n')
+        filtered = []
+        removed = False
+        for line in lines:
+            if banned_re.search(line):
+                removed = True
+            else:
+                filtered.append(line)
+
+        reply = '\n'.join(filtered).strip()
+        if removed:
+            reply += '\n\n정확한 수치와 의학적 프로토콜은 전문가와 상담하시기 바랍니다.'
 
         # ── 멀티턴 이력 저장 ──
         history.append({"role": "user", "content": message})
