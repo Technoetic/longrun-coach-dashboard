@@ -945,9 +945,13 @@ async def kg_chat(req: dict, current_user: User = Depends(get_current_user)):
     return await kg_coach_chat(req)
 
 
+# ── 멀티턴 세션 저장소 (인메모리) ──
+_chat_sessions: dict = {}  # { session_id: [{"role": ..., "content": ...}, ...] }
+
+
 @app.post("/api/kg/coach-chat")
 async def kg_coach_chat(req: dict):
-    """코치용 KG 챗 (오케스트레이터 + 멀티턴)"""
+    """코치용 KG 챗 — 오케스트레이터 + 멀티턴 + KG 논문 검색"""
     import httpx
     from sqlalchemy import text as sa_text
     BIZROUTER_API_KEY = os.getenv("BIZROUTER_API_KEY", "")
@@ -955,11 +959,42 @@ async def kg_coach_chat(req: dict):
         raise HTTPException(status_code=500, detail="BIZROUTER_API_KEY not configured")
 
     message = req.get("message", "")
+    session_id = req.get("session_id", "")
     db = next(get_db())
     try:
-        papers_rows = db.execute(sa_text(
-            "SELECT id, title, authors, year, doi, journal FROM kg_papers ORDER BY RAND() LIMIT 5"
-        )).fetchall()
+        # ── Step 1: 오케스트레이터 — 키워드 추출 ──
+        async with httpx.AsyncClient(timeout=15) as client:
+            kw_resp = await client.post(
+                "https://api.bizrouter.ai/v1/chat/completions",
+                headers={"Authorization": f"Bearer {BIZROUTER_API_KEY}", "Content-Type": "application/json"},
+                json={"model": "google/gemini-2.5-flash-lite", "messages": [
+                    {"role": "system", "content": "사용자 질문에서 스포츠 과학 검색 키워드를 영어로 3~5개 추출하라. 쉼표로 구분. 키워드만 출력."},
+                    {"role": "user", "content": message},
+                ], "max_tokens": 100},
+            )
+        if kw_resp.status_code == 200:
+            keywords = kw_resp.json()["choices"][0]["message"]["content"].strip()
+        else:
+            keywords = ""
+
+        # ── Step 2: 서브 — KG 논문 검색 (키워드 기반) ──
+        kw_list = [k.strip() for k in keywords.split(",") if k.strip()]
+        if kw_list:
+            like_clauses = " OR ".join([f"title LIKE :kw{i}" for i in range(len(kw_list))])
+            params = {f"kw{i}": f"%{kw}%" for i, kw in enumerate(kw_list)}
+            query = f"SELECT id, title, authors, year, doi, journal FROM kg_papers WHERE {like_clauses} LIMIT 5"
+            papers_rows = db.execute(sa_text(query), params).fetchall()
+            # 부족하면 랜덤 보충
+            if len(papers_rows) < 3:
+                extra = db.execute(sa_text(
+                    "SELECT id, title, authors, year, doi, journal FROM kg_papers ORDER BY RAND() LIMIT :n"
+                ), {"n": 5 - len(papers_rows)}).fetchall()
+                papers_rows = list(papers_rows) + list(extra)
+        else:
+            papers_rows = db.execute(sa_text(
+                "SELECT id, title, authors, year, doi, journal FROM kg_papers ORDER BY RAND() LIMIT 5"
+            )).fetchall()
+
         kg_context = ""
         papers = []
         for p in papers_rows:
@@ -967,6 +1002,11 @@ async def kg_coach_chat(req: dict):
             citation = f"{row['authors']} ({row['year']}). {row['title']}. {row['journal'] or ''}"
             papers.append({"citation": citation, "doi": row.get("doi") or ""})
             kg_context += f"- {citation}\n"
+
+        # ── Step 3: 멀티턴 이력 로드 ──
+        if session_id not in _chat_sessions:
+            _chat_sessions[session_id] = []
+        history = _chat_sessions[session_id]
 
         system_prompt = f"""너는 스포츠 과학 전문 코치 AI 어시스턴트다.
 선수의 훈련 부하, 부상 예방, 회복, 수면, 컨디션 관리에 대해 근거 기반 조언을 제공한다.
@@ -976,22 +1016,34 @@ async def kg_coach_chat(req: dict):
 - 각 포인트는 2~3문장 이내
 - 전체 답변은 800자 이내로 제한
 - 본문에 논문 인용(저자, 연도 등)을 절대 넣지 마라. 참고문헌은 별도로 표시된다
+- 이전 대화 맥락을 기억하고 자연스럽게 이어가라
 
 참고 논문:
 {kg_context}"""
 
+        messages = [{"role": "system", "content": system_prompt}]
+        # 최근 10턴만 유지 (토큰 절약)
+        messages.extend(history[-20:])
+        messages.append({"role": "user", "content": message})
+
+        # ── Step 4: 서브 — LLM 답변 생성 ──
         async with httpx.AsyncClient(timeout=30) as client:
             resp = await client.post(
                 "https://api.bizrouter.ai/v1/chat/completions",
                 headers={"Authorization": f"Bearer {BIZROUTER_API_KEY}", "Content-Type": "application/json"},
-                json={"model": "google/gemini-2.5-flash-lite", "messages": [
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": message},
-                ], "max_tokens": 4000},
+                json={"model": "google/gemini-2.5-flash-lite", "messages": messages, "max_tokens": 4000},
             )
         if resp.status_code != 200:
             raise HTTPException(status_code=502, detail="AI 응답 오류")
         reply = resp.json()["choices"][0]["message"]["content"]
+
+        # ── 멀티턴 이력 저장 ──
+        history.append({"role": "user", "content": message})
+        history.append({"role": "assistant", "content": reply})
+        # 최대 20턴 유지
+        if len(history) > 40:
+            _chat_sessions[session_id] = history[-40:]
+
         return {"reply": reply, "papers": papers}
     finally:
         db.close()
