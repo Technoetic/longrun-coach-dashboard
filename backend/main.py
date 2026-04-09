@@ -1047,7 +1047,35 @@ async def kg_coach_chat(req: dict):
             raise HTTPException(status_code=502, detail="AI 응답 오류")
         reply = resp.json()["choices"][0]["message"]["content"]
 
-        # ── 후처리: 괄호 인용 강제 제거 ──
+        # ── Step 5: 가드레일 — 검증 LLM ──
+        guardrail_prompt = f"""다음 AI 답변을 검증하라. 아래 기준에 위반되는 문장이 있으면 해당 문장만 제거하고 나머지를 그대로 반환하라. 위반 없으면 원문 그대로 반환하라.
+
+위반 기준:
+1. 참고 논문 목록에 근거 없는 구체적 수치 (mg, g, kg, 주차, 횟수 등)
+2. 의학적 수술/재활 프로토콜 (주차별 재활 계획, 약물 용량 등)
+3. 괄호 인용 (Author et al., 2020) 형식
+
+참고 논문 목록:
+{kg_context}
+
+검증할 답변:
+{reply}
+
+수정된 답변만 출력하라. 설명하지 마라."""
+
+        guard_headers = {"Authorization": f"Bearer {BIZROUTER_API_KEY}", "Content-Type": "application/json"}
+        guard_body = {"model": "google/gemini-2.5-flash-lite", "messages": [
+            {"role": "user", "content": guardrail_prompt},
+        ], "max_tokens": 4000}
+        async with httpx.AsyncClient(timeout=20) as client:
+            guard_resp = await client.post(
+                "https://api.bizrouter.ai/v1/chat/completions",
+                headers=guard_headers, json=guard_body,
+            )
+        if guard_resp.status_code == 200:
+            reply = guard_resp.json()["choices"][0]["message"]["content"]
+
+        # ── 후처리: 괄호 인용 강제 제거 (보험) ──
         import re
         reply = re.sub(r'\s*\([^)]*et al\.\s*,?\s*\d{4}\)', '', reply)
         reply = re.sub(r'\s*\([A-Z][a-z]+ (?:& |and )?[A-Z][a-z]+(?:,?\s*\d{4})?\)', '', reply)
