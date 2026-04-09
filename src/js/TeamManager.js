@@ -256,8 +256,8 @@ async function loadTopPlayer() {
 		const p = players.find(x => x.name === '김서준');
 		if (!p) return;
 
-		const hrvText = p.hrv ? (p.hrv > 50 ? '+' + Math.round((p.hrv - 50) / 50 * 100) + '%' : '-' + Math.round((50 - p.hrv) / 50 * 100) + '%') : '-';
-		const hrvClass = p.hrv ? (p.hrv > 50 ? 'val-up' : 'val-down') : 'val-normal';
+		const hrvText = p.hrv ? Math.round(p.hrv) : '-';
+		const hrvClass = p.hrv ? (p.hrv >= 50 ? 'val-up' : p.hrv >= 35 ? 'val-normal' : 'val-down') : 'val-normal';
 		const acwrClass = p.acwr >= 1.5 ? 'val-down' : p.acwr >= 1.3 ? 'val-warn' : 'val-normal';
 
 		const card = '<div class="player-card" onclick="openWeekly(\'김서준\',\'' + p.status + '\')">' +
