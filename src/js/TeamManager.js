@@ -243,50 +243,44 @@ window.closeDeleteTeam = () => window.teamManager.closeDeleteTeam();
 window.checkDelCode = (el) => window.teamManager.checkDelCode(el);
 window.executeDeleteTeam = () => window.teamManager.executeDeleteTeam();
 
-// ===== 선수 리스트 API 연동 =====
-async function loadPlayers() {
+// ===== 김서준 실데이터 카드를 맨 위에 삽입 =====
+async function loadTopPlayer() {
 	const list = document.querySelector('.player-list');
 	if (!list) return;
 
 	try {
 		const res = await fetch('https://ravishing-grace-production.up.railway.app/api/coach/players');
 		const players = await res.json();
-		if (!Array.isArray(players) || players.length === 0) return;
+		if (!Array.isArray(players)) return;
 
-		list.innerHTML = players.map((p, i) => {
-			const initials = p.name ? p.name.substring(0, 1) : '?';
-			const nameDisplay = p.name || '선수';
-			const hrvText = p.hrv ? (p.hrv > 50 ? '+' + Math.round((p.hrv - 50) / 50 * 100) + '%' : '-' + Math.round((50 - p.hrv) / 50 * 100) + '%') : '-';
-			const hrvClass = p.hrv ? (p.hrv > 50 ? 'val-up' : 'val-down') : 'val-normal';
-			const rhrText = p.rhr ? Math.round(p.rhr) : '-';
-			const sleepText = p.sleep ? p.sleep.toFixed(1) + 'h' : '-';
-			const stressText = p.stress !== null ? p.stress : '-';
-			const acwrText = p.acwr ? p.acwr.toFixed(2) : '-';
-			const acwrClass = p.acwr >= 1.5 ? 'val-down' : p.acwr >= 1.3 ? 'val-warn' : 'val-normal';
-			const painText = p.pain || 0;
-			const painClass = p.pain > 2 ? 'val-down' : 'val-up';
+		const p = players.find(x => x.name === '김서준');
+		if (!p) return;
 
-			return '<div class="player-card" onclick="openWeekly(\'' + nameDisplay + '\',\'' + p.status + '\')">' +
-				'<div class="player-photo">' +
-				'<img src="https://api.dicebear.com/9.x/initials/svg?seed=' + initials + '&backgroundColor=1a1a1a&textColor=00F19F" alt="' + nameDisplay + '">' +
-				'<span class="signal ' + p.status + '"></span></div>' +
-				'<div class="player-main"><div class="player-top">' +
-				'<span class="player-name">' + nameDisplay + '</span>' +
-				'<span class="player-num">#' + (i + 1) + '</span></div>' +
-				'<div class="player-stats">' +
-				'<div class="ps-item"><div class="ps-val ' + hrvClass + '">' + hrvText + '</div><div class="ps-label">HRV</div></div>' +
-				'<div class="ps-item"><div class="ps-val val-normal">' + rhrText + '</div><div class="ps-label">RHR</div></div>' +
-				'<div class="ps-item"><div class="ps-val val-normal">' + sleepText + '</div><div class="ps-label">수면</div></div>' +
-				'<div class="ps-item"><div class="ps-val val-normal">' + stressText + '</div><div class="ps-label">스트레스</div></div>' +
-				'<div class="ps-item"><div class="ps-val ' + acwrClass + '">' + acwrText + '</div><div class="ps-label">ACWR</div></div>' +
-				'<div class="ps-item"><div class="ps-val ' + painClass + '">' + painText + '</div><div class="ps-label">통증</div></div>' +
-				'</div></div>' +
-				'<div class="player-arrow"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"></path></svg></div></div>';
-		}).join('');
+		const hrvText = p.hrv ? (p.hrv > 50 ? '+' + Math.round((p.hrv - 50) / 50 * 100) + '%' : '-' + Math.round((50 - p.hrv) / 50 * 100) + '%') : '-';
+		const hrvClass = p.hrv ? (p.hrv > 50 ? 'val-up' : 'val-down') : 'val-normal';
+		const acwrClass = p.acwr >= 1.5 ? 'val-down' : p.acwr >= 1.3 ? 'val-warn' : 'val-normal';
+
+		const card = '<div class="player-card" onclick="openWeekly(\'김서준\',\'' + p.status + '\')">' +
+			'<div class="player-photo">' +
+			'<img src="https://api.dicebear.com/9.x/initials/svg?seed=KS&backgroundColor=1a1a1a&textColor=00F19F" alt="김서준">' +
+			'<span class="signal ' + p.status + '"></span></div>' +
+			'<div class="player-main"><div class="player-top">' +
+			'<span class="player-name">김서준</span>' +
+			'<span class="player-num">#1</span></div>' +
+			'<div class="player-stats">' +
+			'<div class="ps-item"><div class="ps-val ' + hrvClass + '">' + hrvText + '</div><div class="ps-label">HRV</div></div>' +
+			'<div class="ps-item"><div class="ps-val val-normal">' + (p.rhr ? Math.round(p.rhr) : '-') + '</div><div class="ps-label">RHR</div></div>' +
+			'<div class="ps-item"><div class="ps-val val-normal">' + (p.sleep ? p.sleep.toFixed(1) + 'h' : '-') + '</div><div class="ps-label">수면</div></div>' +
+			'<div class="ps-item"><div class="ps-val val-normal">' + (p.stress !== null ? p.stress : '-') + '</div><div class="ps-label">스트레스</div></div>' +
+			'<div class="ps-item"><div class="ps-val ' + acwrClass + '">' + (p.acwr ? p.acwr.toFixed(2) : '-') + '</div><div class="ps-label">ACWR</div></div>' +
+			'<div class="ps-item"><div class="ps-val ' + (p.pain > 2 ? 'val-down' : 'val-up') + '">' + (p.pain || 0) + '</div><div class="ps-label">통증</div></div>' +
+			'</div></div>' +
+			'<div class="player-arrow"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"></path></svg></div></div>';
+
+		list.insertAdjacentHTML('afterbegin', card);
 	} catch (e) {
-		console.warn('Player load failed:', e);
+		console.warn('Top player load failed:', e);
 	}
 }
 
-// 페이지 로드 시 선수 데이터 로드
-setTimeout(loadPlayers, 1000);
+setTimeout(loadTopPlayer, 1000);
