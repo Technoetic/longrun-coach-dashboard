@@ -3,6 +3,16 @@ class ChatBot {
 		// No special initialization needed
 	}
 
+	renderMd(text) {
+		if (!text) return '';
+		return text
+			.replace(/\n/g, '<br>')
+			.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+			.replace(/\*(.+?)\*/g, '<em>$1</em>')
+			.replace(/^(\d+)\.\s+/gm, '<strong>$1.</strong> ')
+			.replace(/^\s*[\*\-]\s+(.+)/gm, '<div style="display:flex;gap:6px;margin:2px 0;padding-left:8px"><span style="color:#4ade80">•</span><span>$1</span></div>');
+	}
+
 	openChat() {
 		document.getElementById("chatOverlay").classList.add("show");
 		setTimeout(
@@ -49,7 +59,7 @@ class ChatBot {
 		if (type === "user") {
 			bubble.textContent = content;
 		} else {
-			bubble.innerHTML = content;
+			bubble.innerHTML = this.renderMd(content);
 		}
 		msg.appendChild(sender);
 		msg.appendChild(bubble);
