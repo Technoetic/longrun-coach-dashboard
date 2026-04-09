@@ -977,7 +977,7 @@ async def kg_coach_chat(req: dict):
             resp = await client.post(
                 "https://api.bizrouter.ai/v1/chat/completions",
                 headers={"Authorization": f"Bearer {BIZROUTER_API_KEY}", "Content-Type": "application/json"},
-                json={"model": "openai/gpt-5.4-mini", "messages": [
+                json={"model": "google/gemini-2.5-flash-lite", "messages": [
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": message},
                 ], "max_tokens": 1000},
