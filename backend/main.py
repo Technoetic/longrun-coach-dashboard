@@ -970,7 +970,14 @@ async def kg_coach_chat(req: dict):
 
         system_prompt = f"""너는 스포츠 과학 전문 코치 AI 어시스턴트다.
 선수의 훈련 부하, 부상 예방, 회복, 수면, 컨디션 관리에 대해 근거 기반 조언을 제공한다.
-다음 논문을 참고하여 답변하라:
+
+규칙:
+- 핵심 포인트 3~5개로 간결하게 답변하라
+- 각 포인트는 2~3문장 이내
+- 전체 답변은 800자 이내로 제한
+- 논문 인용은 괄호 안에 저자(연도)로 간략히
+
+참고 논문:
 {kg_context}"""
 
         async with httpx.AsyncClient(timeout=30) as client:
