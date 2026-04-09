@@ -108,7 +108,7 @@ class DetailPanel {
 				const items = lists[0].querySelectorAll('li');
 				if (items[0]) items[0].querySelector('.dp-list-val').innerHTML = (p.hr || '-') + '<span class="dp-list-unit">bpm</span>';
 				if (items[1]) items[1].querySelector('.dp-list-val').innerHTML = (p.rhr || '-') + '<span class="dp-list-unit">bpm</span>';
-				if (items[2]) items[2].querySelector('.dp-list-val').innerHTML = '-<span class="dp-list-unit">bpm</span>';
+				if (items[2]) items[2].querySelector('.dp-list-val').innerHTML = (p.walking_hr || '-') + '<span class="dp-list-unit">bpm</span>';
 				if (items[3]) items[3].querySelector('.dp-list-val').innerHTML = (p.hrv ? Math.round(p.hrv) : '-') + '<span class="dp-list-unit">ms</span>';
 				if (items[4]) items[4].querySelector('.dp-list-val').innerHTML = (p.spo2 || '-') + '<span class="dp-list-unit">%</span>';
 			}
@@ -117,16 +117,25 @@ class DetailPanel {
 			if (lists[1]) {
 				const items = lists[1].querySelectorAll('li');
 				if (items[0]) items[0].querySelector('.dp-list-val').textContent = p.steps ? p.steps.toLocaleString() : '-';
-				if (items[1]) items[1].querySelector('.dp-list-val').innerHTML = '-<span class="dp-list-unit">km</span>';
+				if (items[1]) items[1].querySelector('.dp-list-val').innerHTML = (p.distance_km || '-') + '<span class="dp-list-unit">km</span>';
 				if (items[2]) items[2].querySelector('.dp-list-val').innerHTML = (p.active_cal ? Math.round(p.active_cal) : '-') + '<span class="dp-list-unit">kcal</span>';
-				if (items[3]) items[3].querySelector('.dp-list-val').innerHTML = '-<span class="dp-list-unit">kcal</span>';
+				if (items[3]) items[3].querySelector('.dp-list-val').innerHTML = (p.basal_cal || '-') + '<span class="dp-list-unit">kcal</span>';
 				if (items[4]) items[4].querySelector('.dp-list-val').innerHTML = (p.exercise_min || '-') + '<span class="dp-list-unit">분</span>';
+				if (items[5]) items[5].querySelector('.dp-list-val').innerHTML = (p.stand_min || '-') + '<span class="dp-list-unit">시간</span>';
+				if (items[6]) items[6].querySelector('.dp-list-val').innerHTML = (p.flights || '-') + '<span class="dp-list-unit">층</span>';
 			}
 
 			// 수면
 			if (lists[2]) {
 				const items = lists[2].querySelectorAll('li');
 				if (items[0]) items[0].querySelector('.dp-list-val').innerHTML = (p.sleep || '-') + '<span class="dp-list-unit">시간</span>';
+			}
+
+			// 환경·청각
+			if (lists[3]) {
+				const items = lists[3].querySelectorAll('li');
+				if (items[0]) items[0].querySelector('.dp-list-val').innerHTML = (p.env_db || '-') + '<span class="dp-list-unit">dB</span>';
+				if (items[1]) items[1].querySelector('.dp-list-val').innerHTML = (p.earphone_db || '-') + '<span class="dp-list-unit">dB</span>';
 			}
 
 			// AI 인사이트
