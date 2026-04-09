@@ -980,7 +980,7 @@ async def kg_coach_chat(req: dict):
                 json={"model": "google/gemini-2.5-flash-lite", "messages": [
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": message},
-                ], "max_tokens": 1000},
+                ], "max_tokens": 4000},
             )
         if resp.status_code != 200:
             raise HTTPException(status_code=502, detail="AI 응답 오류")
