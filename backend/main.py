@@ -209,6 +209,84 @@ async def kg_coach_chat(req: ChatRequest):
         db.close()
 
 
+# ── /api/watch-data (워치 데이터 수신) ──
+@app.post("/api/watch-data")
+def receive_watch_data(data: dict):
+    email = data.get("email")
+    if not email:
+        raise HTTPException(status_code=400, detail="email 필요")
+
+    db = Session()
+    try:
+        user = db.execute(text("SELECT id FROM users WHERE email = :e"), {"e": email}).fetchone()
+        if not user:
+            raise HTTPException(status_code=404, detail="사용자 없음")
+        user_id = user[0]
+
+        hr = data.get("heart_rate")
+        rhr = data.get("resting_heart_rate")
+        hrv = data.get("hrv")
+        spo2 = data.get("blood_oxygen")
+        sleep = data.get("sleep_hours")
+        steps = data.get("steps")
+        stress = data.get("stress")
+        active_cal = data.get("active_calories")
+        basal_cal = data.get("basal_calories")
+
+        # 컨디션 점수 자동 계산
+        score = 50
+        if hrv and hrv > 50: score += 15
+        elif hrv and hrv < 30: score -= 15
+        if sleep and sleep >= 7: score += 10
+        elif sleep and sleep < 6: score -= 10
+        if spo2 and spo2 >= 95: score += 5
+        elif spo2 and spo2 < 95: score -= 15
+        if rhr and rhr < 65: score += 5
+        elif rhr and rhr > 85: score -= 10
+        score = max(0, min(100, score))
+
+        # ACWR 추정
+        acwr = 1.0
+        if steps:
+            if steps > 12000: acwr = 1.3
+            elif steps > 8000: acwr = 1.1
+            elif steps < 3000: acwr = 0.7
+
+        fatigue = max(1, min(10, 10 - int(score / 10)))
+        energy = max(1, min(10, int(score / 10)))
+        mood = max(1, min(10, int(score / 12) + 3))
+
+        # conditions 저장
+        db.execute(text("""
+            INSERT INTO conditions (user_id, sleep, fatigue, mood, energy, composite_score, acwr, srpe)
+            VALUES (:uid, :sleep, :fatigue, :mood, :energy, :score, :acwr, 0)
+        """), {"uid": user_id, "sleep": sleep or 0, "fatigue": fatigue, "mood": mood,
+               "energy": energy, "score": score, "acwr": acwr})
+
+        # watch_records 저장
+        db.execute(text("""
+            INSERT INTO watch_records
+                (user_id, heart_rate, resting_heart_rate, walking_heart_rate, hrv, blood_oxygen,
+                 steps, distance_km, active_calories, basal_calories, exercise_minutes,
+                 stand_minutes, flights_climbed, sleep_hours, env_audio_db, headphone_audio_db)
+            VALUES
+                (:uid, :hr, :rhr, :whr, :hrv, :spo2,
+                 :steps, :dist, :acal, :bcal, :exmin,
+                 :stand, :flights, :sleep, :env, :ear)
+        """), {
+            "uid": user_id, "hr": hr, "rhr": rhr, "whr": data.get("walking_heart_rate"),
+            "hrv": hrv, "spo2": spo2, "steps": steps, "dist": data.get("distance_km"),
+            "acal": active_cal, "bcal": basal_cal, "exmin": data.get("exercise_minutes"),
+            "stand": data.get("stand_minutes"), "flights": data.get("flights_climbed"),
+            "sleep": sleep, "env": data.get("env_audio_db"), "ear": data.get("headphone_audio_db"),
+        })
+
+        db.commit()
+        return {"status": "ok", "user_id": user_id, "condition_score": score, "acwr": acwr}
+    finally:
+        db.close()
+
+
 # ── Health Check ──
 @app.get("/api/health")
 def health():
