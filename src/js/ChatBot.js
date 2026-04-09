@@ -6,11 +6,18 @@ class ChatBot {
 	renderMd(text) {
 		if (!text) return '';
 		return text
-			.replace(/\n/g, '<br>')
+			// 불릿 리스트 (줄바꿈 전에 처리)
+			.replace(/^\s*[\*\-]\s+(.+)/gm, '{{BULLET}}$1{{/BULLET}}')
+			// 번호 리스트
+			.replace(/^(\d+)\.\s+/gm, '{{NUM}}$1.{{/NUM}} ')
+			// 볼드 (** 먼저)
 			.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-			.replace(/\*(.+?)\*/g, '<em>$1</em>')
-			.replace(/^(\d+)\.\s+/gm, '<strong>$1.</strong> ')
-			.replace(/^\s*[\*\-]\s+(.+)/gm, '<div style="display:flex;gap:6px;margin:2px 0;padding-left:8px"><span style="color:#4ade80">•</span><span>$1</span></div>');
+			// 줄바꿈
+			.replace(/\n/g, '<br>')
+			// 불릿 복원
+			.replace(/\{\{BULLET\}\}(.+?)\{\{\/BULLET\}\}/g, '<div style="display:flex;gap:6px;margin:2px 0;padding-left:8px"><span style="color:#4ade80">•</span><span>$1</span></div>')
+			// 번호 복원
+			.replace(/\{\{NUM\}\}(.+?)\{\{\/NUM\}\}/g, '<strong>$1</strong>');
 	}
 
 	openChat() {
