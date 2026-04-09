@@ -129,6 +129,7 @@ class DetailPanel {
 			if (lists[2]) {
 				const items = lists[2].querySelectorAll('li');
 				if (items[0]) items[0].querySelector('.dp-list-val').innerHTML = (p.sleep || '-') + '<span class="dp-list-unit">시간</span>';
+				if (items[1]) items[1].querySelector('.dp-list-val').textContent = '-';
 			}
 
 			// 환경·청각
