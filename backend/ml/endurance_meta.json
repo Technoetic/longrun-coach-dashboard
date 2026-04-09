@@ -1,0 +1,1 @@
+{"features": ["resting_hr", "hrv", "sleep_hours", "sleep_quality", "body_battery_morning", "stress", "actual_tss", "n_sessions", "acwr", "acwr_ewma", "hrv_delta", "hrv_trend", "sleep_debt_7d", "rhr_delta", "stress_3d", "load_spike", "consecutive_training", "ever_injured"], "threshold": 0.7838672399520874}
