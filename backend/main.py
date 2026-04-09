@@ -1083,14 +1083,16 @@ async def kg_coach_chat(req: dict):
 
         # ── 규칙 기반 필터: 의학적 처방/구체적 수치 문장 삭제 ──
         BANNED_PATTERNS = [
-            r'하루\s*\d+\s*[mg]',           # 하루 20mg, 하루 5g
-            r'\d+\s*mg',                     # 300mg
-            r'체중\s*\d*\s*kg당\s*[\d.]+',   # 체중 1kg당 0.3
+            r'\d+~?\d*\s*mg',               # 300mg, 20~30mg
+            r'\d+~?\d*\s*g[^a-z]',          # 20g, 3~5g (GPS 등 제외)
+            r'체중\s*\d*\s*kg당',            # 체중 1kg당
+            r'하루\s*(총\s*)?\d+',           # 하루 20, 하루 총 20
+            r'\d+g씩\s*\d+회',              # 5g씩 4회
             r'\d+~?\d*\s*주차',              # 4주차, 4~12주차
             r'수술\s*(후|직후)',              # 수술 후, 수술 직후
             r'\d+회\s*/\s*일',               # 4회/일
             r'처방',                          # 처방
-            r'투약|복용량',                   # 투약, 복용량
+            r'투약|복용량|용량',              # 투약, 복용량, 용량
         ]
         banned_re = re.compile('|'.join(BANNED_PATTERNS))
 
