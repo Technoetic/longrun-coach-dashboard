@@ -968,7 +968,7 @@ async def kg_coach_chat(req: dict):
                 "https://api.bizrouter.ai/v1/chat/completions",
                 headers={"Authorization": f"Bearer {BIZROUTER_API_KEY}", "Content-Type": "application/json"},
                 json={"model": "google/gemini-2.5-flash-lite", "messages": [
-                    {"role": "system", "content": "사용자 질문에서 스포츠 과학 검색 키워드를 영어로 3~5개 추출하라. 쉼표로 구분. 키워드만 출력."},
+                    {"role": "system", "content": "사용자 질문에서 스포츠 과학 검색 키워드를 영어로 3~5개 추출하라. 쉼표로 구분. 키워드만 출력. 일상 대화(인사, 감사, 잡담 등)이면 NONE만 출력하라."},
                     {"role": "user", "content": message},
                 ], "max_tokens": 100},
             )
@@ -978,7 +978,9 @@ async def kg_coach_chat(req: dict):
             keywords = ""
 
         # ── Step 2: 서브 — KG 논문 검색 (키워드 기반) ──
-        kw_list = [k.strip() for k in keywords.split(",") if k.strip()]
+        if keywords.strip().upper() == "NONE":
+            keywords = ""
+        kw_list = [k.strip() for k in keywords.split(",") if k.strip() and k.strip().upper() != "NONE"]
         if kw_list:
             like_clauses = " OR ".join([f"title LIKE :kw{i}" for i in range(len(kw_list))])
             params = {f"kw{i}": f"%{kw}%" for i, kw in enumerate(kw_list)}
