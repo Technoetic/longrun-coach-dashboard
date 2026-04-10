@@ -22,7 +22,7 @@
 
 <br/>
 
-<img src="assets/intro.gif" width="90%" alt="온보딩 → 대시보드 → AI 챗봇">
+<img src="assets/onboarding.png" width="250" alt="온보딩"> &nbsp; <img src="assets/dashboard.png" width="250" alt="대시보드"> &nbsp; <img src="assets/chatbot.png" width="250" alt="AI 챗봇">
 
 </div>
 
@@ -54,7 +54,7 @@ flowchart LR
 ## 핵심 기능
 
 <div align="center">
-<img src="assets/mid-detail.png" width="250" alt="선수 상세 분석"> &nbsp; <img src="assets/mid-chatbot.png" width="250" alt="AI 챗봇 멀티턴">
+<img src="assets/mid.gif" width="90%" alt="선수 상세 분석 + AI 챗봇 멀티턴">
 </div>
 
 <br/>
@@ -336,7 +336,7 @@ python -m uvicorn backend.main:app --host 0.0.0.0 --port 8000
 
 <div align="center">
 
-<img src="assets/footer.png" width="90%" alt="대시보드 데스크톱 전체 뷰"/>
+<img src="assets/footer.gif" width="90%" alt="대시보드 데스크톱 전체 뷰"/>
 
 <br/>
 
