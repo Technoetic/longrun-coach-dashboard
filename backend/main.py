@@ -945,8 +945,27 @@ async def kg_chat(req: dict, current_user: User = Depends(get_current_user)):
     return await kg_coach_chat(req)
 
 
-# ── 멀티턴 세션 저장소 (인메모리) ──
-_chat_sessions: dict = {}  # { session_id: [{"role": ..., "content": ...}, ...] }
+# ── 멀티턴: DB 테이블 자동 생성 ──
+@app.on_event("startup")
+def create_chat_history_table():
+    from sqlalchemy import text as sa_text
+    db = next(get_db())
+    try:
+        db.execute(sa_text("""
+            CREATE TABLE IF NOT EXISTS chat_history (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                session_id VARCHAR(100) NOT NULL,
+                role VARCHAR(10) NOT NULL,
+                content TEXT NOT NULL,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                INDEX idx_session (session_id)
+            )
+        """))
+        db.commit()
+    except Exception:
+        pass
+    finally:
+        db.close()
 
 
 @app.post("/api/kg/coach-chat")
@@ -1003,7 +1022,24 @@ async def kg_coach_chat(req: dict):
                     if row.get('paper_id'):
                         paper_ids.add(row['paper_id'])
 
-                # Step 1c: 연결된 논문 조회
+                # Step 1c: findings.evidence 직접 인용
+                finding_ids = [row.get('finding_id') for row in [dict(t._mapping) for t in triples] if row.get('finding_id')]
+                if finding_ids:
+                    fid_list = ",".join([f"'{fid}'" for fid in list(set(finding_ids))[:10]])
+                    findings = db.execute(sa_text(
+                        f"SELECT id, description, p_value, effect_size, effect_magnitude FROM kg_findings WHERE id IN ({fid_list})"
+                    )).fetchall()
+                    for f in findings:
+                        frow = dict(f._mapping)
+                        if frow.get('description'):
+                            triples_context += f"  근거: {frow['description']}"
+                            if frow.get('p_value'):
+                                triples_context += f" (p={frow['p_value']})"
+                            if frow.get('effect_size'):
+                                triples_context += f" (효과크기={frow['effect_size']})"
+                            triples_context += "\n"
+
+                # Step 1d: 연결된 논문 조회
                 if paper_ids:
                     id_list = ",".join([f"'{pid}'" for pid in list(paper_ids)[:5]])
                     papers_rows = db.execute(sa_text(
@@ -1026,10 +1062,11 @@ async def kg_coach_chat(req: dict):
             papers.append({"citation": citation, "doi": row.get("doi") or ""})
             kg_context += f"- {citation}\n"
 
-        # ── Step 3: 멀티턴 이력 로드 ──
-        if session_id not in _chat_sessions:
-            _chat_sessions[session_id] = []
-        history = _chat_sessions[session_id]
+        # ── Step 3: 멀티턴 이력 로드 (DB) ──
+        history_rows = db.execute(sa_text(
+            "SELECT role, content FROM chat_history WHERE session_id = :sid ORDER BY id DESC LIMIT 20"
+        ), {"sid": session_id}).fetchall()
+        history = [{"role": r[0], "content": r[1]} for r in reversed(history_rows)]
 
         # KG 근거 컨텍스트 (트리플 + 논문)
         full_context = ""
@@ -1122,16 +1159,145 @@ async def kg_coach_chat(req: dict):
         if removed:
             reply += '\n\n정확한 수치와 의학적 프로토콜은 전문가와 상담하시기 바랍니다.'
 
-        # ── 멀티턴 이력 저장 ──
-        history.append({"role": "user", "content": message})
-        history.append({"role": "assistant", "content": reply})
-        # 최대 20턴 유지
-        if len(history) > 40:
-            _chat_sessions[session_id] = history[-40:]
+        # ── 멀티턴 이력 저장 (DB) ──
+        db.execute(sa_text(
+            "INSERT INTO chat_history (session_id, role, content) VALUES (:sid, 'user', :msg)"
+        ), {"sid": session_id, "msg": message})
+        db.execute(sa_text(
+            "INSERT INTO chat_history (session_id, role, content) VALUES (:sid, 'assistant', :reply)"
+        ), {"sid": session_id, "reply": reply})
+        # 20턴(40메시지) 초과 시 오래된 것 삭제
+        db.execute(sa_text("""
+            DELETE FROM chat_history WHERE session_id = :sid AND id NOT IN (
+                SELECT id FROM (SELECT id FROM chat_history WHERE session_id = :sid ORDER BY id DESC LIMIT 40) t
+            )
+        """), {"sid": session_id})
+        db.commit()
 
         return {"reply": reply, "papers": papers}
     finally:
         db.close()
+
+
+# ── /api/kg/coach-chat/stream (SSE 스트리밍) ──
+from fastapi.responses import StreamingResponse
+
+@app.post("/api/kg/coach-chat/stream")
+async def kg_coach_chat_stream(req: dict):
+    """코치용 KG 챗 — SSE 스트리밍"""
+    import httpx
+    from sqlalchemy import text as sa_text
+    BIZROUTER_API_KEY = os.getenv("BIZROUTER_API_KEY", "")
+    if not BIZROUTER_API_KEY:
+        raise HTTPException(status_code=500, detail="BIZROUTER_API_KEY not configured")
+
+    message = req.get("message", "")
+    session_id = req.get("session_id", "")
+    db = next(get_db())
+
+    # 그래프 탐색 + 컨텍스트 구성 (비스트리밍과 동일)
+    import re as _re
+    words = _re.findall(r'[가-힣]+|[a-zA-Z]{2,}', message)
+    words = [w.lower() for w in words if len(w) >= 2]
+    casual_words = {'고마워','감사','안녕','네','응','ㅇㅇ','ㅋ','ㅎ','ok','thanks','hello','hi','bye'}
+    is_casual = all(w in casual_words for w in words) or len(words) == 0
+
+    papers = []
+    triples_context = ""
+    kg_context = ""
+
+    if not is_casual and words:
+        concept_clauses = " OR ".join([f"LOWER(name) LIKE :w{i}" for i in range(len(words))])
+        concept_params = {f"w{i}": f"%{w}%" for i, w in enumerate(words)}
+        concepts = db.execute(sa_text(f"SELECT DISTINCT name FROM kg_concepts WHERE {concept_clauses} LIMIT 10"), concept_params).fetchall()
+        concept_names = [c[0] for c in concepts]
+
+        if concept_names:
+            triple_clauses = " OR ".join([f"LOWER(subject) LIKE :c{i} OR LOWER(object) LIKE :c{i}" for i in range(len(concept_names))])
+            triple_params = {f"c{i}": f"%{n.lower()}%" for i, n in enumerate(concept_names)}
+            triples = db.execute(sa_text(f"SELECT subject, relation, object, evidence, paper_id, finding_id FROM kg_triples WHERE {triple_clauses} LIMIT 10"), triple_params).fetchall()
+            paper_ids = set()
+            for t in triples:
+                row = dict(t._mapping)
+                triples_context += f"- {row['subject']} → {row['relation']} → {row['object']}"
+                if row.get('evidence'): triples_context += f" (근거: {row['evidence']})"
+                triples_context += "\n"
+                if row.get('paper_id'): paper_ids.add(row['paper_id'])
+
+            if paper_ids:
+                id_list = ",".join([f"'{pid}'" for pid in list(paper_ids)[:5]])
+                papers_rows = db.execute(sa_text(f"SELECT id, title, authors, year, doi, journal FROM kg_papers WHERE id IN ({id_list})")).fetchall()
+                for p in papers_rows:
+                    row = dict(p._mapping)
+                    citation = f"{row['authors']} ({row['year']}). {row['title']}. {row['journal'] or ''}"
+                    papers.append({"citation": citation, "doi": row.get("doi") or ""})
+                    kg_context += f"- {citation}\n"
+
+    full_context = ""
+    if triples_context: full_context += f"KG 근거:\n{triples_context}\n"
+    if kg_context: full_context += f"참고 논문:\n{kg_context}"
+
+    # 멀티턴 이력
+    history_rows = db.execute(sa_text("SELECT role, content FROM chat_history WHERE session_id = :sid ORDER BY id DESC LIMIT 20"), {"sid": session_id}).fetchall()
+    history = [{"role": r[0], "content": r[1]} for r in reversed(history_rows)]
+
+    system_prompt = f"""너는 스포츠 과학 전문 코치 AI 어시스턴트다.
+선수의 훈련 부하, 부상 예방, 회복, 수면, 컨디션 관리에 대해 근거 기반 조언을 제공한다.
+규칙:
+- 핵심 포인트 3~5개로 간결하게 답변하라
+- 전체 답변은 800자 이내
+- 본문에 괄호 인용을 넣지 마라
+- 모르면 모른다고 하라
+{full_context}"""
+
+    messages = [{"role": "system", "content": system_prompt}]
+    messages.extend(history[-20:])
+    messages.append({"role": "user", "content": message})
+
+    async def stream_generator():
+        import json
+        full_reply = ""
+        try:
+            async with httpx.AsyncClient(timeout=60) as client:
+                async with client.stream(
+                    "POST",
+                    "https://api.bizrouter.ai/v1/chat/completions",
+                    headers={"Authorization": f"Bearer {BIZROUTER_API_KEY}", "Content-Type": "application/json"},
+                    json={"model": "google/gemini-2.5-flash-lite", "messages": messages, "max_tokens": 4000, "stream": True},
+                ) as resp:
+                    async for line in resp.aiter_lines():
+                        if line.startswith("data: "):
+                            data = line[6:]
+                            if data == "[DONE]":
+                                break
+                            try:
+                                chunk = json.loads(data)
+                                token = chunk.get("choices", [{}])[0].get("delta", {}).get("content", "")
+                                if token:
+                                    full_reply += token
+                                    yield f"data: {json.dumps({'token': token})}\n\n"
+                            except json.JSONDecodeError:
+                                pass
+
+            # 논문 정보 전송
+            if papers:
+                yield f"data: {json.dumps({'papers': papers})}\n\n"
+            yield "data: [DONE]\n\n"
+
+            # DB에 대화 이력 저장
+            db2 = next(get_db())
+            try:
+                db2.execute(sa_text("INSERT INTO chat_history (session_id, role, content) VALUES (:sid, 'user', :msg)"), {"sid": session_id, "msg": message})
+                db2.execute(sa_text("INSERT INTO chat_history (session_id, role, content) VALUES (:sid, 'assistant', :reply)"), {"sid": session_id, "reply": full_reply})
+                db2.commit()
+            finally:
+                db2.close()
+
+        except Exception:
+            yield f"data: {json.dumps({'error': 'stream failed'})}\n\n"
+
+    db.close()
+    return StreamingResponse(stream_generator(), media_type="text/event-stream")
 
 
 # ── Static Files (코치 대시보드 프론트엔드) ──
