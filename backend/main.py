@@ -991,9 +991,8 @@ async def kg_coach_chat(req: dict):
                 ), {"n": 5 - len(papers_rows)}).fetchall()
                 papers_rows = list(papers_rows) + list(extra)
         else:
-            papers_rows = db.execute(sa_text(
-                "SELECT id, title, authors, year, doi, journal FROM kg_papers ORDER BY RAND() LIMIT 5"
-            )).fetchall()
+            # 키워드가 없으면 일상 대화 — 논문 스킵
+            papers_rows = []
 
         kg_context = ""
         papers = []
