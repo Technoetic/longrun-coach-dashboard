@@ -18,11 +18,11 @@
 
 <br/>
 
-[![Play Now](https://img.shields.io/badge/대시보드_접속-00F19F?style=for-the-badge&logo=googlechrome&logoColor=black)](https://longrun-coach-dashboard-production.up.railway.app/pages/onboarding.html)
+<img src="assets/onboarding.gif" width="250" alt="온보딩"> &nbsp; <img src="assets/dashboard.gif" width="250" alt="대시보드"> &nbsp; <img src="assets/chatbot.gif" width="250" alt="AI 챗봇">
 
 <br/>
 
-<img src="assets/onboarding.gif" width="250" alt="온보딩"> &nbsp; <img src="assets/dashboard.gif" width="250" alt="대시보드"> &nbsp; <img src="assets/chatbot.gif" width="250" alt="AI 챗봇">
+[![Play Now](https://img.shields.io/badge/▶_대시보드_접속-00F19F?style=for-the-badge&logo=googlechrome&logoColor=black)](https://longrun-coach-dashboard-production.up.railway.app/pages/onboarding.html)
 
 </div>
 
