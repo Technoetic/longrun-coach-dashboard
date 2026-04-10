@@ -53,6 +53,12 @@ flowchart LR
 
 ## 핵심 기능
 
+<div align="center">
+<img src="assets/mid.gif" width="90%" alt="선수 상세 분석 + AI 챗봇 멀티턴"/>
+</div>
+
+<br/>
+
 ### 1. 실시간 선수 모니터링
 
 선수별 **워치 데이터 + 컨디션 점수 + 부상 위험도**를 한 화면에 표시합니다.
@@ -329,6 +335,10 @@ python -m uvicorn backend.main:app --host 0.0.0.0 --port 8000
 ---
 
 <div align="center">
+
+<img src="assets/footer.gif" width="90%" alt="대시보드 데스크톱 전체 뷰"/>
+
+<br/>
 
 **스포츠 코칭 커뮤니티를 위해 제작되었습니다**
 
