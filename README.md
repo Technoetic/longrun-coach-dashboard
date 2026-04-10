@@ -20,6 +20,10 @@
 
 [![Play Now](https://img.shields.io/badge/대시보드_접속-00F19F?style=for-the-badge&logo=googlechrome&logoColor=black)](https://longrun-coach-dashboard-production.up.railway.app/pages/onboarding.html)
 
+<br/>
+
+<img src="assets/onboarding.png" width="250" alt="온보딩"> &nbsp; <img src="assets/dashboard.png" width="250" alt="대시보드"> &nbsp; <img src="assets/chatbot.png" width="250" alt="AI 챗봇">
+
 </div>
 
 ---
