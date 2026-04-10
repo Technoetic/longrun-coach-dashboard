@@ -22,7 +22,7 @@
 
 <br/>
 
-<img src="assets/onboarding.png" width="250" alt="온보딩"> &nbsp; <img src="assets/dashboard.png" width="250" alt="대시보드"> &nbsp; <img src="assets/chatbot.png" width="250" alt="AI 챗봇">
+<img src="assets/onboarding.gif" width="250" alt="온보딩"> &nbsp; <img src="assets/dashboard.gif" width="250" alt="대시보드"> &nbsp; <img src="assets/chatbot.gif" width="250" alt="AI 챗봇">
 
 </div>
 
