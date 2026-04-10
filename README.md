@@ -18,7 +18,7 @@
 
 <br/>
 
-[![Play Now](https://img.shields.io/badge/▶_대시보드_접속-00F19F?style=for-the-badge&logo=googlechrome&logoColor=black)](https://longrun-coach-dashboard-production.up.railway.app/pages/onboarding.html)
+[![Play Now](assets/playnow.gif)](https://longrun-coach-dashboard-production.up.railway.app/pages/onboarding.html)
 
 <br/>
 
