@@ -962,39 +962,61 @@ async def kg_coach_chat(req: dict):
     session_id = req.get("session_id", "")
     db = next(get_db())
     try:
-        # ── Step 1: 오케스트레이터 — 키워드 추출 ──
-        async with httpx.AsyncClient(timeout=15) as client:
-            kw_resp = await client.post(
-                "https://api.bizrouter.ai/v1/chat/completions",
-                headers={"Authorization": f"Bearer {BIZROUTER_API_KEY}", "Content-Type": "application/json"},
-                json={"model": "google/gemini-2.5-flash-lite", "messages": [
-                    {"role": "system", "content": "사용자 질문에서 스포츠 과학 검색 키워드를 영어로 3~5개 추출하라. 쉼표로 구분. 키워드만 출력. 일상 대화(인사, 감사, 잡담 등)이면 NONE만 출력하라."},
-                    {"role": "user", "content": message},
-                ], "max_tokens": 100},
-            )
-        if kw_resp.status_code == 200:
-            keywords = kw_resp.json()["choices"][0]["message"]["content"].strip()
-        else:
-            keywords = ""
+        # ── Step 1: KG 그래프 탐색 (LLM 없이 직접 검색) ──
+        import re as _re
+        # 질문에서 한글/영어 단어 추출
+        words = _re.findall(r'[가-힣]+|[a-zA-Z]{2,}', message)
+        words = [w.lower() for w in words if len(w) >= 2]
 
-        # ── Step 2: 서브 — KG 논문 검색 (키워드 기반) ──
-        if keywords.strip().upper() == "NONE":
-            keywords = ""
-        kw_list = [k.strip() for k in keywords.split(",") if k.strip() and k.strip().upper() != "NONE"]
-        if kw_list:
-            like_clauses = " OR ".join([f"title LIKE :kw{i}" for i in range(len(kw_list))])
-            params = {f"kw{i}": f"%{kw}%" for i, kw in enumerate(kw_list)}
-            query = f"SELECT id, title, authors, year, doi, journal FROM kg_papers WHERE {like_clauses} LIMIT 5"
-            papers_rows = db.execute(sa_text(query), params).fetchall()
-            # 부족하면 랜덤 보충
-            if len(papers_rows) < 3:
-                extra = db.execute(sa_text(
-                    "SELECT id, title, authors, year, doi, journal FROM kg_papers ORDER BY RAND() LIMIT :n"
-                ), {"n": 5 - len(papers_rows)}).fetchall()
-                papers_rows = list(papers_rows) + list(extra)
-        else:
-            # 키워드가 없으면 일상 대화 — 논문 스킵
-            papers_rows = []
+        # 일상 대화 감지 (스포츠 과학 단어 없으면 스킵)
+        casual_words = {'고마워','감사','안녕','네','응','ㅇㅇ','ㅋ','ㅎ','ok','thanks','hello','hi','bye'}
+        is_casual = all(w in casual_words for w in words) or len(words) == 0
+
+        papers_rows = []
+        triples_context = ""
+
+        if not is_casual and words:
+            # Step 1a: concepts 매칭
+            concept_clauses = " OR ".join([f"LOWER(name) LIKE :w{i}" for i in range(len(words))])
+            concept_params = {f"w{i}": f"%{w}%" for i, w in enumerate(words)}
+            concepts = db.execute(sa_text(
+                f"SELECT DISTINCT name FROM kg_concepts WHERE {concept_clauses} LIMIT 10"
+            ), concept_params).fetchall()
+            concept_names = [c[0] for c in concepts]
+
+            # Step 1b: triples 그래프 탐색 (concepts → 관련 트리플 → 논문)
+            if concept_names:
+                triple_clauses = " OR ".join([f"LOWER(subject) LIKE :c{i} OR LOWER(object) LIKE :c{i}" for i in range(len(concept_names))])
+                triple_params = {f"c{i}": f"%{n.lower()}%" for i, n in enumerate(concept_names)}
+                triples = db.execute(sa_text(
+                    f"SELECT subject, relation, object, evidence, paper_id FROM kg_triples WHERE {triple_clauses} LIMIT 10"
+                ), triple_params).fetchall()
+
+                # 트리플에서 근거 컨텍스트 구성
+                paper_ids = set()
+                for t in triples:
+                    row = dict(t._mapping)
+                    triples_context += f"- {row['subject']} → {row['relation']} → {row['object']}"
+                    if row.get('evidence'):
+                        triples_context += f" (근거: {row['evidence']})"
+                    triples_context += "\n"
+                    if row.get('paper_id'):
+                        paper_ids.add(row['paper_id'])
+
+                # Step 1c: 연결된 논문 조회
+                if paper_ids:
+                    id_list = ",".join([f"'{pid}'" for pid in list(paper_ids)[:5]])
+                    papers_rows = db.execute(sa_text(
+                        f"SELECT id, title, authors, year, doi, journal FROM kg_papers WHERE id IN ({id_list})"
+                    )).fetchall()
+
+            # 트리플에서 못 찾으면 제목 검색 폴백
+            if not papers_rows:
+                like_clauses = " OR ".join([f"LOWER(title) LIKE :w{i}" for i in range(len(words))])
+                like_params = {f"w{i}": f"%{w}%" for i, w in enumerate(words)}
+                papers_rows = db.execute(sa_text(
+                    f"SELECT id, title, authors, year, doi, journal FROM kg_papers WHERE {like_clauses} LIMIT 5"
+                ), like_params).fetchall()
 
         kg_context = ""
         papers = []
@@ -1008,6 +1030,13 @@ async def kg_coach_chat(req: dict):
         if session_id not in _chat_sessions:
             _chat_sessions[session_id] = []
         history = _chat_sessions[session_id]
+
+        # KG 근거 컨텍스트 (트리플 + 논문)
+        full_context = ""
+        if triples_context:
+            full_context += f"KG 근거:\n{triples_context}\n"
+        if kg_context:
+            full_context += f"참고 논문:\n{kg_context}"
 
         system_prompt = f"""너는 스포츠 과학 전문 코치 AI 어시스턴트다.
 선수의 훈련 부하, 부상 예방, 회복, 수면, 컨디션 관리에 대해 근거 기반 조언을 제공한다.
@@ -1029,8 +1058,7 @@ async def kg_coach_chat(req: dict):
 - 의학적 수술/재활 프로토콜은 코치 범위 밖이다. "전문의/물리치료사와 상담하세요"로 답변하라
 - 추측하지 마라. 모르면 모른다고 하라
 
-참고 논문:
-{kg_context}"""
+{full_context}"""
 
         messages = [{"role": "system", "content": system_prompt}]
         # 최근 10턴만 유지 (토큰 절약)
@@ -1048,33 +1076,7 @@ async def kg_coach_chat(req: dict):
             raise HTTPException(status_code=502, detail="AI 응답 오류")
         reply = resp.json()["choices"][0]["message"]["content"]
 
-        # ── Step 5: 가드레일 — 검증 LLM ──
-        guardrail_prompt = f"""다음 AI 답변을 검증하라. 아래 기준에 위반되는 문장이 있으면 해당 문장만 제거하고 나머지를 그대로 반환하라. 위반 없으면 원문 그대로 반환하라.
-
-위반 기준:
-1. 참고 논문 목록에 근거 없는 구체적 수치 (mg, g, kg, 주차, 횟수 등)
-2. 의학적 수술/재활 프로토콜 (주차별 재활 계획, 약물 용량 등)
-3. 괄호 인용 (Author et al., 2020) 형식
-
-참고 논문 목록:
-{kg_context}
-
-검증할 답변:
-{reply}
-
-수정된 답변만 출력하라. 설명하지 마라."""
-
-        guard_headers = {"Authorization": f"Bearer {BIZROUTER_API_KEY}", "Content-Type": "application/json"}
-        guard_body = {"model": "google/gemini-2.5-flash-lite", "messages": [
-            {"role": "user", "content": guardrail_prompt},
-        ], "max_tokens": 4000}
-        async with httpx.AsyncClient(timeout=20) as client:
-            guard_resp = await client.post(
-                "https://api.bizrouter.ai/v1/chat/completions",
-                headers=guard_headers, json=guard_body,
-            )
-        if guard_resp.status_code == 200:
-            reply = guard_resp.json()["choices"][0]["message"]["content"]
+        # 가드레일 LLM 제거 — 규칙 필터가 확정적으로 처리
 
         # ── 후처리: 괄호 인용 강제 제거 ──
         import re
