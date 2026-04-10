@@ -1065,13 +1065,23 @@ async def kg_coach_chat(req: dict):
         messages.extend(history[-20:])
         messages.append({"role": "user", "content": message})
 
-        # ── Step 4: 서브 — LLM 답변 생성 ──
-        async with httpx.AsyncClient(timeout=30) as client:
+        # ── Step 2: LLM 답변 생성 ──
+        async with httpx.AsyncClient(timeout=60) as client:
             resp = await client.post(
                 "https://api.bizrouter.ai/v1/chat/completions",
                 headers={"Authorization": f"Bearer {BIZROUTER_API_KEY}", "Content-Type": "application/json"},
                 json={"model": "google/gemini-2.5-flash-lite", "messages": messages, "max_tokens": 4000},
             )
+        # 실패 시 1회 재시도
+        if resp.status_code != 200:
+            import asyncio
+            await asyncio.sleep(2)
+            async with httpx.AsyncClient(timeout=60) as client2:
+                resp = await client2.post(
+                    "https://api.bizrouter.ai/v1/chat/completions",
+                    headers={"Authorization": f"Bearer {BIZROUTER_API_KEY}", "Content-Type": "application/json"},
+                    json={"model": "google/gemini-2.5-flash-lite", "messages": messages, "max_tokens": 4000},
+                )
         if resp.status_code != 200:
             raise HTTPException(status_code=502, detail="AI 응답 오류")
         reply = resp.json()["choices"][0]["message"]["content"]
