@@ -1293,8 +1293,9 @@ async def kg_coach_chat_stream(req: dict):
             finally:
                 db2.close()
 
-        except Exception:
-            yield f"data: {json.dumps({'error': 'stream failed'})}\n\n"
+        except Exception as e:
+            if not full_reply:
+                yield f"data: {json.dumps({'error': 'stream failed'})}\n\n"
 
     db.close()
     return StreamingResponse(stream_generator(), media_type="text/event-stream")
