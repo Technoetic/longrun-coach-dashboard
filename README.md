@@ -353,3 +353,37 @@ python -m uvicorn backend.main:app --host 0.0.0.0 --port 8000
 <div align="center">
 <img src="assets/team.gif" width="90%" alt="Team LongRun"/>
 </div>
+
+<table>
+<tr align="center">
+<td width="20%">
+<b>김준현</b><br/>
+프로젝트 총괄<br/>
+도메인 지식 (스포츠 의학/과학)<br/>
+데이터셋 확보 및 AI 모델링
+</td>
+<td width="20%">
+<a href="https://github.com/Technoetic">
+<img src="https://github.com/Technoetic.png" width="100" style="border-radius:50%"/><br/>
+<b>전문준</b>
+</a><br/>
+LLM 파이프라인 구축<br/>
+백엔드/DB 설계
+</td>
+<td width="20%">
+<b>박형민</b><br/>
+앱 프론트 UI/UX<br/>
+논문 DB 전처리<br/>
+프롬프트 엔지니어링
+</td>
+<td width="20%">
+<b>소혜경</b><br/>
+통합 테스트<br/>
+UX 사용성 검증
+</td>
+<td width="20%">
+<b>김유진</b><br/>
+시각화 및 발표자료
+</td>
+</tr>
+</table>
