@@ -334,20 +334,6 @@ python -m uvicorn backend.main:app --host 0.0.0.0 --port 8000
 
 ---
 
-<div align="center">
-
-<img src="assets/footer.gif" width="90%" alt="대시보드 데스크톱 전체 뷰"/>
-
-<br/>
-
-**스포츠 코칭 커뮤니티를 위해 제작되었습니다**
-
-[![Deploy on Railway](https://railway.com/button.svg)](https://railway.app)
-
-</div>
-
----
-
 ## 팀 소개
 
 <div align="center">
@@ -399,3 +385,17 @@ UX 사용성 검증 및 피드백 루프<br/>
 </td>
 </tr>
 </table>
+
+---
+
+<div align="center">
+
+<img src="assets/footer.gif" width="90%" alt="대시보드 데스크톱 전체 뷰"/>
+
+<br/>
+
+**스포츠 코칭 커뮤니티를 위해 제작되었습니다**
+
+[![Deploy on Railway](https://railway.com/button.svg)](https://railway.app)
+
+</div>
