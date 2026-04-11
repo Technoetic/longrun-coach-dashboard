@@ -387,12 +387,15 @@ LLM 파이프라인 구축<br/>
 <img src="https://github.com/ssohk26.png" width="100" style="border-radius:50%"/><br/>
 <b>소혜경</b>
 </a><br/>
-통합 테스트<br/>
-UX 사용성 검증
+통합 테스트 시나리오 설계<br/>
+UX 사용성 검증 및 피드백 루프<br/>
+크로스 브라우저 호환성 점검
 </td>
 <td width="20%">
 <b>김유진</b><br/>
-시각화 및 발표자료
+데이터 시각화 컴포넌트 설계<br/>
+프레젠테이션 스토리보드 기획<br/>
+디자인 에셋 및 인포그래픽
 </td>
 </tr>
 </table>
