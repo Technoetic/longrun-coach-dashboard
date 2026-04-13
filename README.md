@@ -378,7 +378,10 @@ UX 사용성 검증 및 피드백 루프<br/>
 크로스 브라우저 호환성 점검
 </td>
 <td width="20%">
-<b>김유진</b><br/>
+<a href="https://github.com/kyj415876">
+<img src="https://github.com/kyj415876.png" width="100" style="border-radius:50%"/><br/>
+<b>김유진</b>
+</a><br/>
 데이터 시각화 컴포넌트 설계<br/>
 프레젠테이션 스토리보드 기획<br/>
 디자인 에셋 및 인포그래픽
