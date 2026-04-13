@@ -341,7 +341,7 @@ python -m uvicorn backend.main:app --host 0.0.0.0 --port 8000
 </div>
 
 <table>
-<tr align="center">
+<tr align="center" valign="top">
 <td width="20%">
 <a href="https://github.com/junhyeonkim92-oscar">
 <img src="https://github.com/junhyeonkim92-oscar.png" width="100" style="border-radius:50%"/><br/>
