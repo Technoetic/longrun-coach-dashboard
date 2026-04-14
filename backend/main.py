@@ -43,12 +43,22 @@ COOKIE_MAX_AGE = ACCESS_TOKEN_EXPIRE_DAYS * 86400  # 7일 (초)
 # Initialize FastAPI app
 app = FastAPI(title="Health Tracking API", version="1.0.0")
 
-FRONTEND_ORIGIN = os.getenv("FRONTEND_ORIGIN", "https://longrun-coach-dashboard-production.up.railway.app")
+_default_origins = [
+    "https://longrun-coach-dashboard-production.up.railway.app",
+    "https://longrun-athlete-frontend-production.up.railway.app",
+    "http://localhost:3000",
+    "http://localhost:5173",
+    "http://localhost:8080",
+]
+_env_origins = os.getenv("FRONTEND_ORIGIN", "")
+_allowed_origins = [o.strip() for o in _env_origins.split(",") if o.strip()] or _default_origins
+if _env_origins and set(_default_origins) - set(_allowed_origins):
+    _allowed_origins = list({*_allowed_origins, *_default_origins})
 
 # CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[FRONTEND_ORIGIN, "http://localhost:3000", "http://localhost:5173"],
+    allow_origins=_allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
