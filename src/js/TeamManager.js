@@ -281,7 +281,10 @@ window.executeDeleteTeam = () => window.teamManager.executeDeleteTeam();
 
 // ===== 선수 리스트: /api/coach/players 전체 로드 + summary 집계 =====
 function _buildPlayerCard(p, idx) {
-	const seed = (p.name || "?").slice(0, 2);
+	const name = p.name || "?";
+	// 한글 이름은 첫 글자만, 그 외는 앞 2글자로 이니셜 생성 (dicebear initials 호환)
+	const isHangul = /[\u3131-\u318e\uac00-\ud7a3]/.test(name);
+	const seed = isHangul ? name.charAt(0) : name.slice(0, 2);
 	const colorByStatus = { g: "00F19F", y: "FFD60A", r: "FF3B30" };
 	const photoColor = colorByStatus[p.status] || "7BDBFF";
 	const hrvText = p.hrv != null ? Math.round(p.hrv) : "-";
