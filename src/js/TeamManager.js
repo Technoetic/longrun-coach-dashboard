@@ -134,8 +134,39 @@ class TeamManager {
 		});
 	}
 
-	addTeamDone() {
+	async addTeamDone() {
 		const name = document.getElementById("newTeamName").value.trim();
+		if (!name || !this.newCode || !this.newSport) {
+			alert("팀 이름·종목·코드를 모두 입력해주세요.");
+			return;
+		}
+
+		// 1. 백엔드에 실제 팀 생성 (POST /api/teams)
+		try {
+			const res = await fetch("/api/teams", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				credentials: "include",
+				body: JSON.stringify({ name, code: this.newCode }),
+			});
+			if (!res.ok) {
+				const err = await res.json().catch(() => ({}));
+				alert(`팀 생성 실패: ${err.detail || res.statusText}`);
+				return;
+			}
+			// 종목도 함께 PATCH
+			await fetch("/api/user/me", {
+				method: "PATCH",
+				headers: { "Content-Type": "application/json" },
+				credentials: "include",
+				body: JSON.stringify({ sport: this.newSport, role: "coach" }),
+			});
+		} catch (e) {
+			alert(`팀 생성 실패: ${e.message}`);
+			return;
+		}
+
+		// 2. UI 에 칩 추가
 		const selector = document.getElementById("teamSelector");
 		const addBtn = selector.querySelector(".btn-add-team");
 		const chip = document.createElement("button");
@@ -155,6 +186,11 @@ class TeamManager {
 
 		this.newCode = null;
 		this.closeAddTeam();
+
+		// 3. 선수 리스트 재로드 (409 → 200 전환)
+		if (typeof window.loadAllPlayers === "function") {
+			window.loadAllPlayers();
+		}
 	}
 
 	openDeleteTeam() {
