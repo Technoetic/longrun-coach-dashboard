@@ -999,18 +999,18 @@ def coach_players(
         acwr = row.get("acwr")
         stress = row.get("stress")
         if score is not None:
-            status = "g" if score >= 60 else ("y" if score >= 40 else "r")
+            pstatus = "g" if score >= 60 else ("y" if score >= 40 else "r")
         elif acwr is not None:
-            status = "g" if acwr <= 1.2 else ("y" if acwr <= 1.5 else "r")
+            pstatus = "g" if acwr <= 1.2 else ("y" if acwr <= 1.5 else "r")
         else:
-            status = "g"
+            pstatus = "g"
         pain = 0
         if stress and stress > 50: pain = 4
         elif stress and stress > 30: pain = 2
         players.append({
             "id": row["id"], "name": row["name"],
             "sport": row.get("sport") or "", "gender": row.get("gender") or "",
-            "status": status,
+            "status": pstatus,
             "hrv": row.get("hrv"), "hrv_change": "+0%" if row.get("hrv") else None,
             "rhr": row.get("rhr"), "sleep": row.get("sleep"),
             "stress": int(stress) if stress else None,
