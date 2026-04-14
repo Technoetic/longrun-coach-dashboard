@@ -89,7 +89,11 @@ class DetailPanel {
 
 			// 수면 링 값
 			const sleepCenter = document.querySelector('#rSleep').closest('.dp-ring-wrap').querySelector('.dp-ring-val');
-			if (sleepCenter) sleepCenter.innerHTML = (p.sleep || '-') + '<span style="font-size:11px">h</span>';
+			if (sleepCenter) {
+				sleepCenter.innerHTML = p.sleep != null
+					? p.sleep.toFixed(1) + '<span style="font-size:11px">h</span>'
+					: '—';
+			}
 
 			// 부하 링 값
 			const strainCenter = document.querySelector('#rStrain').closest('.dp-ring-wrap').querySelector('.dp-ring-val');
@@ -125,8 +129,12 @@ class DetailPanel {
 			// 수면
 			if (lists[2]) {
 				const items = lists[2].querySelectorAll('li');
-				if (items[0]) items[0].querySelector('.dp-list-val').innerHTML = (p.sleep || '-') + '<span class="dp-list-unit">시간</span>';
-				if (items[1]) items[1].querySelector('.dp-list-val').textContent = '-';
+				if (items[0]) {
+					items[0].querySelector('.dp-list-val').innerHTML = p.sleep != null
+						? p.sleep.toFixed(1) + '<span class="dp-list-unit">시간</span>'
+						: '—';
+				}
+				if (items[1]) items[1].querySelector('.dp-list-val').textContent = '—';
 			}
 
 			// 환경·청각
