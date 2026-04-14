@@ -292,7 +292,7 @@ async function loadAllPlayers() {
 			list.innerHTML =
 				'<div class="player-empty">' +
 				'먼저 팀을 만들어주세요.<br>' +
-				'<button type="button" class="btn-add-team" style="margin-top:12px;width:auto;padding:10px 20px;border-radius:12px;border:1px solid var(--green);background:transparent;color:var(--green);cursor:pointer" onclick="location.href=\'team-setup.html\'">팀 만들기</button>' +
+				'<button type="button" class="btn-add-team" style="margin-top:12px;width:auto;padding:10px 20px;border-radius:12px;border:1px solid var(--green);background:transparent;color:var(--green);cursor:pointer" onclick="goToTeamSetup()">팀 만들기</button>' +
 				"</div>";
 			_setSummary(0, 0, 0, 0);
 			return;
@@ -341,3 +341,7 @@ function _setSummary(g, y, r, d) {
 
 setTimeout(loadAllPlayers, 300);
 window.loadAllPlayers = loadAllPlayers;
+window.goToTeamSetup = () => {
+	sessionStorage.setItem("lr_nav", "team-setup");
+	location.href = "team-setup.html";
+};
