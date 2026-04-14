@@ -217,7 +217,19 @@ async def update_user_profile(
     if user_update.sport:
         current_user.sport = user_update.sport
     if user_update.team_code:
-        current_user.team_code = user_update.team_code
+        code = user_update.team_code.strip().upper()
+        # Athlete 가 팀 코드 입력 시 실제로 존재하는 팀인지 검증
+        if (current_user.role or "athlete") == "athlete":
+            team = db.query(Team).filter(Team.code == code).first()
+            if not team:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"존재하지 않는 팀 코드입니다: {code}",
+                )
+            current_user.team_code = code
+            current_user.team_name = team.name
+        else:
+            current_user.team_code = code
 
     db.add(current_user)
     db.commit()
@@ -877,12 +889,80 @@ async def predict(
     return result
 
 # ══════════════════════════════════
+# 팀 관리 API
+# ══════════════════════════════════
+
+@app.post("/api/teams")
+def create_team(
+    req: dict,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """코치가 팀 생성. teams 테이블에 INSERT + 본인 team_code 설정."""
+    name = (req.get("name") or "").strip()
+    code = (req.get("code") or "").strip().upper()
+    if not name or not code:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="name 과 code 필수",
+        )
+    existing = db.query(Team).filter(Team.code == code).first()
+    if existing:
+        if existing.coach_id != current_user.id:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="이미 존재하는 팀 코드입니다",
+            )
+        current_user.team_code = code
+        current_user.team_name = name
+        current_user.role = "coach"
+        db.commit()
+        return {"id": existing.id, "code": code, "name": existing.name}
+
+    team = Team(code=code, name=name, coach_id=current_user.id)
+    db.add(team)
+    current_user.team_code = code
+    current_user.team_name = name
+    current_user.role = "coach"
+    db.commit()
+    db.refresh(team)
+    return {"id": team.id, "code": team.code, "name": team.name}
+
+
+@app.get("/api/teams/{code}")
+def get_team(code: str, db: Session = Depends(get_db)):
+    """팀 코드 존재 확인 (선수 앱 가입 시 검증용, 공개)."""
+    team = db.query(Team).filter(Team.code == code.upper()).first()
+    if not team:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="존재하지 않는 팀 코드입니다",
+        )
+    return {"id": team.id, "code": team.code, "name": team.name}
+
+
+# ══════════════════════════════════
 # 코치 대시보드 전용 API
 # ══════════════════════════════════
 
 @app.get("/api/coach/players")
-def coach_players(db: Session = Depends(get_db)):
-    """코치 대시보드: 전체 선수 데이터 (워치 + 컨디션)"""
+def coach_players(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """코치 대시보드: 로그인한 코치의 team_code 에 속한 선수만 반환.
+    코치가 team_code 를 설정하지 않았으면 403 (팀 먼저 생성 필요)."""
+    if current_user.role not in ("coach", "general"):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="코치 계정만 접근 가능합니다",
+        )
+    if not current_user.team_code:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="먼저 팀을 생성해주세요 (team_code 없음)",
+        )
+
     from sqlalchemy import text as sa_text
     rows = db.execute(sa_text("""
         SELECT
@@ -907,9 +987,10 @@ def coach_players(db: Session = Depends(get_db)):
             INNER JOIN (SELECT user_id, MAX(recorded_at) AS max_at FROM conditions GROUP BY user_id) latest
             ON co.user_id = latest.user_id AND co.recorded_at = latest.max_at
         ) c ON u.id = c.user_id
-        WHERE u.role = 'athlete' OR u.role IS NULL
+        WHERE (u.role = 'athlete' OR u.role IS NULL)
+          AND u.team_code = :team_code
         ORDER BY u.id
-    """)).fetchall()
+    """), {"team_code": current_user.team_code}).fetchall()
 
     players = []
     for r in rows:

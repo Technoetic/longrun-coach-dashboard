@@ -43,21 +43,32 @@ class TeamSetupApp {
 				localStorage.setItem("lr_accounts", JSON.stringify(accounts));
 			}
 
-			// Persist to backend (best-effort, requires cookie from signup/login)
+			// 백엔드 teams 테이블에 실제 팀 레코드 생성 + 코치 승격
 			try {
+				const r = await fetch("/api/teams", {
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					credentials: "include",
+					body: JSON.stringify({ name: tName, code: tCode }),
+				});
+				if (!r.ok) {
+					const err = await r.json().catch(() => ({}));
+					alert(`팀 생성 실패: ${err.detail || r.statusText}`);
+					return;
+				}
 				await fetch("/api/user/me", {
 					method: "PATCH",
 					headers: { "Content-Type": "application/json" },
 					credentials: "include",
 					body: JSON.stringify({
 						sport: this.selectedSport,
-						team_code: tCode,
-						team_name: tName,
-						role: "coach",
 						onboarding_done: true,
 					}),
 				});
-			} catch (_) {}
+			} catch (e) {
+				alert(`팀 생성 실패: ${e.message}`);
+				return;
+			}
 
 			sessionStorage.setItem("lr_nav", "dashboard");
 			window.location.href = "dashboard.html";

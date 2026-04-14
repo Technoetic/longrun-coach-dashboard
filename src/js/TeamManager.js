@@ -288,10 +288,29 @@ async function loadAllPlayers() {
 	if (!list) return;
 	try {
 		const res = await fetch("/api/coach/players", { credentials: "include" });
+		if (res.status === 409) {
+			list.innerHTML =
+				'<div class="player-empty">' +
+				'먼저 팀을 만들어주세요.<br>' +
+				'<button type="button" class="btn-add-team" style="margin-top:12px;width:auto;padding:10px 20px;border-radius:12px;border:1px solid var(--green);background:transparent;color:var(--green);cursor:pointer" onclick="location.href=\'team-setup.html\'">팀 만들기</button>' +
+				"</div>";
+			_setSummary(0, 0, 0, 0);
+			return;
+		}
+		if (res.status === 403) {
+			list.innerHTML = '<div class="player-empty">코치 권한이 필요합니다.</div>';
+			_setSummary(0, 0, 0, 0);
+			return;
+		}
+		if (res.status === 401) {
+			location.href = "login.html";
+			return;
+		}
 		if (!res.ok) throw new Error("HTTP " + res.status);
 		const players = await res.json();
 		if (!Array.isArray(players) || players.length === 0) {
-			list.innerHTML = '<div class="player-empty">등록된 선수가 없습니다.</div>';
+			list.innerHTML =
+				'<div class="player-empty">아직 팀에 가입한 선수가 없습니다.<br>선수에게 팀 코드를 공유해주세요.</div>';
 			_setSummary(0, 0, 0, 0);
 			return;
 		}
