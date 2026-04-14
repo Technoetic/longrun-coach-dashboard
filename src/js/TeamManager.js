@@ -243,44 +243,82 @@ window.closeDeleteTeam = () => window.teamManager.closeDeleteTeam();
 window.checkDelCode = (el) => window.teamManager.checkDelCode(el);
 window.executeDeleteTeam = () => window.teamManager.executeDeleteTeam();
 
-// ===== 전문준 실데이터 카드를 맨 위에 삽입 =====
-async function loadTopPlayer() {
-	const list = document.querySelector('.player-list');
+// ===== 선수 리스트: /api/coach/players 전체 로드 + summary 집계 =====
+function _buildPlayerCard(p, idx) {
+	const seed = (p.name || "?").slice(0, 2);
+	const colorByStatus = { g: "00F19F", y: "FFD60A", r: "FF3B30" };
+	const photoColor = colorByStatus[p.status] || "7BDBFF";
+	const hrvText = p.hrv != null ? Math.round(p.hrv) : "-";
+	const hrvClass = p.hrv == null
+		? "val-normal"
+		: p.hrv >= 50 ? "val-up" : p.hrv >= 35 ? "val-normal" : "val-down";
+	const rhrText = p.rhr != null ? Math.round(p.rhr) : "-";
+	const sleepText = p.sleep != null ? p.sleep.toFixed(1) + "h" : "-";
+	const stressText = p.stress != null ? p.stress : "-";
+	const acwrText = p.acwr != null ? p.acwr.toFixed(2) : "-";
+	const acwrClass = p.acwr == null
+		? "val-normal"
+		: p.acwr >= 1.5 ? "val-down" : p.acwr >= 1.3 ? "val-normal" : "val-normal";
+	const painVal = p.pain || 0;
+	const painClass = painVal > 2 ? "val-down" : "val-up";
+	const nameSafe = (p.name || "").replace(/'/g, "\\'");
+	return (
+		'<div class="player-card" onclick="openWeekly(\'' + nameSafe + "','" + p.status + "'," + p.id + ')">' +
+		'<div class="player-photo">' +
+		'<img src="https://api.dicebear.com/9.x/initials/svg?seed=' + encodeURIComponent(seed) +
+		"&backgroundColor=1a1a1a&textColor=" + photoColor + '" alt="' + nameSafe + '">' +
+		'<span class="signal ' + p.status + '"></span></div>' +
+		'<div class="player-main"><div class="player-top">' +
+		'<span class="player-name">' + (p.name || "") + "</span>" +
+		'<span class="player-num">#' + (idx + 1) + "</span></div>" +
+		'<div class="player-stats">' +
+		'<div class="ps-item"><div class="ps-val ' + hrvClass + '">' + hrvText + '</div><div class="ps-label">HRV</div></div>' +
+		'<div class="ps-item"><div class="ps-val val-normal">' + rhrText + '</div><div class="ps-label">RHR</div></div>' +
+		'<div class="ps-item"><div class="ps-val val-normal">' + sleepText + '</div><div class="ps-label">수면</div></div>' +
+		'<div class="ps-item"><div class="ps-val val-normal">' + stressText + '</div><div class="ps-label">스트레스</div></div>' +
+		'<div class="ps-item"><div class="ps-val ' + acwrClass + '">' + acwrText + '</div><div class="ps-label">ACWR</div></div>' +
+		'<div class="ps-item"><div class="ps-val ' + painClass + '">' + painVal + '</div><div class="ps-label">통증</div></div>' +
+		"</div></div>" +
+		'<div class="player-arrow"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"></path></svg></div></div>'
+	);
+}
+
+async function loadAllPlayers() {
+	const list = document.getElementById("playerList");
 	if (!list) return;
-
 	try {
-		const res = await fetch('/api/coach/players');
+		const res = await fetch("/api/coach/players", { credentials: "include" });
+		if (!res.ok) throw new Error("HTTP " + res.status);
 		const players = await res.json();
-		if (!Array.isArray(players)) return;
-
-		const p = players.find(x => x.name === '전문준');
-		if (!p) return;
-
-		const hrvText = p.hrv ? Math.round(p.hrv) : '-';
-		const hrvClass = p.hrv ? (p.hrv >= 50 ? 'val-up' : p.hrv >= 35 ? 'val-normal' : 'val-down') : 'val-normal';
-		const acwrClass = p.acwr >= 1.5 ? 'val-down' : p.acwr >= 1.3 ? 'val-warn' : 'val-normal';
-
-		const card = '<div class="player-card" onclick="openWeekly(\'전문준\',\'' + p.status + '\')">' +
-			'<div class="player-photo">' +
-			'<img src="https://api.dicebear.com/9.x/initials/svg?seed=JM&backgroundColor=1a1a1a&textColor=00F19F" alt="전문준">' +
-			'<span class="signal ' + p.status + '"></span></div>' +
-			'<div class="player-main"><div class="player-top">' +
-			'<span class="player-name">전문준</span>' +
-			'<span class="player-num">#1</span></div>' +
-			'<div class="player-stats">' +
-			'<div class="ps-item"><div class="ps-val ' + hrvClass + '">' + hrvText + '</div><div class="ps-label">HRV</div></div>' +
-			'<div class="ps-item"><div class="ps-val val-normal">' + (p.rhr ? Math.round(p.rhr) : '-') + '</div><div class="ps-label">RHR</div></div>' +
-			'<div class="ps-item"><div class="ps-val val-normal">' + (p.sleep ? p.sleep.toFixed(1) + 'h' : '-') + '</div><div class="ps-label">수면</div></div>' +
-			'<div class="ps-item"><div class="ps-val val-normal">' + (p.stress !== null ? p.stress : '-') + '</div><div class="ps-label">스트레스</div></div>' +
-			'<div class="ps-item"><div class="ps-val ' + acwrClass + '">' + (p.acwr ? p.acwr.toFixed(2) : '-') + '</div><div class="ps-label">ACWR</div></div>' +
-			'<div class="ps-item"><div class="ps-val ' + (p.pain > 2 ? 'val-down' : 'val-up') + '">' + (p.pain || 0) + '</div><div class="ps-label">통증</div></div>' +
-			'</div></div>' +
-			'<div class="player-arrow"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"></path></svg></div></div>';
-
-		list.insertAdjacentHTML('afterbegin', card);
+		if (!Array.isArray(players) || players.length === 0) {
+			list.innerHTML = '<div class="player-empty">등록된 선수가 없습니다.</div>';
+			_setSummary(0, 0, 0, 0);
+			return;
+		}
+		window.__players = players;
+		list.innerHTML = players.map((p, i) => _buildPlayerCard(p, i)).join("");
+		const counts = { g: 0, y: 0, r: 0, d: 0 };
+		for (const p of players) {
+			const s = p.status || "d";
+			counts[s] = (counts[s] || 0) + 1;
+		}
+		_setSummary(counts.g, counts.y, counts.r, counts.d);
 	} catch (e) {
-		console.warn('Top player load failed:', e);
+		console.warn("loadAllPlayers failed:", e);
+		list.innerHTML = '<div class="player-empty">선수 데이터를 불러오지 못했습니다.</div>';
 	}
 }
 
-setTimeout(loadTopPlayer, 1000);
+function _setSummary(g, y, r, d) {
+	const set = (id, v) => {
+		const el = document.getElementById(id);
+		if (el) el.textContent = v + "명";
+	};
+	set("sumG", g);
+	set("sumY", y);
+	set("sumR", r);
+	set("sumD", d);
+}
+
+setTimeout(loadAllPlayers, 300);
+window.loadAllPlayers = loadAllPlayers;

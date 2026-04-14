@@ -10,21 +10,17 @@ class DetailPanel {
 		this.calSelected = null;
 	}
 
-	openWeekly(name, status) {
+	openWeekly(name, status, playerId) {
 		this.currentStatus = status;
 		this.currentPlayer = name;
+		this.currentPlayerId = playerId;
 		document.getElementById("weeklyName").textContent = name + " 선수";
 		this.switchTab("weekly");
 
 		const colors = { g: "var(--green)", y: "var(--yellow)", r: "var(--red)" };
 		const cls = { g: "dp-v-green", y: "dp-v-yellow", r: "dp-v-red" };
 
-		// 전문준이면 실데이터 로드
-		if (name === '전문준') {
-			this._loadLiveData(status, colors, cls);
-		} else {
-			this._setMockRings(status, colors, cls);
-		}
+		this._loadLiveData(name, playerId, status, colors, cls);
 
 		document.getElementById("weeklyOverlay").classList.add("show");
 		setTimeout(
@@ -34,33 +30,34 @@ class DetailPanel {
 		document.body.style.overflow = "hidden";
 	}
 
-	_setMockRings(status, colors, cls) {
-		const scores = { g: 86, y: 62, r: 38 };
-		const score = scores[status] || 86;
-		const valEl = document.getElementById("rRecoveryVal");
-		valEl.textContent = score;
-		valEl.className = "dp-ring-val " + (cls[status] || "dp-v-green");
-		const rings = [
-			{ id: "rRecovery", circ: 364, pct: score / 100, color: colors[status] },
-			{ id: "rSleep", circ: 251, pct: 0.84, color: "var(--blue)" },
-			{ id: "rStrain", circ: 251, pct: 0.71, color: "var(--yellow)" },
-		];
-		rings.forEach((r) => {
-			const el = document.getElementById(r.id);
-			el.style.stroke = r.color;
-			el.style.strokeDashoffset = String(r.circ);
-			setTimeout(() => {
-				el.style.strokeDashoffset = String(r.circ - r.circ * r.pct);
-			}, 100);
+	_placeholderView() {
+		const ids = ["rRecoveryVal", "rSleepVal", "rStrainVal"];
+		ids.forEach((id) => {
+			const el = document.getElementById(id);
+			if (el) el.textContent = "—";
+		});
+		["rRecovery", "rSleep", "rStrain"].forEach((id) => {
+			const el = document.getElementById(id);
+			if (el) el.style.strokeDashoffset = String(id === "rRecovery" ? 364 : 251);
 		});
 	}
 
-	async _loadLiveData(status, colors, cls) {
+	async _loadLiveData(name, playerId, status, colors, cls) {
 		try {
-			const res = await fetch('/api/coach/players');
-			const players = await res.json();
-			const p = players.find(x => x.name === '전문준');
-			if (!p) { this._setMockRings(status, colors, cls); return; }
+			let p = null;
+			if (Array.isArray(window.__players)) {
+				p = window.__players.find(
+					(x) => (playerId && x.id === playerId) || x.name === name,
+				);
+			}
+			if (!p) {
+				const res = await fetch("/api/coach/players", { credentials: "include" });
+				const players = await res.json();
+				p = players.find(
+					(x) => (playerId && x.id === playerId) || x.name === name,
+				);
+			}
+			if (!p) { this._placeholderView(); return; }
 
 			// 회복 점수 계산 (HRV + ACWR 기반)
 			const hrvScore = p.hrv ? Math.min(100, Math.round(p.hrv * 1.5)) : 50;
@@ -150,7 +147,7 @@ class DetailPanel {
 			}
 		} catch (e) {
 			console.warn('Live data load failed:', e);
-			this._setMockRings(status, colors, cls);
+			this._placeholderView();
 		}
 	}
 
@@ -180,21 +177,26 @@ class DetailPanel {
 		document
 			.getElementById("viewDaily")
 			.classList.toggle("active", tab === "daily");
+		const fmt = (d) => (d.getMonth() + 1) + "/" + d.getDate();
 		if (tab === "weekly") {
-			document.getElementById("dpDateRange").textContent = "4/1 ~ 4/7";
+			const today = new Date();
+			const start = new Date(today);
+			start.setDate(today.getDate() - 6);
+			document.getElementById("dpDateRange").textContent =
+				fmt(start) + " ~ " + fmt(today);
 		} else if (tab === "monthly") {
-			document.getElementById("dpDateRange").textContent = "3/8 ~ 4/7";
-			const mRings = [
-				{ id: "mRecovery", circ: 364, pct: 0.78 },
-				{ id: "mSleep", circ: 251, pct: 0.81 },
-				{ id: "mStrain", circ: 251, pct: 0.68 },
-			];
-			mRings.forEach((r) => {
-				const el = document.getElementById(r.id);
-				el.style.strokeDashoffset = String(r.circ);
-				setTimeout(() => {
-					el.style.strokeDashoffset = String(r.circ - r.circ * r.pct);
-				}, 100);
+			const today = new Date();
+			const start = new Date(today);
+			start.setDate(today.getDate() - 29);
+			document.getElementById("dpDateRange").textContent =
+				fmt(start) + " ~ " + fmt(today);
+			["mRecovery", "mSleep", "mStrain"].forEach((id) => {
+				const el = document.getElementById(id);
+				if (el) el.style.strokeDashoffset = String(id === "mRecovery" ? 364 : 251);
+			});
+			["mRecoveryVal", "mSleepVal", "mStrainVal"].forEach((id) => {
+				const el = document.getElementById(id);
+				if (el) el.textContent = "—";
 			});
 		} else if (tab === "daily") {
 			document.getElementById("dpDateRange").textContent = "일별 기록";
@@ -202,48 +204,11 @@ class DetailPanel {
 		}
 	}
 
-	getDayData(y, m, d) {
-		const seed = y * 10000 + m * 100 + d;
-		const r = (s) => {
-			const x = Math.sin(s) * 10000;
-			return x - Math.floor(x);
-		};
-		const rv = r(seed);
-		const today = new Date();
-		const target = new Date(y, m, d);
-		if (target > today) return null;
-		const status = rv > 0.7 ? "g" : rv > 0.3 ? "y" : "r";
-		const statusLabel = { g: "양호", y: "주의", r: "위험" };
-		const statusColor = {
-			g: "var(--green)",
-			y: "var(--yellow)",
-			r: "var(--red)",
-		};
-		const base = status === "g" ? 1 : status === "y" ? 0.7 : 0.4;
-		return {
-			status,
-			statusLabel: statusLabel[status],
-			statusColor: statusColor[status],
-			hr: Math.round(62 + r(seed + 1) * 30),
-			rhr: Math.round(52 + r(seed + 2) * 18),
-			hrv: Math.round(40 + base * 30 + r(seed + 3) * 10),
-			spo2: Math.round(95 + r(seed + 4) * 4),
-			steps: Math.round(3000 + r(seed + 5) * 10000).toLocaleString(),
-			cal: Math.round(200 + r(seed + 6) * 400),
-			exercise: Math.round(10 + r(seed + 7) * 60),
-			sleep: (5 + base * 2.5 + r(seed + 8) * 1).toFixed(1),
-			bed: `${22 + Math.round(r(seed + 9) * 2)}:${String(Math.round(r(seed + 10) * 59)).padStart(2, "0")} — ${6 + Math.round(r(seed + 11))}:${String(Math.round(r(seed + 12) * 59)).padStart(2, "0")}`,
-			stress: Math.round(20 + (1 - base) * 50 + r(seed + 13) * 15),
-			acwr: (0.8 + (1 - base) * 0.7 + r(seed + 14) * 0.2).toFixed(2),
-			pain:
-				status === "g"
-					? 0
-					: status === "y"
-						? Math.round(1 + r(seed + 15) * 3)
-						: Math.round(4 + r(seed + 16) * 5),
-			noise: Math.round(30 + r(seed + 17) * 30),
-			earphone: Math.round(50 + r(seed + 18) * 30),
-		};
+	getDayData(_y, _m, _d) {
+		// Real per-day data fetch requires a coach-side endpoint that does
+		// not yet exist. Returning null keeps the calendar functional but
+		// without mock values; the UI shows "데이터 없음".
+		return null;
 	}
 
 	renderCalendar() {
@@ -406,8 +371,8 @@ class DetailPanel {
 window.detailPanel = new DetailPanel();
 
 // Expose public methods on window for backward compatibility and inline event handlers
-window.openWeekly = (name, status) =>
-	window.detailPanel.openWeekly(name, status);
+window.openWeekly = (name, status, playerId) =>
+	window.detailPanel.openWeekly(name, status, playerId);
 window.closeWeekly = () => window.detailPanel.closeWeekly();
 window.switchTab = (tab) => window.detailPanel.switchTab(tab);
 window.calNav = (dir) => window.detailPanel.calNav(dir);
