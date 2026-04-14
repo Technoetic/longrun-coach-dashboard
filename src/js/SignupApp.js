@@ -359,6 +359,16 @@ class SignupApp {
 				}
 			}
 			sessionStorage.setItem("lr_user_email", email);
+
+			// Coach 대시보드에서 가입했으므로 role=coach 로 즉시 승격
+			try {
+				await fetch("/api/user/me", {
+					method: "PATCH",
+					headers: { "Content-Type": "application/json" },
+					credentials: "include",
+					body: JSON.stringify({ role: "coach" }),
+				});
+			} catch (_) {}
 		} catch (e) {
 			alert(`가입 실패: ${e.message}`);
 			return;
