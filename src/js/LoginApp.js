@@ -4,10 +4,8 @@
  */
 class LoginApp {
 	constructor() {
-		// Nav guard: check if user should be on this page
-		if (sessionStorage.getItem("lr_nav") !== "login") {
-			location.replace("onboarding.html");
-		}
+		// Nav guard: if arrived via in-app flow, clear the marker.
+		// Direct URL access is now allowed (no forced onboarding redirect).
 		sessionStorage.removeItem("lr_nav");
 
 		// Cache DOM elements
@@ -47,33 +45,34 @@ class LoginApp {
 	}
 
 	/**
-	 * Performs login: checks credentials against localStorage
+	 * Performs login against backend API.
+	 * On success, fetches /api/user/me and stores profile in sessionStorage.
 	 */
-	doLogin() {
+	async doLogin() {
 		const email = this.loginEmail.value.trim();
 		const pw = this.loginPw.value;
-		const saved = (
-			typeof safeJSONParse !== "undefined" ? safeJSONParse : JSON.parse
-		)(localStorage.getItem("lr_accounts") || "[]");
-		const account = saved.find((a) => a.email === email && a.password === pw);
+		try {
+			const loginRes = await fetch("/api/auth/login", {
+				method: "POST",
+				headers: { "Content-Type": "application/x-www-form-urlencoded" },
+				credentials: "include",
+				body: new URLSearchParams({ username: email, password: pw }).toString(),
+			});
+			if (!loginRes.ok) throw new Error("invalid credentials");
 
-		if (account) {
-			// Login successful: store team info in sessionStorage
-			if (account.teamSport)
-				sessionStorage.setItem("lr_team_sport", account.teamSport);
-			if (account.teamName)
-				sessionStorage.setItem("lr_team_name", account.teamName);
-			if (account.teamCode)
-				sessionStorage.setItem("lr_team_code", account.teamCode);
+			const meRes = await fetch("/api/user/me", { credentials: "include" });
+			if (!meRes.ok) throw new Error("me failed");
+			const me = await meRes.json();
+
+			if (me.sport) sessionStorage.setItem("lr_team_sport", me.sport);
+			if (me.team_code) sessionStorage.setItem("lr_team_code", me.team_code);
+			if (me.name) sessionStorage.setItem("lr_user_name", me.name);
+			sessionStorage.setItem("lr_user_email", me.email);
+			sessionStorage.setItem("lr_user_role", me.role || "athlete");
 
 			sessionStorage.setItem("lr_nav", "dashboard");
 			location.href = "dashboard.html";
-		} else if (saved.length === 0) {
-			// No accounts exist: redirect to team setup
-			sessionStorage.setItem("lr_nav", "team-setup");
-			location.href = "team-setup.html";
-		} else {
-			// Invalid credentials
+		} catch (e) {
 			this.loginHint.textContent = "계정정보가 없거나 일치하지 않습니다";
 			this.loginHint.className = "hint err";
 			this.loginEmail.classList.add("err");

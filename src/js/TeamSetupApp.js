@@ -22,7 +22,7 @@ class TeamSetupApp {
 		window.checkJoinCode = (el) => this.checkJoinCode(el);
 	}
 
-	nextStep() {
+	async nextStep() {
 		if (this.cur === 1 && !this.selectedSport) return;
 		if (this.cur === 2) {
 			const tName =
@@ -42,6 +42,23 @@ class TeamSetupApp {
 				last.teamCode = tCode;
 				localStorage.setItem("lr_accounts", JSON.stringify(accounts));
 			}
+
+			// Persist to backend (best-effort, requires cookie from signup/login)
+			try {
+				await fetch("/api/user/me", {
+					method: "PATCH",
+					headers: { "Content-Type": "application/json" },
+					credentials: "include",
+					body: JSON.stringify({
+						sport: this.selectedSport,
+						team_code: tCode,
+						team_name: tName,
+						role: "coach",
+						onboarding_done: true,
+					}),
+				});
+			} catch (_) {}
+
 			sessionStorage.setItem("lr_nav", "dashboard");
 			window.location.href = "dashboard.html";
 			return;
