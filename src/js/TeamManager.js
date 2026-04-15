@@ -342,9 +342,44 @@ async function loadAllPlayers() {
 			return;
 		}
 		if (res.status === 403) {
-			list.innerHTML = '<div class="player-empty">코치 권한이 필요합니다.</div>';
-			_setSummary(0, 0, 0, 0);
-			return;
+			// Athlete fallback: load own bio-data and render as a 1-player list.
+			// Coach endpoint refused because this user is role=athlete.
+			try {
+				const bioRes = await fetch("/api/bio-data", { credentials: "include" });
+				if (!bioRes.ok) throw new Error("bio-data " + bioRes.status);
+				const bio = await bioRes.json();
+				const latest = bio.latest || {};
+				const myName = sessionStorage.getItem("lr_user_name") || "나";
+				const player = {
+					id: 0,
+					name: myName,
+					hr: latest.heart_rate,
+					rhr: latest.resting_heart_rate,
+					walking_hr: latest.walking_heart_rate,
+					hrv: latest.hrv,
+					spo2: latest.blood_oxygen,
+					steps: latest.steps,
+					distance_km: latest.distance_km,
+					active_cal: latest.active_calories,
+					basal_cal: latest.basal_calories,
+					exercise_min: latest.exercise_minutes,
+					stand_min: latest.stand_minutes,
+					flights: latest.flights_climbed,
+					sleep: latest.sleep_hours,
+					env_db: latest.env_audio_db,
+					earphone_db: latest.headphone_audio_db,
+					watch_at: latest.created_at,
+					status: "g",
+				};
+				window.__players = [player];
+				list.innerHTML = _buildPlayerCard(player, 0);
+				_setSummary(1, 0, 0, 0);
+				return;
+			} catch (e) {
+				list.innerHTML = '<div class="player-empty">데이터를 불러올 수 없습니다.</div>';
+				_setSummary(0, 0, 0, 0);
+				return;
+			}
 		}
 		if (res.status === 401) {
 			location.href = "login.html";
