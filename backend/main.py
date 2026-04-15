@@ -614,7 +614,7 @@ async def receive_watch_data(
     db.add(condition)
     db.commit()
 
-    # 원본 15개 지표 저장
+    # 원본 15개 지표 저장 + HR stream 통계 (Phase 2-C)
     watch = WatchRecord(
         user_id=user.id,
         heart_rate=hr, resting_heart_rate=rhr, walking_heart_rate=data.get("walking_heart_rate"),
@@ -623,6 +623,9 @@ async def receive_watch_data(
         exercise_minutes=data.get("exercise_minutes"), stand_minutes=data.get("stand_minutes"),
         flights_climbed=data.get("flights_climbed"), sleep_hours=sleep,
         env_audio_db=data.get("env_audio_db"), headphone_audio_db=data.get("headphone_audio_db"),
+        heart_rate_max=data.get("heart_rate_max"),
+        heart_rate_avg=data.get("heart_rate_avg"),
+        heart_rate_samples_count=data.get("heart_rate_samples_count"),
     )
     db.add(watch)
     db.commit()
@@ -981,6 +984,8 @@ def coach_players(
             w.exercise_minutes AS exercise_min, w.stand_minutes AS stand_min,
             w.flights_climbed AS flights, w.sleep_hours AS sleep,
             w.env_audio_db AS env_db, w.headphone_audio_db AS earphone_db,
+            w.heart_rate_max AS hr_max, w.heart_rate_avg AS hr_avg,
+            w.heart_rate_samples_count AS hr_samples_count,
             w.created_at AS watch_at,
             c.acwr, c.composite_score AS score, c.fatigue AS stress
         FROM users u

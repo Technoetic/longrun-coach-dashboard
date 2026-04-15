@@ -107,7 +107,17 @@ class DetailPanel {
 			// 심박·심혈관
 			if (lists[0]) {
 				const items = lists[0].querySelectorAll('li');
-				if (items[0]) items[0].querySelector('.dp-list-val').innerHTML = (p.hr || '-') + '<span class="dp-list-unit">bpm</span>';
+				if (items[0]) {
+					// 심박수: 현재값 + (오늘 max / avg / samples) 작은 서브텍스트
+					let hrHtml = (p.hr || '-') + '<span class="dp-list-unit">bpm</span>';
+					if (p.hr_max != null || p.hr_avg != null) {
+						const maxTxt = p.hr_max != null ? Math.round(p.hr_max) : '-';
+						const avgTxt = p.hr_avg != null ? Math.round(p.hr_avg) : '-';
+						const n = p.hr_samples_count || 0;
+						hrHtml += `<div class="dp-list-sub">오늘 최대 ${maxTxt} / 평균 ${avgTxt} bpm (${n}샘플)</div>`;
+					}
+					items[0].querySelector('.dp-list-val').innerHTML = hrHtml;
+				}
 				if (items[1]) items[1].querySelector('.dp-list-val').innerHTML = (p.rhr || '-') + '<span class="dp-list-unit">bpm</span>';
 				if (items[2]) items[2].querySelector('.dp-list-val').innerHTML = (p.walking_hr || '-') + '<span class="dp-list-unit">bpm</span>';
 				if (items[3]) items[3].querySelector('.dp-list-val').innerHTML = (p.hrv ? Math.round(p.hrv) : '-') + '<span class="dp-list-unit">ms</span>';
