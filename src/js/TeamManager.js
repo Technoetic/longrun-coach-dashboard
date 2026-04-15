@@ -301,6 +301,14 @@ function _buildPlayerCard(p, idx) {
 	const painVal = p.pain || 0;
 	const painClass = painVal > 2 ? "val-down" : "val-up";
 	const nameSafe = (p.name || "").replace(/'/g, "\\'");
+	let syncText = "미동기화";
+	if (p.watch_at) {
+		const diffMin = Math.floor((Date.now() - new Date(p.watch_at).getTime()) / 60000);
+		if (diffMin < 1) syncText = "방금 전";
+		else if (diffMin < 60) syncText = diffMin + "분 전";
+		else if (diffMin < 1440) syncText = Math.floor(diffMin / 60) + "시간 전";
+		else syncText = Math.floor(diffMin / 1440) + "일 전";
+	}
 	return (
 		'<div class="player-card" onclick="openWeekly(\'' + nameSafe + "','" + p.status + "'," + p.id + ')">' +
 		'<div class="player-photo">' +
@@ -309,7 +317,7 @@ function _buildPlayerCard(p, idx) {
 		'<span class="signal ' + p.status + '"></span></div>' +
 		'<div class="player-main"><div class="player-top">' +
 		'<span class="player-name">' + (p.name || "") + "</span>" +
-		'<span class="player-num">#' + (idx + 1) + "</span></div>" +
+		'<span class="player-num" title="마지막 동기화: ' + syncText + '">#' + (idx + 1) + ' · ' + syncText + "</span></div>" +
 		'<div class="player-stats">' +
 		'<div class="ps-item"><div class="ps-val ' + hrvClass + '">' + hrvText + '</div><div class="ps-label">HRV</div></div>' +
 		'<div class="ps-item"><div class="ps-val val-normal">' + rhrText + '</div><div class="ps-label">RHR</div></div>' +
