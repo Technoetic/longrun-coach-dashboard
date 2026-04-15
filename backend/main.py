@@ -578,6 +578,13 @@ async def receive_watch_data(
     active_cal = data.get("active_calories")
     basal_cal = data.get("basal_calories")
 
+    # 빈 배치 거부: 모든 의미있는 지표가 null/0이면 저장하지 않는다.
+    # Health Connect가 14분마다 빈 sync를 보내 과거 HR row가 limit() 뒤로 밀려나는 현상 방지.
+    meaningful = [hr, rhr, hrv, spo2, sleep, data.get("walking_heart_rate")]
+    meaningful_steps = steps if (steps and steps > 100) else None
+    if all(v is None for v in meaningful) and meaningful_steps is None:
+        return {"status": "skipped", "reason": "empty batch"}
+
     # 컨디션 점수 자동 계산
     score = 50  # 기본
     if hrv and hrv > 50: score += 15
@@ -657,7 +664,7 @@ async def get_bio_data(
     """최근 7일 생체 데이터 (분석 화면 + 트렌드)"""
     records = db.query(WatchRecord).filter(
         WatchRecord.user_id == current_user.id
-    ).order_by(WatchRecord.created_at.desc()).limit(7).all()
+    ).order_by(WatchRecord.created_at.desc()).limit(50).all()
 
     if records:
         latest = to_dict(records[0])
