@@ -196,10 +196,106 @@ class DetailPanel {
 				}
 				aiP.textContent = parts.join(' · ') + '. ' + advice;
 			}
+
+			// Phase 5: 7-day daily HR trend
+			this._loadWeeklyHrChart();
 		} catch (e) {
 			console.warn('Live data load failed:', e);
 			this._placeholderView();
 		}
+	}
+
+	/**
+	 * Phase 5: fetch /api/bio-daily (7 days) and render a bar+line chart in
+	 * the weekly view. Bars = resting_heart_rate, overlay line = heart_rate_max.
+	 */
+	async _loadWeeklyHrChart() {
+		const mount = document.getElementById('dp-weekly-hr-chart');
+		if (!mount) return;
+		let data = null;
+		try {
+			const res = await fetch('/api/bio-daily?days=7', { credentials: 'include' });
+			if (!res.ok) { mount.innerHTML = ''; return; }
+			const json = await res.json();
+			data = json.days || [];
+		} catch (_) {
+			mount.innerHTML = '';
+			return;
+		}
+		// Filter days that have at least resting_heart_rate so we can plot.
+		const usable = data.filter((d) => d.resting_heart_rate != null);
+		if (usable.length < 1) {
+			mount.innerHTML = '';
+			return;
+		}
+		const w = 280;
+		const h = 80;
+		const padL = 22, padR = 6, padT = 8, padB = 18;
+		const plotW = w - padL - padR;
+		const plotH = h - padT - padB;
+
+		// Y-axis range: min rhr → max hr_max, padded.
+		let lo = Infinity, hi = -Infinity;
+		for (const d of usable) {
+			if (d.resting_heart_rate != null) lo = Math.min(lo, d.resting_heart_rate);
+			if (d.heart_rate_max != null) hi = Math.max(hi, d.heart_rate_max);
+			if (d.resting_heart_rate != null) hi = Math.max(hi, d.resting_heart_rate);
+		}
+		if (!isFinite(lo)) lo = 50;
+		if (!isFinite(hi)) hi = 150;
+		if (hi - lo < 20) hi = lo + 20;
+		const range = hi - lo;
+
+		const n = usable.length;
+		const slotW = plotW / n;
+		const barW = Math.min(18, slotW * 0.55);
+
+		const bars = [];
+		const linePts = [];
+		const labels = [];
+		usable.forEach((d, i) => {
+			const cx = padL + slotW * i + slotW / 2;
+			const rhr = d.resting_heart_rate;
+			const maxHr = d.heart_rate_max;
+			// Bar: from baseline (lo) to rhr
+			if (rhr != null) {
+				const y = padT + plotH * (1 - (rhr - lo) / range);
+				const barH = padT + plotH - y;
+				bars.push(
+					`<rect x="${cx - barW / 2}" y="${y}" width="${barW}" height="${barH}" fill="var(--green,#00f19f)" opacity="0.75" rx="2"/>`,
+				);
+			}
+			// Line point at max HR
+			if (maxHr != null) {
+				const y = padT + plotH * (1 - (maxHr - lo) / range);
+				linePts.push(`${cx.toFixed(1)},${y.toFixed(1)}`);
+			}
+			// X label: date MM/DD
+			const md = (d.date || '').slice(5); // "04-15"
+			labels.push(
+				`<text x="${cx}" y="${h - 4}" text-anchor="middle" font-size="9" fill="var(--text-tertiary,#888)">${md}</text>`,
+			);
+		});
+		const line = linePts.length >= 2
+			? `<polyline fill="none" stroke="var(--yellow,#ffd60a)" stroke-width="1.4" points="${linePts.join(' ')}"/>`
+			: '';
+		const dots = linePts
+			.map((pt) => {
+				const [x, y] = pt.split(',');
+				return `<circle cx="${x}" cy="${y}" r="2" fill="var(--yellow,#ffd60a)"/>`;
+			})
+			.join('');
+
+		// Y-axis reference labels (lo, hi)
+		const yAxis =
+			`<text x="${padL - 4}" y="${padT + 4}" text-anchor="end" font-size="9" fill="var(--text-tertiary,#888)">${Math.round(hi)}</text>` +
+			`<text x="${padL - 4}" y="${padT + plotH}" text-anchor="end" font-size="9" fill="var(--text-tertiary,#888)">${Math.round(lo)}</text>`;
+
+		mount.innerHTML =
+			`<div class="dp-weekly-chart-title">최근 ${n}일 HR 트렌드 (막대=안정심박, 선=최대심박)</div>` +
+			`<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">` +
+			yAxis + bars.join('') + line + dots + labels.join('') +
+			`</svg>`;
 	}
 
 	closeWeekly() {

@@ -288,6 +288,16 @@
 	opacity: 0.85;
 }
 
+.dp-weekly-chart {
+	margin: 6px 0 12px 0;
+}
+
+.dp-weekly-chart-title {
+	font-size: 11px;
+	color: var(--text-tertiary);
+	margin-bottom: 4px;
+}
+
 .dp-v-green {
 	color: var(--green);
 }

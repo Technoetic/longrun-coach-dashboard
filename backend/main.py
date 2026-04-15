@@ -682,6 +682,53 @@ async def get_bio_data(
 
     return {"latest": None, "trends": {}, "count": 0}
 
+
+@app.get("/api/bio-daily")
+async def get_bio_daily(
+    days: int = 7,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """최근 N일 간의 일자별 watch_record 스냅샷.
+    각 일자별로 created_at 기준 최신 레코드 1개를 반환.
+    반환 형식: [{date, heart_rate, resting_heart_rate, heart_rate_max,
+                 heart_rate_avg, steps, distance_km, active_calories}, ...]
+    가장 오래된 날짜 → 최신 날짜 순서.
+    """
+    from sqlalchemy import text as sa_text
+    days = max(1, min(days, 30))
+    rows = db.execute(sa_text("""
+        SELECT w.*
+        FROM watch_records w
+        INNER JOIN (
+            SELECT DATE(created_at) AS d, MAX(id) AS max_id
+            FROM watch_records
+            WHERE user_id = :uid
+              AND created_at >= DATE_SUB(CURDATE(), INTERVAL :days DAY)
+            GROUP BY DATE(created_at)
+        ) latest ON w.id = latest.max_id
+        ORDER BY w.created_at ASC
+    """), {"uid": current_user.id, "days": days}).mappings().all()
+
+    out = []
+    for r in rows:
+        d = dict(r)
+        created = d.get("created_at")
+        date_str = created.strftime("%Y-%m-%d") if hasattr(created, "strftime") else str(created)[:10]
+        out.append({
+            "date": date_str,
+            "heart_rate": d.get("heart_rate"),
+            "resting_heart_rate": d.get("resting_heart_rate"),
+            "heart_rate_max": d.get("heart_rate_max"),
+            "heart_rate_avg": d.get("heart_rate_avg"),
+            "heart_rate_samples_count": d.get("heart_rate_samples_count"),
+            "steps": d.get("steps"),
+            "distance_km": d.get("distance_km"),
+            "active_calories": d.get("active_calories"),
+            "exercise_minutes": d.get("exercise_minutes"),
+        })
+    return {"days": out, "count": len(out)}
+
 # ===== Parent-Child 연결 =====
 @app.post("/api/children/connect")
 async def connect_child(
