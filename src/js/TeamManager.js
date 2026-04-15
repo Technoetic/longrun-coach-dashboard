@@ -361,6 +361,14 @@ async function loadAllPlayers() {
 					hr_max: latest.heart_rate_max,
 					hr_avg: latest.heart_rate_avg,
 					hr_samples_count: latest.heart_rate_samples_count,
+					hr_samples: (() => {
+						const raw = latest.heart_rate_samples;
+						if (Array.isArray(raw)) return raw;
+						if (typeof raw === "string" && raw.length > 0) {
+							try { return JSON.parse(raw); } catch (_) { return null; }
+						}
+						return null;
+					})(),
 					steps: latest.steps,
 					distance_km: latest.distance_km,
 					active_cal: latest.active_calories,

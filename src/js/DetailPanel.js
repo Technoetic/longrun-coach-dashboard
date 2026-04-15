@@ -108,13 +108,22 @@ class DetailPanel {
 			if (lists[0]) {
 				const items = lists[0].querySelectorAll('li');
 				if (items[0]) {
-					// 심박수: 현재값 + (오늘 max / avg / samples) 작은 서브텍스트
+					// 심박수: 현재값 + (오늘 max / avg / samples) 작은 서브텍스트 + sparkline
 					let hrHtml = (p.hr || '-') + '<span class="dp-list-unit">bpm</span>';
 					if (p.hr_max != null || p.hr_avg != null) {
 						const maxTxt = p.hr_max != null ? Math.round(p.hr_max) : '-';
 						const avgTxt = p.hr_avg != null ? Math.round(p.hr_avg) : '-';
 						const n = p.hr_samples_count || 0;
 						hrHtml += `<div class="dp-list-sub">오늘 최대 ${maxTxt} / 평균 ${avgTxt} bpm (${n}샘플)</div>`;
+					}
+					// Parse hr_samples_json (from coach endpoint) or array (from bio-data)
+					let samples = null;
+					if (Array.isArray(p.hr_samples)) samples = p.hr_samples;
+					else if (typeof p.hr_samples_json === 'string' && p.hr_samples_json.length > 0) {
+						try { samples = JSON.parse(p.hr_samples_json); } catch (_) { samples = null; }
+					}
+					if (Array.isArray(samples) && samples.length >= 3) {
+						hrHtml += this._sparkline(samples);
 					}
 					items[0].querySelector('.dp-list-val').innerHTML = hrHtml;
 				}
@@ -406,6 +415,34 @@ class DetailPanel {
 			data.earphone + '<span class="dp-list-unit">dB</span>';
 		document.getElementById("dd-earphone").className =
 			"dp-list-val " + (data.earphone < 65 ? "dp-v-green" : "dp-v-yellow");
+	}
+
+	/**
+	 * Render a minimalist SVG polyline sparkline for an HR sample array.
+	 * Phase 3-C — R21 cat=0x03 downsampled stream (max 120 points).
+	 */
+	_sparkline(samples) {
+		const w = 220;
+		const h = 32;
+		const pad = 2;
+		const n = samples.length;
+		if (n < 2) return "";
+		const lo = Math.min(...samples);
+		const hi = Math.max(...samples);
+		const range = Math.max(1, hi - lo);
+		const xStep = (w - pad * 2) / (n - 1);
+		const pts = samples
+			.map((v, i) => {
+				const x = pad + i * xStep;
+				const y = pad + (h - pad * 2) * (1 - (v - lo) / range);
+				return `${x.toFixed(1)},${y.toFixed(1)}`;
+			})
+			.join(" ");
+		return (
+			`<svg class="dp-hr-spark" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">` +
+			`<polyline fill="none" stroke="var(--green, #00f19f)" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round" points="${pts}"/>` +
+			`</svg>`
+		);
 	}
 }
 

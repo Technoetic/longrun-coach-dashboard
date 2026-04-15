@@ -163,6 +163,8 @@ class WatchRecord(Base):
     heart_rate_max = Column(Float, nullable=True)
     heart_rate_avg = Column(Float, nullable=True)
     heart_rate_samples_count = Column(Integer, nullable=True)
+    # Phase 3-C: downsampled HR samples as JSON array (max 120 points)
+    heart_rate_samples = Column(Text, nullable=True)
     steps = Column(Float, nullable=True)
     distance_km = Column(Float, nullable=True)
     active_calories = Column(Float, nullable=True)

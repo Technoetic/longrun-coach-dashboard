@@ -614,7 +614,14 @@ async def receive_watch_data(
     db.add(condition)
     db.commit()
 
-    # 원본 15개 지표 저장 + HR stream 통계 (Phase 2-C)
+    # 원본 15개 지표 저장 + HR stream 통계 (Phase 2-C) + 샘플 배열 (Phase 3-C)
+    import json as _json
+    hr_samples_raw = data.get("heart_rate_samples")
+    hr_samples_str = None
+    if isinstance(hr_samples_raw, list):
+        hr_samples_str = _json.dumps(hr_samples_raw)
+    elif isinstance(hr_samples_raw, str):
+        hr_samples_str = hr_samples_raw  # already JSON-encoded
     watch = WatchRecord(
         user_id=user.id,
         heart_rate=hr, resting_heart_rate=rhr, walking_heart_rate=data.get("walking_heart_rate"),
@@ -626,6 +633,7 @@ async def receive_watch_data(
         heart_rate_max=data.get("heart_rate_max"),
         heart_rate_avg=data.get("heart_rate_avg"),
         heart_rate_samples_count=data.get("heart_rate_samples_count"),
+        heart_rate_samples=hr_samples_str,
     )
     db.add(watch)
     db.commit()
@@ -986,6 +994,7 @@ def coach_players(
             w.env_audio_db AS env_db, w.headphone_audio_db AS earphone_db,
             w.heart_rate_max AS hr_max, w.heart_rate_avg AS hr_avg,
             w.heart_rate_samples_count AS hr_samples_count,
+            w.heart_rate_samples AS hr_samples_json,
             w.created_at AS watch_at,
             c.acwr, c.composite_score AS score, c.fatigue AS stress
         FROM users u

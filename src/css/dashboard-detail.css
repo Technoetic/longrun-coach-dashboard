@@ -282,6 +282,12 @@
 	letter-spacing: 0;
 }
 
+.dp-hr-spark {
+	display: block;
+	margin-top: 4px;
+	opacity: 0.85;
+}
+
 .dp-v-green {
 	color: var(--green);
 }
