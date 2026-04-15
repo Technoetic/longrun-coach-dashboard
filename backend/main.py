@@ -661,13 +661,24 @@ async def get_bio_data(
 
     if records:
         latest = to_dict(records[0])
+        # 메타 필드는 최신 row 고정, 데이터 필드는 최근 → 과거 순회하며 첫 non-null 채우기.
+        # 빈 배치(id=612처럼 hr=null인 row)가 들어와도 이전 값이 가려지지 않음.
+        meta_keys = {'id','user_id','created_at'}
+        data_keys = ['heart_rate','resting_heart_rate','walking_heart_rate','hrv','blood_oxygen',
+                     'heart_rate_max','heart_rate_avg','heart_rate_samples_count','heart_rate_samples',
+                     'steps','distance_km','active_calories','basal_calories','exercise_minutes',
+                     'stand_minutes','flights_climbed','sleep_hours','env_audio_db','headphone_audio_db']
+        for k in data_keys:
+            if latest.get(k) is None:
+                for r in records[1:]:
+                    v = to_dict(r).get(k)
+                    if v is not None:
+                        latest[k] = v
+                        break
         # 7일 트렌드 (오래된 순)
-        trend_keys = ['heart_rate','resting_heart_rate','walking_heart_rate','hrv','blood_oxygen',
-                      'steps','distance_km','active_calories','basal_calories','exercise_minutes',
-                      'stand_minutes','flights_climbed','sleep_hours','env_audio_db','headphone_audio_db']
         trends = {}
         reversed_records = list(reversed(records))
-        for k in trend_keys:
+        for k in data_keys:
             vals = [to_dict(r).get(k) for r in reversed_records]
             vals = [v for v in vals if v is not None]
             trends[k] = vals
