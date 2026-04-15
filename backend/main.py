@@ -979,13 +979,13 @@ def coach_players(
         FROM users u
         LEFT JOIN (
             SELECT wr.* FROM watch_records wr
-            INNER JOIN (SELECT user_id, MAX(created_at) AS max_at FROM watch_records GROUP BY user_id) latest
-            ON wr.user_id = latest.user_id AND wr.created_at = latest.max_at
+            INNER JOIN (SELECT user_id, MAX(id) AS max_id FROM watch_records GROUP BY user_id) latest
+            ON wr.user_id = latest.user_id AND wr.id = latest.max_id
         ) w ON u.id = w.user_id
         LEFT JOIN (
             SELECT co.* FROM conditions co
-            INNER JOIN (SELECT user_id, MAX(recorded_at) AS max_at FROM conditions GROUP BY user_id) latest
-            ON co.user_id = latest.user_id AND co.recorded_at = latest.max_at
+            INNER JOIN (SELECT user_id, MAX(id) AS max_id FROM conditions GROUP BY user_id) latest
+            ON co.user_id = latest.user_id AND co.id = latest.max_id
         ) c ON u.id = c.user_id
         WHERE (u.role = 'athlete' OR u.role IS NULL)
           AND u.team_code = :team_code
