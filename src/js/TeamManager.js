@@ -377,3 +377,26 @@ function _setSummary(g, y, r, d) {
 
 setTimeout(loadAllPlayers, 300);
 window.loadAllPlayers = loadAllPlayers;
+
+// 30초 주기 자동 새로고침 — 포커스가 페이지에 있을 때만
+let _pollTimer = null;
+function _startPolling() {
+	if (_pollTimer) return;
+	_pollTimer = setInterval(() => {
+		if (!document.hidden) loadAllPlayers();
+	}, 30000);
+}
+function _stopPolling() {
+	if (_pollTimer) {
+		clearInterval(_pollTimer);
+		_pollTimer = null;
+	}
+}
+document.addEventListener("visibilitychange", () => {
+	if (document.hidden) _stopPolling();
+	else {
+		loadAllPlayers();
+		_startPolling();
+	}
+});
+_startPolling();

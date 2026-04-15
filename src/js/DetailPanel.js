@@ -144,14 +144,38 @@ class DetailPanel {
 				if (items[1]) items[1].querySelector('.dp-list-val').innerHTML = (p.earphone_db || '-') + '<span class="dp-list-unit">dB</span>';
 			}
 
-			// AI 인사이트
+			// AI 인사이트 — 데이터 일부만 있을 때도 의미 있게
 			const aiP = weekly.querySelector('.ai-insight p');
 			if (aiP) {
-				const hrvStatus = p.hrv >= 50 ? '양호' : p.hrv >= 35 ? '보통' : '낮음';
-				aiP.textContent = 'HRV ' + (p.hrv ? Math.round(p.hrv) : '-') + 'ms (' + hrvStatus + '). ' +
-					'안정심박 ' + (p.rhr || '-') + 'bpm. ' +
-					'ACWR ' + (p.acwr || '-') + '. ' +
-					(p.acwr > 1.3 ? '훈련 부하 조절 권장.' : '현재 컨디션 유지 권장.');
+				const parts = [];
+				if (p.hrv != null) {
+					const hrvStatus = p.hrv >= 50 ? '양호' : p.hrv >= 35 ? '보통' : '낮음';
+					parts.push('HRV ' + Math.round(p.hrv) + 'ms(' + hrvStatus + ')');
+				}
+				if (p.rhr != null) parts.push('안정심박 ' + Math.round(p.rhr) + 'bpm');
+				if (p.hr != null) parts.push('심박 ' + Math.round(p.hr) + 'bpm');
+				if (p.spo2 != null) parts.push('SpO2 ' + Math.round(p.spo2) + '%');
+				if (p.sleep != null) parts.push('수면 ' + p.sleep.toFixed(1) + 'h');
+				if (p.steps != null) parts.push('걸음 ' + p.steps.toLocaleString());
+				if (p.acwr != null) parts.push('ACWR ' + p.acwr.toFixed(2));
+
+				let advice;
+				if (p.acwr != null && p.acwr > 1.5) {
+					advice = '급성 부하 증가. 훈련량 감소 권장.';
+				} else if (p.acwr != null && p.acwr > 1.3) {
+					advice = '훈련 부하 조절 권장.';
+				} else if (p.hrv != null && p.hrv < 35) {
+					advice = '회복 부족. 휴식 권장.';
+				} else if (p.sleep != null && p.sleep < 6) {
+					advice = '수면 부족. 취침 시간 확보 권장.';
+				} else if (parts.length === 0) {
+					aiP.textContent =
+						'아직 충분한 데이터가 수집되지 않았습니다. 워치를 착용하고 잠시 기다려주세요.';
+					return;
+				} else {
+					advice = '현재 컨디션 유지 권장.';
+				}
+				aiP.textContent = parts.join(' · ') + '. ' + advice;
 			}
 		} catch (e) {
 			console.warn('Live data load failed:', e);
