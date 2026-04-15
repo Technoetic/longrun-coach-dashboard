@@ -627,6 +627,8 @@ async def receive_watch_data(
     db.add(watch)
     db.commit()
     raw = {k: v for k, v in data.items() if k != "email" and v is not None}
+    if hr is None:
+        raw.pop("heart_rate", None)
 
     return {
         "status": "ok",
