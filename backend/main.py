@@ -564,6 +564,11 @@ async def receive_watch_data(
 
     # 건강 데이터에서 컨디션 자동 생성
     hr = data.get("heart_rate")
+    # HR이 워치에서 너무 오래된 값이면 (>60분) 신선도가 없다고 보고 제외.
+    # Android 브릿지가 heart_rate_age_min 을 함께 전송함.
+    hr_age = data.get("heart_rate_age_min")
+    if hr is not None and hr_age is not None and hr_age > 60:
+        hr = None
     rhr = data.get("resting_heart_rate")
     hrv = data.get("hrv")
     spo2 = data.get("blood_oxygen")
