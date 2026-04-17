@@ -134,8 +134,39 @@ class TeamManager {
 		});
 	}
 
-	addTeamDone() {
+	async addTeamDone() {
 		const name = document.getElementById("newTeamName").value.trim();
+		if (!name || !this.newCode || !this.newSport) {
+			alert("팀 이름·종목·코드를 모두 입력해주세요.");
+			return;
+		}
+
+		// 1. 백엔드에 실제 팀 생성 (POST /api/teams)
+		try {
+			const res = await fetch("/api/teams", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				credentials: "include",
+				body: JSON.stringify({ name, code: this.newCode }),
+			});
+			if (!res.ok) {
+				const err = await res.json().catch(() => ({}));
+				alert(`팀 생성 실패: ${err.detail || res.statusText}`);
+				return;
+			}
+			// 종목도 함께 PATCH
+			await fetch("/api/user/me", {
+				method: "PATCH",
+				headers: { "Content-Type": "application/json" },
+				credentials: "include",
+				body: JSON.stringify({ sport: this.newSport, role: "coach" }),
+			});
+		} catch (e) {
+			alert(`팀 생성 실패: ${e.message}`);
+			return;
+		}
+
+		// 2. UI 에 칩 추가
 		const selector = document.getElementById("teamSelector");
 		const addBtn = selector.querySelector(".btn-add-team");
 		const chip = document.createElement("button");
@@ -155,6 +186,11 @@ class TeamManager {
 
 		this.newCode = null;
 		this.closeAddTeam();
+
+		// 3. 선수 리스트 재로드 (409 → 200 전환)
+		if (typeof window.loadAllPlayers === "function") {
+			window.loadAllPlayers();
+		}
 	}
 
 	openDeleteTeam() {
@@ -242,3 +278,179 @@ window.openDeleteTeam = () => window.teamManager.openDeleteTeam();
 window.closeDeleteTeam = () => window.teamManager.closeDeleteTeam();
 window.checkDelCode = (el) => window.teamManager.checkDelCode(el);
 window.executeDeleteTeam = () => window.teamManager.executeDeleteTeam();
+
+// ===== 선수 리스트: /api/coach/players 전체 로드 + summary 집계 =====
+function _buildPlayerCard(p, idx) {
+	const name = p.name || "?";
+	// 한글 이름은 첫 글자만, 그 외는 앞 2글자로 이니셜 생성 (dicebear initials 호환)
+	const isHangul = /[\u3131-\u318e\uac00-\ud7a3]/.test(name);
+	const seed = isHangul ? name.charAt(0) : name.slice(0, 2);
+	const colorByStatus = { g: "00F19F", y: "FFD60A", r: "FF3B30" };
+	const photoColor = colorByStatus[p.status] || "7BDBFF";
+	const hrvText = p.hrv != null ? Math.round(p.hrv) : "-";
+	const hrvClass = p.hrv == null
+		? "val-normal"
+		: p.hrv >= 50 ? "val-up" : p.hrv >= 35 ? "val-normal" : "val-down";
+	const rhrText = p.rhr != null ? Math.round(p.rhr) : "-";
+	const sleepText = p.sleep != null ? p.sleep.toFixed(1) + "h" : "-";
+	const stressText = p.stress != null ? p.stress : "-";
+	const acwrText = p.acwr != null ? p.acwr.toFixed(2) : "-";
+	const acwrClass = p.acwr == null
+		? "val-normal"
+		: p.acwr >= 1.5 ? "val-down" : p.acwr >= 1.3 ? "val-normal" : "val-normal";
+	const painVal = p.pain || 0;
+	const painClass = painVal > 2 ? "val-down" : "val-up";
+	const nameSafe = (p.name || "").replace(/'/g, "\\'");
+	let syncText = "미동기화";
+	if (p.watch_at) {
+		const diffMin = Math.floor((Date.now() - new Date(p.watch_at).getTime()) / 60000);
+		if (diffMin < 1) syncText = "방금 전";
+		else if (diffMin < 60) syncText = diffMin + "분 전";
+		else if (diffMin < 1440) syncText = Math.floor(diffMin / 60) + "시간 전";
+		else syncText = Math.floor(diffMin / 1440) + "일 전";
+	}
+	return (
+		'<div class="player-card" onclick="openWeekly(\'' + nameSafe + "','" + p.status + "'," + p.id + ')">' +
+		'<div class="player-photo">' +
+		'<img src="https://api.dicebear.com/9.x/initials/svg?seed=' + encodeURIComponent(seed) +
+		"&backgroundColor=1a1a1a&textColor=" + photoColor + '" alt="' + nameSafe + '">' +
+		'<span class="signal ' + p.status + '"></span></div>' +
+		'<div class="player-main"><div class="player-top">' +
+		'<span class="player-name">' + (p.name || "") + "</span>" +
+		'<span class="player-num" title="마지막 동기화: ' + syncText + '">#' + (idx + 1) + ' · ' + syncText + "</span></div>" +
+		'<div class="player-stats">' +
+		'<div class="ps-item"><div class="ps-val ' + hrvClass + '">' + hrvText + '</div><div class="ps-label">HRV</div></div>' +
+		'<div class="ps-item"><div class="ps-val val-normal">' + rhrText + '</div><div class="ps-label">RHR</div></div>' +
+		'<div class="ps-item"><div class="ps-val val-normal">' + sleepText + '</div><div class="ps-label">수면</div></div>' +
+		'<div class="ps-item"><div class="ps-val val-normal">' + stressText + '</div><div class="ps-label">스트레스</div></div>' +
+		'<div class="ps-item"><div class="ps-val ' + acwrClass + '">' + acwrText + '</div><div class="ps-label">ACWR</div></div>' +
+		'<div class="ps-item"><div class="ps-val ' + painClass + '">' + painVal + '</div><div class="ps-label">통증</div></div>' +
+		"</div></div>" +
+		'<div class="player-arrow"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"></path></svg></div></div>'
+	);
+}
+
+async function loadAllPlayers() {
+	const list = document.getElementById("playerList");
+	if (!list) return;
+	try {
+		const res = await fetch("/api/coach/players", { credentials: "include" });
+		if (res.status === 409) {
+			list.innerHTML =
+				'<div class="player-empty">먼저 팀을 만들어주세요.</div>';
+			_setSummary(0, 0, 0, 0);
+			return;
+		}
+		if (res.status === 403) {
+			// Athlete fallback: load own bio-data and render as a 1-player list.
+			// Coach endpoint refused because this user is role=athlete.
+			try {
+				const bioRes = await fetch("/api/bio-data", { credentials: "include" });
+				if (!bioRes.ok) throw new Error("bio-data " + bioRes.status);
+				const bio = await bioRes.json();
+				const latest = bio.latest || {};
+				const myName = sessionStorage.getItem("lr_user_name") || "나";
+				const player = {
+					id: 0,
+					name: myName,
+					hr: latest.heart_rate,
+					rhr: latest.resting_heart_rate,
+					walking_hr: latest.walking_heart_rate,
+					hrv: latest.hrv,
+					spo2: latest.blood_oxygen,
+					hr_max: latest.heart_rate_max,
+					hr_avg: latest.heart_rate_avg,
+					hr_samples_count: latest.heart_rate_samples_count,
+					hr_samples: (() => {
+						const raw = latest.heart_rate_samples;
+						if (Array.isArray(raw)) return raw;
+						if (typeof raw === "string" && raw.length > 0) {
+							try { return JSON.parse(raw); } catch (_) { return null; }
+						}
+						return null;
+					})(),
+					steps: latest.steps,
+					distance_km: latest.distance_km,
+					active_cal: latest.active_calories,
+					basal_cal: latest.basal_calories,
+					exercise_min: latest.exercise_minutes,
+					stand_min: latest.stand_minutes,
+					flights: latest.flights_climbed,
+					sleep: latest.sleep_hours,
+					env_db: latest.env_audio_db,
+					earphone_db: latest.headphone_audio_db,
+					watch_at: latest.created_at,
+					status: "g",
+				};
+				window.__players = [player];
+				list.innerHTML = _buildPlayerCard(player, 0);
+				_setSummary(1, 0, 0, 0);
+				return;
+			} catch (e) {
+				list.innerHTML = '<div class="player-empty">데이터를 불러올 수 없습니다.</div>';
+				_setSummary(0, 0, 0, 0);
+				return;
+			}
+		}
+		if (res.status === 401) {
+			location.href = "login.html";
+			return;
+		}
+		if (!res.ok) throw new Error("HTTP " + res.status);
+		const players = await res.json();
+		if (!Array.isArray(players) || players.length === 0) {
+			list.innerHTML =
+				'<div class="player-empty">아직 팀에 가입한 선수가 없습니다.<br>선수에게 팀 코드를 공유해주세요.</div>';
+			_setSummary(0, 0, 0, 0);
+			return;
+		}
+		window.__players = players;
+		list.innerHTML = players.map((p, i) => _buildPlayerCard(p, i)).join("");
+		const counts = { g: 0, y: 0, r: 0, d: 0 };
+		for (const p of players) {
+			const s = p.status || "d";
+			counts[s] = (counts[s] || 0) + 1;
+		}
+		_setSummary(counts.g, counts.y, counts.r, counts.d);
+	} catch (e) {
+		console.warn("loadAllPlayers failed:", e);
+		list.innerHTML = '<div class="player-empty">선수 데이터를 불러오지 못했습니다.</div>';
+	}
+}
+
+function _setSummary(g, y, r, d) {
+	const set = (id, v) => {
+		const el = document.getElementById(id);
+		if (el) el.textContent = v + "명";
+	};
+	set("sumG", g);
+	set("sumY", y);
+	set("sumR", r);
+	set("sumD", d);
+}
+
+setTimeout(loadAllPlayers, 300);
+window.loadAllPlayers = loadAllPlayers;
+
+// 30초 주기 자동 새로고침 — 포커스가 페이지에 있을 때만
+let _pollTimer = null;
+function _startPolling() {
+	if (_pollTimer) return;
+	_pollTimer = setInterval(() => {
+		if (!document.hidden) loadAllPlayers();
+	}, 30000);
+}
+function _stopPolling() {
+	if (_pollTimer) {
+		clearInterval(_pollTimer);
+		_pollTimer = null;
+	}
+}
+document.addEventListener("visibilitychange", () => {
+	if (document.hidden) _stopPolling();
+	else {
+		loadAllPlayers();
+		_startPolling();
+	}
+});
+_startPolling();

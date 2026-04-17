@@ -336,29 +336,53 @@ class SignupApp {
 	}
 
 	/**
-	 * Complete signup and save account
+	 * Complete signup: POST /api/auth/signup to persist in backend DB,
+	 * then mirror to localStorage for fallback UX (find-id, etc).
 	 */
-	finish() {
+	async finish() {
 		const email = document.getElementById("email").value.trim();
 		const pw = document.getElementById("pw").value;
 		const phone = document.getElementById("phone").value;
+		const name = email.split("@")[0] || "user";
 
-		// Load existing accounts from localStorage
+		try {
+			const res = await fetch("/api/auth/signup", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				credentials: "include",
+				body: JSON.stringify({ email, password: pw, name, phone }),
+			});
+			if (!res.ok) {
+				const err = await res.json().catch(() => ({}));
+				if (res.status !== 400 || !String(err.detail).includes("already")) {
+					throw new Error(err.detail || res.statusText);
+				}
+			}
+			sessionStorage.setItem("lr_user_email", email);
+
+			// Coach 대시보드에서 가입했으므로 role=coach 로 즉시 승격
+			try {
+				await fetch("/api/user/me", {
+					method: "PATCH",
+					headers: { "Content-Type": "application/json" },
+					credentials: "include",
+					body: JSON.stringify({ role: "coach" }),
+				});
+			} catch (_) {}
+		} catch (e) {
+			alert(`가입 실패: ${e.message}`);
+			return;
+		}
+
+		// Mirror to localStorage (fallback UX: find-id, etc.)
 		const accounts = (
 			typeof safeJSONParse !== "undefined" ? safeJSONParse : JSON.parse
 		)(localStorage.getItem("lr_accounts") || "[]");
-
-		// Add new account if email doesn't already exist
 		if (!accounts.find((a) => a.email === email)) {
-			accounts.push({
-				email: email,
-				password: pw,
-				phone: phone,
-			});
+			accounts.push({ email, password: pw, phone });
 			localStorage.setItem("lr_accounts", JSON.stringify(accounts));
 		}
 
-		// Show completion screen
 		document
 			.querySelectorAll(".step")
 			.forEach((s) => s.classList.remove("active"));

@@ -10,36 +10,292 @@ class DetailPanel {
 		this.calSelected = null;
 	}
 
-	openWeekly(name, status) {
+	openWeekly(name, status, playerId) {
 		this.currentStatus = status;
+		this.currentPlayer = name;
+		this.currentPlayerId = playerId;
 		document.getElementById("weeklyName").textContent = name + " 선수";
 		this.switchTab("weekly");
-		const scores = { g: 86, y: 62, r: 38 };
+
 		const colors = { g: "var(--green)", y: "var(--yellow)", r: "var(--red)" };
 		const cls = { g: "dp-v-green", y: "dp-v-yellow", r: "dp-v-red" };
-		const score = scores[status] || 86;
-		const valEl = document.getElementById("rRecoveryVal");
-		valEl.textContent = score;
-		valEl.className = "dp-ring-val " + (cls[status] || "dp-v-green");
-		const rings = [
-			{ id: "rRecovery", circ: 364, pct: score / 100, color: colors[status] },
-			{ id: "rSleep", circ: 251, pct: 0.84, color: "var(--blue)" },
-			{ id: "rStrain", circ: 251, pct: 0.71, color: "var(--yellow)" },
-		];
-		rings.forEach((r) => {
-			const el = document.getElementById(r.id);
-			el.style.stroke = r.color;
-			el.style.strokeDashoffset = String(r.circ);
-			setTimeout(() => {
-				el.style.strokeDashoffset = String(r.circ - r.circ * r.pct);
-			}, 100);
-		});
+
+		this._loadLiveData(name, playerId, status, colors, cls);
+
 		document.getElementById("weeklyOverlay").classList.add("show");
 		setTimeout(
 			() => document.getElementById("weeklyPanel").classList.add("open"),
 			10,
 		);
 		document.body.style.overflow = "hidden";
+	}
+
+	_placeholderView() {
+		const ids = ["rRecoveryVal", "rSleepVal", "rStrainVal"];
+		ids.forEach((id) => {
+			const el = document.getElementById(id);
+			if (el) el.textContent = "—";
+		});
+		["rRecovery", "rSleep", "rStrain"].forEach((id) => {
+			const el = document.getElementById(id);
+			if (el) el.style.strokeDashoffset = String(id === "rRecovery" ? 364 : 251);
+		});
+	}
+
+	async _loadLiveData(name, playerId, status, colors, cls) {
+		try {
+			let p = null;
+			if (Array.isArray(window.__players)) {
+				p = window.__players.find(
+					(x) => (playerId && x.id === playerId) || x.name === name,
+				);
+			}
+			if (!p) {
+				const res = await fetch("/api/coach/players", { credentials: "include" });
+				const players = await res.json();
+				p = players.find(
+					(x) => (playerId && x.id === playerId) || x.name === name,
+				);
+			}
+			if (!p) { this._placeholderView(); return; }
+
+			// 회복 점수 계산 (HRV + ACWR 기반)
+			const hrvScore = p.hrv ? Math.min(100, Math.round(p.hrv * 1.5)) : 50;
+			const acwrPenalty = p.acwr > 1.3 ? (p.acwr - 1.3) * 50 : 0;
+			const recovery = Math.max(0, Math.min(100, hrvScore - Math.round(acwrPenalty)));
+			const sleepPct = p.sleep ? Math.min(1, p.sleep / 9) : 0;
+			const strainVal = p.acwr ? (p.acwr * 10).toFixed(1) : '0';
+			const strainPct = p.acwr ? Math.min(1, p.acwr / 2) : 0;
+
+			const rColor = recovery >= 70 ? 'var(--green)' : recovery >= 40 ? 'var(--yellow)' : 'var(--red)';
+			const rCls = recovery >= 70 ? 'dp-v-green' : recovery >= 40 ? 'dp-v-yellow' : 'dp-v-red';
+
+			const valEl = document.getElementById("rRecoveryVal");
+			valEl.textContent = recovery;
+			valEl.className = "dp-ring-val " + rCls;
+			valEl.style.fontSize = "36px";
+
+			const rings = [
+				{ id: "rRecovery", circ: 364, pct: recovery / 100, color: rColor },
+				{ id: "rSleep", circ: 251, pct: sleepPct, color: "var(--blue)" },
+				{ id: "rStrain", circ: 251, pct: strainPct, color: "var(--yellow)" },
+			];
+			rings.forEach((r) => {
+				const el = document.getElementById(r.id);
+				el.style.stroke = r.color;
+				el.style.strokeDashoffset = String(r.circ);
+				setTimeout(() => { el.style.strokeDashoffset = String(r.circ - r.circ * r.pct); }, 100);
+			});
+
+			// 수면 링 값
+			const sleepCenter = document.querySelector('#rSleep').closest('.dp-ring-wrap').querySelector('.dp-ring-val');
+			if (sleepCenter) {
+				sleepCenter.innerHTML = p.sleep != null
+					? p.sleep.toFixed(1) + '<span style="font-size:11px">h</span>'
+					: '—';
+			}
+
+			// 부하 링 값
+			const strainCenter = document.querySelector('#rStrain').closest('.dp-ring-wrap').querySelector('.dp-ring-val');
+			if (strainCenter) strainCenter.textContent = strainVal;
+
+			// 주간 뷰 상세 리스트 업데이트
+			const weekly = document.getElementById('viewWeekly');
+			if (!weekly) return;
+			const lists = weekly.querySelectorAll('.dp-list');
+
+			// 심박·심혈관
+			if (lists[0]) {
+				const items = lists[0].querySelectorAll('li');
+				if (items[0]) {
+					// 심박수: 현재값 + (오늘 max / avg / samples) 작은 서브텍스트 + sparkline
+					let hrHtml = (p.hr || '-') + '<span class="dp-list-unit">bpm</span>';
+					if (p.hr_max != null || p.hr_avg != null) {
+						const maxTxt = p.hr_max != null ? Math.round(p.hr_max) : '-';
+						const avgTxt = p.hr_avg != null ? Math.round(p.hr_avg) : '-';
+						const n = p.hr_samples_count || 0;
+						hrHtml += `<div class="dp-list-sub">오늘 최대 ${maxTxt} / 평균 ${avgTxt} bpm (${n}샘플)</div>`;
+					}
+					// Parse hr_samples_json (from coach endpoint) or array (from bio-data)
+					let samples = null;
+					if (Array.isArray(p.hr_samples)) samples = p.hr_samples;
+					else if (typeof p.hr_samples_json === 'string' && p.hr_samples_json.length > 0) {
+						try { samples = JSON.parse(p.hr_samples_json); } catch (_) { samples = null; }
+					}
+					if (Array.isArray(samples) && samples.length >= 3) {
+						hrHtml += this._sparkline(samples);
+					}
+					items[0].querySelector('.dp-list-val').innerHTML = hrHtml;
+				}
+				if (items[1]) items[1].querySelector('.dp-list-val').innerHTML = (p.rhr || '-') + '<span class="dp-list-unit">bpm</span>';
+				if (items[2]) items[2].querySelector('.dp-list-val').innerHTML = (p.walking_hr || '-') + '<span class="dp-list-unit">bpm</span>';
+				if (items[3]) items[3].querySelector('.dp-list-val').innerHTML = (p.hrv ? Math.round(p.hrv) : '-') + '<span class="dp-list-unit">ms</span>';
+				if (items[4]) items[4].querySelector('.dp-list-val').innerHTML = (p.spo2 || '-') + '<span class="dp-list-unit">%</span>';
+			}
+
+			// 활동
+			if (lists[1]) {
+				const items = lists[1].querySelectorAll('li');
+				if (items[0]) items[0].querySelector('.dp-list-val').textContent = p.steps ? p.steps.toLocaleString() : '-';
+				if (items[1]) items[1].querySelector('.dp-list-val').innerHTML = (p.distance_km || '-') + '<span class="dp-list-unit">km</span>';
+				if (items[2]) items[2].querySelector('.dp-list-val').innerHTML = (p.active_cal ? Math.round(p.active_cal) : '-') + '<span class="dp-list-unit">kcal</span>';
+				if (items[3]) items[3].querySelector('.dp-list-val').innerHTML = (p.basal_cal || '-') + '<span class="dp-list-unit">kcal</span>';
+				if (items[4]) items[4].querySelector('.dp-list-val').innerHTML = (p.exercise_min || '-') + '<span class="dp-list-unit">분</span>';
+				if (items[5]) items[5].querySelector('.dp-list-val').innerHTML = (p.stand_min || '-') + '<span class="dp-list-unit">분</span>';
+				if (items[6]) items[6].querySelector('.dp-list-val').innerHTML = (p.flights || '-') + '<span class="dp-list-unit">층</span>';
+			}
+
+			// 수면
+			if (lists[2]) {
+				const items = lists[2].querySelectorAll('li');
+				if (items[0]) {
+					items[0].querySelector('.dp-list-val').innerHTML = p.sleep != null
+						? p.sleep.toFixed(1) + '<span class="dp-list-unit">시간</span>'
+						: '—';
+				}
+				if (items[1]) items[1].querySelector('.dp-list-val').textContent = '—';
+			}
+
+			// 환경·청각
+			if (lists[3]) {
+				const items = lists[3].querySelectorAll('li');
+				if (items[0]) items[0].querySelector('.dp-list-val').innerHTML = (p.env_db || '-') + '<span class="dp-list-unit">dB</span>';
+				if (items[1]) items[1].querySelector('.dp-list-val').innerHTML = (p.earphone_db || '-') + '<span class="dp-list-unit">dB</span>';
+			}
+
+			// AI 인사이트 — 데이터 일부만 있을 때도 의미 있게
+			const aiP = weekly.querySelector('.ai-insight p');
+			if (aiP) {
+				const parts = [];
+				if (p.hrv != null) {
+					const hrvStatus = p.hrv >= 50 ? '양호' : p.hrv >= 35 ? '보통' : '낮음';
+					parts.push('HRV ' + Math.round(p.hrv) + 'ms(' + hrvStatus + ')');
+				}
+				if (p.rhr != null) parts.push('안정심박 ' + Math.round(p.rhr) + 'bpm');
+				if (p.hr != null) parts.push('심박 ' + Math.round(p.hr) + 'bpm');
+				if (p.spo2 != null) parts.push('SpO2 ' + Math.round(p.spo2) + '%');
+				if (p.sleep != null) parts.push('수면 ' + p.sleep.toFixed(1) + 'h');
+				if (p.steps != null) parts.push('걸음 ' + p.steps.toLocaleString());
+				if (p.acwr != null) parts.push('ACWR ' + p.acwr.toFixed(2));
+
+				let advice;
+				if (p.acwr != null && p.acwr > 1.5) {
+					advice = '급성 부하 증가. 훈련량 감소 권장.';
+				} else if (p.acwr != null && p.acwr > 1.3) {
+					advice = '훈련 부하 조절 권장.';
+				} else if (p.hrv != null && p.hrv < 35) {
+					advice = '회복 부족. 휴식 권장.';
+				} else if (p.sleep != null && p.sleep < 6) {
+					advice = '수면 부족. 취침 시간 확보 권장.';
+				} else if (parts.length === 0) {
+					aiP.textContent =
+						'아직 충분한 데이터가 수집되지 않았습니다. 워치를 착용하고 잠시 기다려주세요.';
+					return;
+				} else {
+					advice = '현재 컨디션 유지 권장.';
+				}
+				aiP.textContent = parts.join(' · ') + '. ' + advice;
+			}
+
+			// Phase 5: 7-day daily HR trend
+			this._loadWeeklyHrChart();
+		} catch (e) {
+			console.warn('Live data load failed:', e);
+			this._placeholderView();
+		}
+	}
+
+	/**
+	 * Phase 5: fetch /api/bio-daily (7 days) and render a bar+line chart in
+	 * the weekly view. Bars = resting_heart_rate, overlay line = heart_rate_max.
+	 */
+	async _loadWeeklyHrChart() {
+		const mount = document.getElementById('dp-weekly-hr-chart');
+		if (!mount) return;
+		let data = null;
+		try {
+			const res = await fetch('/api/bio-daily?days=7', { credentials: 'include' });
+			if (!res.ok) { mount.innerHTML = ''; return; }
+			const json = await res.json();
+			data = json.days || [];
+		} catch (_) {
+			mount.innerHTML = '';
+			return;
+		}
+		// Filter days that have at least resting_heart_rate so we can plot.
+		const usable = data.filter((d) => d.resting_heart_rate != null);
+		if (usable.length < 1) {
+			mount.innerHTML = '';
+			return;
+		}
+		const w = 280;
+		const h = 80;
+		const padL = 22, padR = 6, padT = 8, padB = 18;
+		const plotW = w - padL - padR;
+		const plotH = h - padT - padB;
+
+		// Y-axis range: min rhr → max hr_max, padded.
+		let lo = Infinity, hi = -Infinity;
+		for (const d of usable) {
+			if (d.resting_heart_rate != null) lo = Math.min(lo, d.resting_heart_rate);
+			if (d.heart_rate_max != null) hi = Math.max(hi, d.heart_rate_max);
+			if (d.resting_heart_rate != null) hi = Math.max(hi, d.resting_heart_rate);
+		}
+		if (!isFinite(lo)) lo = 50;
+		if (!isFinite(hi)) hi = 150;
+		if (hi - lo < 20) hi = lo + 20;
+		const range = hi - lo;
+
+		const n = usable.length;
+		const slotW = plotW / n;
+		const barW = Math.min(18, slotW * 0.55);
+
+		const bars = [];
+		const linePts = [];
+		const labels = [];
+		usable.forEach((d, i) => {
+			const cx = padL + slotW * i + slotW / 2;
+			const rhr = d.resting_heart_rate;
+			const maxHr = d.heart_rate_max;
+			// Bar: from baseline (lo) to rhr
+			if (rhr != null) {
+				const y = padT + plotH * (1 - (rhr - lo) / range);
+				const barH = padT + plotH - y;
+				bars.push(
+					`<rect x="${cx - barW / 2}" y="${y}" width="${barW}" height="${barH}" fill="var(--green,#00f19f)" opacity="0.75" rx="2"/>`,
+				);
+			}
+			// Line point at max HR
+			if (maxHr != null) {
+				const y = padT + plotH * (1 - (maxHr - lo) / range);
+				linePts.push(`${cx.toFixed(1)},${y.toFixed(1)}`);
+			}
+			// X label: date MM/DD
+			const md = (d.date || '').slice(5); // "04-15"
+			labels.push(
+				`<text x="${cx}" y="${h - 4}" text-anchor="middle" font-size="9" fill="var(--text-tertiary,#888)">${md}</text>`,
+			);
+		});
+		const line = linePts.length >= 2
+			? `<polyline fill="none" stroke="var(--yellow,#ffd60a)" stroke-width="1.4" points="${linePts.join(' ')}"/>`
+			: '';
+		const dots = linePts
+			.map((pt) => {
+				const [x, y] = pt.split(',');
+				return `<circle cx="${x}" cy="${y}" r="2" fill="var(--yellow,#ffd60a)"/>`;
+			})
+			.join('');
+
+		// Y-axis reference labels (lo, hi)
+		const yAxis =
+			`<text x="${padL - 4}" y="${padT + 4}" text-anchor="end" font-size="9" fill="var(--text-tertiary,#888)">${Math.round(hi)}</text>` +
+			`<text x="${padL - 4}" y="${padT + plotH}" text-anchor="end" font-size="9" fill="var(--text-tertiary,#888)">${Math.round(lo)}</text>`;
+
+		mount.innerHTML =
+			`<div class="dp-weekly-chart-title">최근 ${n}일 HR 트렌드 (막대=안정심박, 선=최대심박)</div>` +
+			`<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">` +
+			yAxis + bars.join('') + line + dots + labels.join('') +
+			`</svg>`;
 	}
 
 	closeWeekly() {
@@ -68,21 +324,26 @@ class DetailPanel {
 		document
 			.getElementById("viewDaily")
 			.classList.toggle("active", tab === "daily");
+		const fmt = (d) => (d.getMonth() + 1) + "/" + d.getDate();
 		if (tab === "weekly") {
-			document.getElementById("dpDateRange").textContent = "4/1 ~ 4/7";
+			const today = new Date();
+			const start = new Date(today);
+			start.setDate(today.getDate() - 6);
+			document.getElementById("dpDateRange").textContent =
+				fmt(start) + " ~ " + fmt(today);
 		} else if (tab === "monthly") {
-			document.getElementById("dpDateRange").textContent = "3/8 ~ 4/7";
-			const mRings = [
-				{ id: "mRecovery", circ: 364, pct: 0.78 },
-				{ id: "mSleep", circ: 251, pct: 0.81 },
-				{ id: "mStrain", circ: 251, pct: 0.68 },
-			];
-			mRings.forEach((r) => {
-				const el = document.getElementById(r.id);
-				el.style.strokeDashoffset = String(r.circ);
-				setTimeout(() => {
-					el.style.strokeDashoffset = String(r.circ - r.circ * r.pct);
-				}, 100);
+			const today = new Date();
+			const start = new Date(today);
+			start.setDate(today.getDate() - 29);
+			document.getElementById("dpDateRange").textContent =
+				fmt(start) + " ~ " + fmt(today);
+			["mRecovery", "mSleep", "mStrain"].forEach((id) => {
+				const el = document.getElementById(id);
+				if (el) el.style.strokeDashoffset = String(id === "mRecovery" ? 364 : 251);
+			});
+			["mRecoveryVal", "mSleepVal", "mStrainVal"].forEach((id) => {
+				const el = document.getElementById(id);
+				if (el) el.textContent = "—";
 			});
 		} else if (tab === "daily") {
 			document.getElementById("dpDateRange").textContent = "일별 기록";
@@ -90,48 +351,11 @@ class DetailPanel {
 		}
 	}
 
-	getDayData(y, m, d) {
-		const seed = y * 10000 + m * 100 + d;
-		const r = (s) => {
-			const x = Math.sin(s) * 10000;
-			return x - Math.floor(x);
-		};
-		const rv = r(seed);
-		const today = new Date();
-		const target = new Date(y, m, d);
-		if (target > today) return null;
-		const status = rv > 0.7 ? "g" : rv > 0.3 ? "y" : "r";
-		const statusLabel = { g: "양호", y: "주의", r: "위험" };
-		const statusColor = {
-			g: "var(--green)",
-			y: "var(--yellow)",
-			r: "var(--red)",
-		};
-		const base = status === "g" ? 1 : status === "y" ? 0.7 : 0.4;
-		return {
-			status,
-			statusLabel: statusLabel[status],
-			statusColor: statusColor[status],
-			hr: Math.round(62 + r(seed + 1) * 30),
-			rhr: Math.round(52 + r(seed + 2) * 18),
-			hrv: Math.round(40 + base * 30 + r(seed + 3) * 10),
-			spo2: Math.round(95 + r(seed + 4) * 4),
-			steps: Math.round(3000 + r(seed + 5) * 10000).toLocaleString(),
-			cal: Math.round(200 + r(seed + 6) * 400),
-			exercise: Math.round(10 + r(seed + 7) * 60),
-			sleep: (5 + base * 2.5 + r(seed + 8) * 1).toFixed(1),
-			bed: `${22 + Math.round(r(seed + 9) * 2)}:${String(Math.round(r(seed + 10) * 59)).padStart(2, "0")} — ${6 + Math.round(r(seed + 11))}:${String(Math.round(r(seed + 12) * 59)).padStart(2, "0")}`,
-			stress: Math.round(20 + (1 - base) * 50 + r(seed + 13) * 15),
-			acwr: (0.8 + (1 - base) * 0.7 + r(seed + 14) * 0.2).toFixed(2),
-			pain:
-				status === "g"
-					? 0
-					: status === "y"
-						? Math.round(1 + r(seed + 15) * 3)
-						: Math.round(4 + r(seed + 16) * 5),
-			noise: Math.round(30 + r(seed + 17) * 30),
-			earphone: Math.round(50 + r(seed + 18) * 30),
-		};
+	getDayData(_y, _m, _d) {
+		// Real per-day data fetch requires a coach-side endpoint that does
+		// not yet exist. Returning null keeps the calendar functional but
+		// without mock values; the UI shows "데이터 없음".
+		return null;
 	}
 
 	renderCalendar() {
@@ -288,14 +512,42 @@ class DetailPanel {
 		document.getElementById("dd-earphone").className =
 			"dp-list-val " + (data.earphone < 65 ? "dp-v-green" : "dp-v-yellow");
 	}
+
+	/**
+	 * Render a minimalist SVG polyline sparkline for an HR sample array.
+	 * Phase 3-C — R21 cat=0x03 downsampled stream (max 120 points).
+	 */
+	_sparkline(samples) {
+		const w = 220;
+		const h = 32;
+		const pad = 2;
+		const n = samples.length;
+		if (n < 2) return "";
+		const lo = Math.min(...samples);
+		const hi = Math.max(...samples);
+		const range = Math.max(1, hi - lo);
+		const xStep = (w - pad * 2) / (n - 1);
+		const pts = samples
+			.map((v, i) => {
+				const x = pad + i * xStep;
+				const y = pad + (h - pad * 2) * (1 - (v - lo) / range);
+				return `${x.toFixed(1)},${y.toFixed(1)}`;
+			})
+			.join(" ");
+		return (
+			`<svg class="dp-hr-spark" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">` +
+			`<polyline fill="none" stroke="var(--green, #00f19f)" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round" points="${pts}"/>` +
+			`</svg>`
+		);
+	}
 }
 
 // Global instantiation
 window.detailPanel = new DetailPanel();
 
 // Expose public methods on window for backward compatibility and inline event handlers
-window.openWeekly = (name, status) =>
-	window.detailPanel.openWeekly(name, status);
+window.openWeekly = (name, status, playerId) =>
+	window.detailPanel.openWeekly(name, status, playerId);
 window.closeWeekly = () => window.detailPanel.closeWeekly();
 window.switchTab = (tab) => window.detailPanel.switchTab(tab);
 window.calNav = (dir) => window.detailPanel.calNav(dir);

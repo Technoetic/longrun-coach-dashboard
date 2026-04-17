@@ -24,7 +24,7 @@
         <span class="tcode-val" id="headerCodeVal">——</span>
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
       </button>
-      <button class="d-day" id="ddayBtn" onclick="openDday()">D-31 전국체전</button>
+      <button class="d-day" id="ddayBtn" onclick="openDday()" style="display:none;">D-— 대회</button>
     </div>
     <div class="header-right">
       <button class="settings-btn" onclick="openSettings()">
@@ -91,142 +91,17 @@
   <!-- ══════ PLAYER LIST ══════ -->
   <div class="section">
     <div class="section-title">선수 리스트 <span class="badge">Daily</span></div>
-    <div class="player-list">
-
-      <!-- 김OO -->
-      <div class="player-card" onclick="openWeekly('김OO','g')">
-        <div class="player-photo">
-          <img src="https://api.dicebear.com/9.x/initials/svg?seed=KM&backgroundColor=1a1a1a&textColor=00F19F" alt="김OO">
-          <span class="signal g"></span>
-        </div>
-        <div class="player-main">
-          <div class="player-top">
-            <span class="player-name">김OO</span>
-            <span class="player-num">#1</span>
-          </div>
-          <div class="player-stats">
-            <div class="ps-item"><div class="ps-val val-up">+5%</div><div class="ps-label">HRV</div></div>
-            <div class="ps-item"><div class="ps-val val-normal">58</div><div class="ps-label">RHR</div></div>
-            <div class="ps-item"><div class="ps-val val-normal">7.3h</div><div class="ps-label">수면</div></div>
-            <div class="ps-item"><div class="ps-val val-normal">32</div><div class="ps-label">스트레스</div></div>
-            <div class="ps-item"><div class="ps-val val-normal">1.12</div><div class="ps-label">ACWR</div></div>
-            <div class="ps-item"><div class="ps-val val-up">0</div><div class="ps-label">통증</div></div>
-          </div>
-        </div>
-        <div class="player-arrow">
-          <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
-        </div>
-      </div>
-
-      <!-- 박OO -->
-      <div class="player-card" onclick="openWeekly('박OO','g')">
-        <div class="player-photo">
-          <img src="https://api.dicebear.com/9.x/initials/svg?seed=PK&backgroundColor=1a1a1a&textColor=00F19F" alt="박OO">
-          <span class="signal g"></span>
-        </div>
-        <div class="player-main">
-          <div class="player-top">
-            <span class="player-name">박OO</span>
-            <span class="player-num">#2</span>
-          </div>
-          <div class="player-stats">
-            <div class="ps-item"><div class="ps-val val-up">+2%</div><div class="ps-label">HRV</div></div>
-            <div class="ps-item"><div class="ps-val val-normal">55</div><div class="ps-label">RHR</div></div>
-            <div class="ps-item"><div class="ps-val val-normal">7.1h</div><div class="ps-label">수면</div></div>
-            <div class="ps-item"><div class="ps-val val-normal">28</div><div class="ps-label">스트레스</div></div>
-            <div class="ps-item"><div class="ps-val val-normal">1.08</div><div class="ps-label">ACWR</div></div>
-            <div class="ps-item"><div class="ps-val val-up">0</div><div class="ps-label">통증</div></div>
-          </div>
-        </div>
-        <div class="player-arrow">
-          <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
-        </div>
-      </div>
-
-      <!-- 이OO -->
-      <div class="player-card" onclick="openWeekly('이OO','y')">
-        <div class="player-photo">
-          <img src="https://api.dicebear.com/9.x/initials/svg?seed=LJ&backgroundColor=1a1a1a&textColor=FFD60A" alt="이OO">
-          <span class="signal y"></span>
-        </div>
-        <div class="player-main">
-          <div class="player-top">
-            <span class="player-name">이OO</span>
-            <span class="player-num">#3</span>
-          </div>
-          <div class="player-stats">
-            <div class="ps-item"><div class="ps-val val-down">-12%</div><div class="ps-label">HRV</div></div>
-            <div class="ps-item"><div class="ps-val val-normal">64</div><div class="ps-label">RHR</div></div>
-            <div class="ps-item"><div class="ps-val val-down">5.8h</div><div class="ps-label">수면</div></div>
-            <div class="ps-item"><div class="ps-val val-down">61</div><div class="ps-label">스트레스</div></div>
-            <div class="ps-item"><div class="ps-val val-down">1.35</div><div class="ps-label">ACWR</div></div>
-            <div class="ps-item"><div class="ps-val val-down">2</div><div class="ps-label">통증</div></div>
-          </div>
-        </div>
-        <div class="player-arrow">
-          <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
-        </div>
-      </div>
-
-      <!-- 최OO -->
-      <div class="player-card" onclick="openWeekly('최OO','r')">
-        <div class="player-photo">
-          <img src="https://api.dicebear.com/9.x/initials/svg?seed=CH&backgroundColor=1a1a1a&textColor=FF3B30" alt="최OO">
-          <span class="signal r"></span>
-        </div>
-        <div class="player-main">
-          <div class="player-top">
-            <span class="player-name">최OO</span>
-            <span class="player-num">#4</span>
-          </div>
-          <div class="player-stats">
-            <div class="ps-item"><div class="ps-val val-down">-18%</div><div class="ps-label">HRV</div></div>
-            <div class="ps-item"><div class="ps-val val-down">68</div><div class="ps-label">RHR</div></div>
-            <div class="ps-item"><div class="ps-val val-down">4.5h</div><div class="ps-label">수면</div></div>
-            <div class="ps-item"><div class="ps-val val-down">72</div><div class="ps-label">스트레스</div></div>
-            <div class="ps-item"><div class="ps-val val-down">1.58</div><div class="ps-label">ACWR</div></div>
-            <div class="ps-item"><div class="ps-val val-down">6</div><div class="ps-label">통증</div></div>
-          </div>
-        </div>
-        <div class="player-arrow">
-          <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
-        </div>
-      </div>
-
-      <!-- 정OO -->
-      <div class="player-card" onclick="openWeekly('정OO','g')">
-        <div class="player-photo">
-          <img src="https://api.dicebear.com/9.x/initials/svg?seed=JG&backgroundColor=1a1a1a&textColor=00F19F" alt="정OO">
-          <span class="signal g"></span>
-        </div>
-        <div class="player-main">
-          <div class="player-top">
-            <span class="player-name">정OO</span>
-            <span class="player-num">#5</span>
-          </div>
-          <div class="player-stats">
-            <div class="ps-item"><div class="ps-val val-up">+8%</div><div class="ps-label">HRV</div></div>
-            <div class="ps-item"><div class="ps-val val-normal">52</div><div class="ps-label">RHR</div></div>
-            <div class="ps-item"><div class="ps-val val-normal">7.5h</div><div class="ps-label">수면</div></div>
-            <div class="ps-item"><div class="ps-val val-normal">25</div><div class="ps-label">스트레스</div></div>
-            <div class="ps-item"><div class="ps-val val-normal">1.05</div><div class="ps-label">ACWR</div></div>
-            <div class="ps-item"><div class="ps-val val-up">0</div><div class="ps-label">통증</div></div>
-          </div>
-        </div>
-        <div class="player-arrow">
-          <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
-        </div>
-      </div>
-
+    <div class="player-list" id="playerList">
+      <div class="player-empty" id="playerEmpty">선수 데이터를 불러오는 중…</div>
     </div>
   </div>
 
   <!-- ══════ SUMMARY BAR ══════ -->
-  <div class="summary-bar">
-    <div class="summary-item"><span class="summary-dot g"></span> <span class="summary-count">8명</span></div>
-    <div class="summary-item"><span class="summary-dot y"></span> <span class="summary-count">2명</span></div>
-    <div class="summary-item"><span class="summary-dot r"></span> <span class="summary-count">1명</span></div>
-    <div class="summary-item"><span class="summary-dot d"></span> <span class="summary-count">1명</span></div>
+  <div class="summary-bar" id="summaryBar">
+    <div class="summary-item"><span class="summary-dot g"></span> <span class="summary-count" id="sumG">0명</span></div>
+    <div class="summary-item"><span class="summary-dot y"></span> <span class="summary-count" id="sumY">0명</span></div>
+    <div class="summary-item"><span class="summary-dot r"></span> <span class="summary-count" id="sumR">0명</span></div>
+    <div class="summary-item"><span class="summary-dot d"></span> <span class="summary-count" id="sumD">0명</span></div>
   </div>
 
   <!-- ══════ DRAGGABLE CHAT FAB ══════ -->
@@ -248,8 +123,8 @@
           <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
         </button>
         <div>
-          <div class="panel-title" id="weeklyName">이OO 선수</div>
-          <div class="panel-subtitle" id="dpDateRange">4/1 ~ 4/7</div>
+          <div class="panel-title" id="weeklyName">선수</div>
+          <div class="panel-subtitle" id="dpDateRange">—</div>
         </div>
       </div>
     </div>
@@ -273,7 +148,7 @@
               <circle class="fill" cx="70" cy="70" r="58" stroke="var(--green)" stroke-width="8" stroke-dasharray="364" stroke-dashoffset="364" id="rRecovery"/>
             </svg>
             <div class="dp-ring-center">
-              <div class="dp-ring-val dp-v-green" style="font-size:36px;" id="rRecoveryVal">86</div>
+              <div class="dp-ring-val dp-v-green" style="font-size:36px;" id="rRecoveryVal">—</div>
               <div class="dp-ring-sub">Recovery</div>
             </div>
           </div>
@@ -286,7 +161,7 @@
               <circle class="fill" cx="50" cy="50" r="40" stroke="var(--blue)" stroke-width="7" stroke-dasharray="251" stroke-dashoffset="251" id="rSleep"/>
             </svg>
             <div class="dp-ring-center">
-              <div class="dp-ring-val dp-v-blue" style="font-size:22px;">7.1<span style="font-size:11px">h</span></div>
+              <div class="dp-ring-val dp-v-blue" style="font-size:22px;" id="rSleepVal">—</div>
               <div class="dp-ring-sub">Sleep</div>
             </div>
           </div>
@@ -299,7 +174,7 @@
               <circle class="fill" cx="50" cy="50" r="40" stroke="var(--yellow)" stroke-width="7" stroke-dasharray="251" stroke-dashoffset="251" id="rStrain"/>
             </svg>
             <div class="dp-ring-center">
-              <div class="dp-ring-val dp-v-yellow" style="font-size:22px;">14.2</div>
+              <div class="dp-ring-val dp-v-yellow" style="font-size:22px;" id="rStrainVal">—</div>
               <div class="dp-ring-sub">Strain</div>
             </div>
           </div>
@@ -310,43 +185,45 @@
       <!-- 심박 · 심혈관 -->
       <div class="dp-section-title">심박 · 심혈관</div>
       <ul class="dp-list">
-        <li><span class="dp-list-label">심박수</span><span class="dp-list-val dp-v-white">72<span class="dp-list-unit">bpm</span></span></li>
-        <li><span class="dp-list-label">안정심박</span><span class="dp-list-val dp-v-green">58<span class="dp-list-unit">bpm</span></span></li>
-        <li><span class="dp-list-label">보행심박</span><span class="dp-list-val dp-v-white">95<span class="dp-list-unit">bpm</span></span></li>
-        <li><span class="dp-list-label">HRV</span><span class="dp-list-val dp-v-green">63<span class="dp-list-unit">ms</span></span></li>
-        <li><span class="dp-list-label">SpO2</span><span class="dp-list-val dp-v-green">98<span class="dp-list-unit">%</span></span></li>
+        <li><span class="dp-list-label">심박수</span><span class="dp-list-val dp-v-white">—</span></li>
+        <li><span class="dp-list-label">안정심박</span><span class="dp-list-val dp-v-white">—</span></li>
+        <li><span class="dp-list-label">보행심박</span><span class="dp-list-val dp-v-white">—</span></li>
+        <li><span class="dp-list-label">HRV</span><span class="dp-list-val dp-v-white">—</span></li>
+        <li><span class="dp-list-label">SpO2</span><span class="dp-list-val dp-v-white">—</span></li>
       </ul>
+      <!-- Phase 5: 7일 HR 트렌드 (일자별 안정심박/최대심박 bar chart) -->
+      <div id="dp-weekly-hr-chart" class="dp-weekly-chart"></div>
 
       <!-- 활동 -->
       <div class="dp-section-title">활동</div>
       <ul class="dp-list">
-        <li><span class="dp-list-label">걸음수</span><span class="dp-list-val dp-v-white">8,432</span></li>
-        <li><span class="dp-list-label">거리</span><span class="dp-list-val dp-v-white">5.2<span class="dp-list-unit">km</span></span></li>
-        <li><span class="dp-list-label">활동칼로리</span><span class="dp-list-val dp-v-yellow">420<span class="dp-list-unit">kcal</span></span></li>
-        <li><span class="dp-list-label">기초칼로리</span><span class="dp-list-val dp-v-white">1,580<span class="dp-list-unit">kcal</span></span></li>
-        <li><span class="dp-list-label">운동</span><span class="dp-list-val dp-v-green">42<span class="dp-list-unit">분</span></span></li>
-        <li><span class="dp-list-label">서있기</span><span class="dp-list-val dp-v-yellow">9<span class="dp-list-unit">시간</span></span></li>
-        <li><span class="dp-list-label">계단</span><span class="dp-list-val dp-v-blue">14<span class="dp-list-unit">층</span></span></li>
+        <li><span class="dp-list-label">걸음수</span><span class="dp-list-val dp-v-white">—</span></li>
+        <li><span class="dp-list-label">거리</span><span class="dp-list-val dp-v-white">—</span></li>
+        <li><span class="dp-list-label">활동칼로리</span><span class="dp-list-val dp-v-white">—</span></li>
+        <li><span class="dp-list-label">기초칼로리</span><span class="dp-list-val dp-v-white">—</span></li>
+        <li><span class="dp-list-label">운동</span><span class="dp-list-val dp-v-white">—</span></li>
+        <li><span class="dp-list-label">서있기</span><span class="dp-list-val dp-v-white">—</span></li>
+        <li><span class="dp-list-label">계단</span><span class="dp-list-val dp-v-white">—</span></li>
       </ul>
 
       <!-- 수면 -->
       <div class="dp-section-title">수면</div>
       <ul class="dp-list">
-        <li><span class="dp-list-label">수면 시간</span><span class="dp-list-val dp-v-blue">7.1<span class="dp-list-unit">시간</span></span></li>
-        <li><span class="dp-list-label">취침 — 기상</span><span class="dp-list-val dp-v-white">23:20 — 06:40</span></li>
+        <li><span class="dp-list-label">수면 시간</span><span class="dp-list-val dp-v-white">—</span></li>
+        <li><span class="dp-list-label">취침 — 기상</span><span class="dp-list-val dp-v-white">—</span></li>
       </ul>
 
       <!-- 환경 -->
       <div class="dp-section-title">환경 · 청각</div>
       <ul class="dp-list">
-        <li><span class="dp-list-label">환경소음</span><span class="dp-list-val dp-v-green">42<span class="dp-list-unit">dB</span></span></li>
-        <li><span class="dp-list-label">이어폰음량</span><span class="dp-list-val dp-v-yellow">68<span class="dp-list-unit">dB</span></span></li>
+        <li><span class="dp-list-label">환경소음</span><span class="dp-list-val dp-v-white">—</span></li>
+        <li><span class="dp-list-label">이어폰음량</span><span class="dp-list-val dp-v-white">—</span></li>
       </ul>
 
       <!-- AI -->
       <div class="ai-insight">
         <div class="ai-insight-tag">AI 인사이트</div>
-        <p>수면 질 개선으로 HRV가 8.6% 상승. 안정심박 58bpm, 회복 상태 양호. 현재 컨디션 유지 권장.</p>
+        <p>선수를 선택하면 실시간 분석이 표시됩니다.</p>
       </div>
     </div>
 
@@ -362,7 +239,7 @@
               <circle class="fill" cx="70" cy="70" r="58" stroke="var(--green)" stroke-width="8" stroke-dasharray="364" stroke-dashoffset="364" id="mRecovery"/>
             </svg>
             <div class="dp-ring-center">
-              <div class="dp-ring-val dp-v-green" style="font-size:36px;">78</div>
+              <div class="dp-ring-val dp-v-green" style="font-size:36px;" id="mRecoveryVal">—</div>
               <div class="dp-ring-sub">Avg</div>
             </div>
           </div>
@@ -375,7 +252,7 @@
               <circle class="fill" cx="50" cy="50" r="40" stroke="var(--blue)" stroke-width="7" stroke-dasharray="251" stroke-dashoffset="251" id="mSleep"/>
             </svg>
             <div class="dp-ring-center">
-              <div class="dp-ring-val dp-v-blue" style="font-size:22px;">6.8<span style="font-size:11px">h</span></div>
+              <div class="dp-ring-val dp-v-blue" style="font-size:22px;" id="mSleepVal">—</div>
               <div class="dp-ring-sub">Avg</div>
             </div>
           </div>
@@ -388,7 +265,7 @@
               <circle class="fill" cx="50" cy="50" r="40" stroke="var(--yellow)" stroke-width="7" stroke-dasharray="251" stroke-dashoffset="251" id="mStrain"/>
             </svg>
             <div class="dp-ring-center">
-              <div class="dp-ring-val dp-v-yellow" style="font-size:22px;">13.5</div>
+              <div class="dp-ring-val dp-v-yellow" style="font-size:22px;" id="mStrainVal">—</div>
               <div class="dp-ring-sub">Avg</div>
             </div>
           </div>
@@ -399,37 +276,25 @@
       <!-- 월간 추이 -->
       <div class="dp-section-title">30일 추이</div>
       <ul class="dp-list">
-        <li><span class="dp-list-label">HRV</span><span class="dp-list-val dp-v-green">48 → 63<span class="dp-list-unit">ms (+31%)</span></span></li>
-        <li><span class="dp-list-label">안정심박</span><span class="dp-list-val dp-v-green">64 → 58<span class="dp-list-unit">bpm</span></span></li>
-        <li><span class="dp-list-label">수면</span><span class="dp-list-val dp-v-blue">6.2 → 7.1<span class="dp-list-unit">h (+14.5%)</span></span></li>
-        <li><span class="dp-list-label">ACWR</span><span class="dp-list-val dp-v-yellow">1.35 → 1.15</span></li>
-        <li><span class="dp-list-label">스트레스</span><span class="dp-list-val dp-v-green">61 → 38</span></li>
+        <li><span class="dp-list-label">HRV</span><span class="dp-list-val dp-v-white">—</span></li>
+        <li><span class="dp-list-label">안정심박</span><span class="dp-list-val dp-v-white">—</span></li>
+        <li><span class="dp-list-label">수면</span><span class="dp-list-val dp-v-white">—</span></li>
+        <li><span class="dp-list-label">ACWR</span><span class="dp-list-val dp-v-white">—</span></li>
+        <li><span class="dp-list-label">스트레스</span><span class="dp-list-val dp-v-white">—</span></li>
       </ul>
 
       <!-- 위험 구간 -->
       <div class="dp-section-title">부상 위험 지표</div>
       <ul class="dp-list">
-        <li><span class="dp-list-label">ACWR 위험구간(1.5+) 진입</span><span class="dp-list-val dp-v-green">0<span class="dp-list-unit">회</span></span></li>
-        <li><span class="dp-list-label">지난달 위험구간 진입</span><span class="dp-list-val dp-v-red">2<span class="dp-list-unit">회</span></span></li>
-        <li><span class="dp-list-label">통증 보고</span><span class="dp-list-val dp-v-yellow">무릎 2/10</span></li>
-      </ul>
-
-      <!-- 빌드 적합도 -->
-      <div class="dp-section-title">대회 준비</div>
-      <ul class="dp-list">
-        <li><span class="dp-list-label">전국체전(D-31) 빌드 적합도</span><span class="dp-list-val dp-v-green">92<span class="dp-list-unit">%</span></span></li>
-        <li><span class="dp-list-label">컨디션 궤도</span><span class="dp-list-val dp-v-green">상승</span></li>
+        <li><span class="dp-list-label">ACWR 위험구간(1.5+) 진입</span><span class="dp-list-val dp-v-white">—</span></li>
+        <li><span class="dp-list-label">지난달 위험구간 진입</span><span class="dp-list-val dp-v-white">—</span></li>
+        <li><span class="dp-list-label">통증 보고</span><span class="dp-list-val dp-v-white">—</span></li>
       </ul>
 
       <!-- AI 월간 -->
       <div class="ai-insight">
         <div class="ai-insight-tag">AI 월간 인사이트</div>
-        <ul>
-          <li>한 달간 전체 지표가 꾸준히 상승</li>
-          <li>수면 습관 개선이 핵심 요인</li>
-          <li>전국체전 대비 컨디션 상승 궤도</li>
-          <li>현재 빌드 단계 적합도 92%</li>
-        </ul>
+        <p>선수를 선택하면 30일 추이 분석이 표시됩니다.</p>
       </div>
     </div>
 

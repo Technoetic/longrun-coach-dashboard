@@ -1052,6 +1052,13 @@ input[type="date"].dday-input {
 	gap: 10px;
 }
 
+.player-empty {
+	padding: 32px 16px;
+	text-align: center;
+	color: var(--text-tertiary, #888);
+	font-size: 14px;
+}
+
 .player-card {
 	display: flex;
 	align-items: center;

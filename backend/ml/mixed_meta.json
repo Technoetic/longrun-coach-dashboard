@@ -1,0 +1,1 @@
+{"features": ["daily_load", "acwr", "atl", "ctl28", "monotony", "strain", "fatigue", "mood", "readiness", "sleep_hours", "sleep_quality", "soreness", "stress", "load_spike", "fatigue_3d", "soreness_3d", "sleep_debt_7d", "stress_3d", "consec_training"], "threshold": 0.9085764288902283}

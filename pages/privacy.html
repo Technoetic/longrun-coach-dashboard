@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>LongRun — 개인정보 처리방침</title>
+<style>
+	:root {
+		--bg: #0e0e10;
+		--fg: #f2f2f2;
+		--muted: #9a9a9f;
+		--accent: #00f19f;
+		--border: rgba(255, 255, 255, 0.08);
+	}
+	* { box-sizing: border-box; }
+	html, body {
+		margin: 0; padding: 0;
+		background: var(--bg); color: var(--fg);
+		font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+	}
+	.wrap { max-width: 760px; margin: 0 auto; padding: 28px 20px 60px; }
+	h1 { font-size: 24px; margin: 0 0 6px; }
+	.updated { font-size: 12px; color: var(--muted); margin-bottom: 28px; }
+	h2 { font-size: 16px; margin: 24px 0 8px; color: var(--accent); }
+	p, li { font-size: 14px; line-height: 1.7; color: var(--fg); }
+	ul { padding-left: 20px; }
+	.draft-banner {
+		background: rgba(255, 214, 10, 0.1);
+		border: 1px solid rgba(255, 214, 10, 0.3);
+		color: #ffd60a;
+		padding: 12px 14px;
+		border-radius: 8px;
+		font-size: 13px;
+		margin-bottom: 20px;
+	}
+	.contact { margin-top: 28px; font-size: 13px; color: var(--muted); }
+	.contact a { color: var(--accent); text-decoration: none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+	<h1>개인정보 처리방침</h1>
+	<p class="updated">최종 수정일: 2026-04-15 · 시행일: (배포 시점에 확정)</p>
+
+	<div class="draft-banner">
+		⚠️ 본 문서는 <strong>초안(템플릿)</strong>입니다. 실제 서비스 배포 전
+		법률 검토와 운영 정책 확정이 필요합니다. Play Store 등록 전 반드시
+		정식 버전으로 교체해 주세요.
+	</div>
+
+	<p>
+		LongRun(이하 "서비스")은 이용자의 건강·운동 데이터를 수집하고 분석하여
+		개인화된 훈련 부하 분석과 회복 상태 코칭을 제공하는 애플리케이션입니다.
+		본 처리방침은 서비스가 수집하는 정보, 이용 목적, 보관 기간, 이용자의
+		권리를 명시합니다.
+	</p>
+
+	<h2>1. 수집하는 개인정보 항목</h2>
+	<ul>
+		<li><strong>계정 정보</strong>: 이메일 주소, 이름, 비밀번호(해시 저장), 성별, 종목</li>
+		<li><strong>건강·운동 데이터</strong>: 심박수(현재/안정/평균/최대), 심박 변이도(HRV),
+			산소포화도(SpO2), 걸음수, 이동 거리, 활동 칼로리, 운동 시간, 수면 시간</li>
+		<li><strong>웨어러블 기기 정보</strong>: 블루투스 MAC 주소, 기기 이름, 펌웨어 버전,
+			배터리 잔량</li>
+		<li><strong>앱 사용 정보</strong>: 동기화 성공/실패 로그, 앱 버전</li>
+	</ul>
+
+	<h2>2. 수집 방법</h2>
+	<ul>
+		<li>이용자가 직접 입력 (회원가입, 프로필)</li>
+		<li>Samsung Health Connect API를 통한 읽기(READ) — 이용자 명시적 권한 승인 후</li>
+		<li>블루투스(BLE)를 통한 호환 웨어러블 기기 직접 연결</li>
+	</ul>
+
+	<h2>3. 이용 목적</h2>
+	<ul>
+		<li>훈련 부하(Training Load), 급성/만성 운동 부하 비율(ACWR), 회복 점수 계산</li>
+		<li>부상 위험 조기 탐지 및 알림</li>
+		<li>코치-선수 간 상태 공유 (코치 권한을 가진 이용자에게 팀원 데이터 노출)</li>
+		<li>서비스 품질 개선을 위한 집계 분석</li>
+	</ul>
+
+	<h2>4. 보관 및 파기</h2>
+	<p>
+		수집된 건강·운동 데이터는 <strong>(보관 기간 확정 필요)</strong> 동안 보관됩니다.
+		이용자가 계정 삭제를 요청하면 <strong>(처리 일수 확정 필요)</strong> 영업일 이내에
+		모든 개인 식별 정보와 건강 데이터를 파기합니다.
+	</p>
+
+	<h2>5. 제3자 제공</h2>
+	<p>
+		서비스는 이용자의 건강 데이터를 제3자에게 판매하거나 광고 목적으로 제공하지
+		않습니다. 단, 다음의 경우에는 예외입니다:
+	</p>
+	<ul>
+		<li>이용자가 소속된 팀의 코치에게 본인이 공유 동의한 범위의 데이터</li>
+		<li>법령에 따른 수사기관의 적법한 요청</li>
+		<li>서비스 운영에 필수적인 클라우드 인프라 제공자(현재: Railway) — 데이터 처리 위탁 관계</li>
+	</ul>
+
+	<h2>6. 데이터 저장 위치</h2>
+	<p>
+		서비스 데이터베이스는 Railway 클라우드 인프라에 호스팅되며, 데이터센터 지역은
+		<strong>(리전 확정 필요 — 현재 asia-southeast1)</strong>입니다.
+	</p>
+
+	<h2>7. 이용자의 권리</h2>
+	<ul>
+		<li>본인 데이터 열람 (앱 내 대시보드)</li>
+		<li>본인 데이터 정정 요청</li>
+		<li>본인 데이터 삭제 요청 (계정 삭제와 함께)</li>
+		<li>데이터 처리 정지 요청</li>
+		<li>Health Connect 권한 철회 (Android 설정 → Health Connect → 앱별 권한 관리)</li>
+	</ul>
+
+	<h2>8. 미성년자 정보</h2>
+	<p>
+		서비스는 <strong>(연령 제한 확정 필요)</strong> 미만 아동의 개인정보를 수집하지
+		않습니다. 법정대리인의 명시적 동의 없이 미성년자 데이터가 수집되었음이
+		발견되면 즉시 파기합니다.
+	</p>
+
+	<h2>9. 보안 조치</h2>
+	<ul>
+		<li>비밀번호는 bcrypt 등 단방향 해시로 저장 (원문 저장 없음)</li>
+		<li>API 통신은 HTTPS/TLS 전 구간 암호화</li>
+		<li>JWT 기반 인증 토큰 만료 정책</li>
+		<li>데이터베이스 접근 권한 최소화 및 감사 로그</li>
+	</ul>
+
+	<h2>10. 처리방침 변경</h2>
+	<p>
+		본 처리방침이 변경될 경우 앱 공지사항과 이메일(선택적 가입자 한정)로 알립니다.
+	</p>
+
+	<div class="contact">
+		<strong>개인정보 보호 책임자</strong>: (책임자 이름 확정 필요)<br>
+		연락처: <a href="mailto:technoetic@hotmail.com">technoetic@hotmail.com</a><br>
+		<br>
+		Health Connect 권한 설명: <a href="health-rationale.html">health-rationale.html</a>
+	</div>
+</div>
+</body>
+</html>

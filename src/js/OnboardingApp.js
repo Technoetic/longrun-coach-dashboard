@@ -133,11 +133,11 @@ class OnboardingApp {
 	}
 
 	/**
-	 * Skip onboarding and redirect to signup
+	 * Skip onboarding and redirect to login (signup CTA available from login page)
 	 */
 	skip() {
-		sessionStorage.setItem("lr_nav", "signup");
-		window.location.href = "signup.html";
+		sessionStorage.setItem("lr_nav", "login");
+		window.location.href = "login.html";
 	}
 }
 
