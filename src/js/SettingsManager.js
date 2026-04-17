@@ -186,6 +186,7 @@ class SettingsManager {
 
 	doLogout() {
 		this.closeSettings();
+		localStorage.removeItem("lr_session");
 		sessionStorage.clear();
 		sessionStorage.setItem("lr_nav", "login");
 		location.href = "login.html";

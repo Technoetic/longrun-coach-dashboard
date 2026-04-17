@@ -4,6 +4,13 @@
  */
 class LoginApp {
 	constructor() {
+		// If already logged in, skip login and go to dashboard
+		if (localStorage.getItem("lr_session")) {
+			sessionStorage.setItem("lr_nav", "dashboard");
+			location.replace("dashboard.html");
+			return;
+		}
+
 		// Nav guard: if arrived via in-app flow, clear the marker.
 		// Direct URL access is now allowed (no forced onboarding redirect).
 		sessionStorage.removeItem("lr_nav");
@@ -69,6 +76,15 @@ class LoginApp {
 			if (me.name) sessionStorage.setItem("lr_user_name", me.name);
 			sessionStorage.setItem("lr_user_email", me.email);
 			sessionStorage.setItem("lr_user_role", me.role || "athlete");
+
+			// Persist login session in localStorage (survives refresh)
+			localStorage.setItem("lr_session", JSON.stringify({
+				email: me.email,
+				sport: me.sport || "",
+				team_code: me.team_code || "",
+				name: me.name || "",
+				role: me.role || "athlete",
+			}));
 
 			sessionStorage.setItem("lr_nav", "dashboard");
 			location.href = "dashboard.html";

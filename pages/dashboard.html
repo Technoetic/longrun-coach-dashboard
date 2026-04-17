@@ -602,8 +602,22 @@
   </div>
 
   <script>
-    // Navigation guard
-    if (sessionStorage.getItem('lr_nav') !== 'dashboard') { location.replace('onboarding.html'); }
+    // Navigation guard: check sessionStorage first, then fall back to localStorage session
+    if (sessionStorage.getItem('lr_nav') !== 'dashboard') {
+      var session = localStorage.getItem('lr_session');
+      if (session) {
+        try {
+          var s = JSON.parse(session);
+          if (s.sport) sessionStorage.setItem('lr_team_sport', s.sport);
+          if (s.team_code) sessionStorage.setItem('lr_team_code', s.team_code);
+          if (s.name) sessionStorage.setItem('lr_user_name', s.name);
+          if (s.email) sessionStorage.setItem('lr_user_email', s.email);
+          if (s.role) sessionStorage.setItem('lr_user_role', s.role);
+        } catch (e) {}
+      } else {
+        location.replace('onboarding.html');
+      }
+    }
     sessionStorage.removeItem('lr_nav');
   </script>
   <script defer src="../src/js/utils.js"></script>

@@ -5,6 +5,12 @@
  */
 class OnboardingApp {
 	constructor() {
+		// If already logged in, skip onboarding and go to dashboard
+		if (localStorage.getItem("lr_session")) {
+			location.replace("dashboard.html");
+			return;
+		}
+
 		// Cache DOM elements
 		this.slides = document.querySelectorAll(".slide");
 		this.dots = document.querySelectorAll(".dot");
