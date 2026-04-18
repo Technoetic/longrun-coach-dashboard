@@ -153,7 +153,16 @@ class DetailPanel {
 						? p.sleep.toFixed(1) + '<span class="dp-list-unit">시간</span>'
 						: '—';
 				}
-				if (items[1]) items[1].querySelector('.dp-list-val').textContent = '—';
+				// 수면 점수 (시간 기반 추정): 8h=100, 7h=85, 6h=70, 5h=50, 4h=30, 3h=10
+				if (items[1]) {
+					let sleepScore = null;
+					if (p.sleep != null) {
+						sleepScore = Math.max(0, Math.min(100, Math.round((p.sleep - 3) / 5 * 100)));
+						if (p.sleep >= 8) sleepScore = 100;
+					}
+					items[1].querySelector('.dp-list-val').textContent = sleepScore != null ? sleepScore : '—';
+				}
+				if (items[2]) items[2].querySelector('.dp-list-val').textContent = '—';
 			}
 
 
