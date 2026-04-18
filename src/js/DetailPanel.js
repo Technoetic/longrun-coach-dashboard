@@ -218,9 +218,10 @@ class DetailPanel {
 	 * 에너지 점수는 record 시점의 데이터로 on-the-fly 계산 (서버 반환 안 함).
 	 */
 	async _loadTimeseries() {
+		const thead = document.getElementById('timeseries-head');
 		const tbody = document.getElementById('timeseries-body');
 		if (!tbody) return;
-		tbody.innerHTML = '<tr><td colspan="10" style="padding:20px;text-align:center;opacity:0.5;">불러오는 중...</td></tr>';
+		tbody.innerHTML = '<tr><td style="padding:20px;text-align:center;opacity:0.5;">불러오는 중...</td></tr>';
 		let records = [];
 		try {
 			const pidQs = this.currentPlayerId ? `&player_id=${this.currentPlayerId}` : '';
@@ -232,11 +233,11 @@ class DetailPanel {
 			const json = await res.json();
 			records = json.records || [];
 		} catch (e) {
-			tbody.innerHTML = `<tr><td colspan="10" style="padding:20px;text-align:center;opacity:0.5;">데이터 없음 (${e.message})</td></tr>`;
+			tbody.innerHTML = `<tr><td style="padding:20px;text-align:center;opacity:0.5;">데이터 없음 (${e.message})</td></tr>`;
 			return;
 		}
 		if (records.length === 0) {
-			tbody.innerHTML = '<tr><td colspan="10" style="padding:20px;text-align:center;opacity:0.5;">레코드 없음</td></tr>';
+			tbody.innerHTML = '<tr><td style="padding:20px;text-align:center;opacity:0.5;">레코드 없음</td></tr>';
 			return;
 		}
 		const fmtTs = (iso) => {
@@ -261,20 +262,71 @@ class DetailPanel {
 			return Math.round(Object.keys(comp).reduce((s, k) => s + w[k] * comp[k], 0) / total);
 		};
 		const stressOf = (hrv) => hrv == null ? '—' : (hrv >= 12 ? '편안함' : hrv >= 8 ? '보통' : '높음');
+		const int0 = (v) => v == null ? '—' : Math.round(v);
+		const f1 = (v) => v == null ? '—' : v.toFixed(1);
+		const f2 = (v) => v == null ? '—' : v.toFixed(2);
+		const num = (v) => v == null ? '—' : v.toLocaleString();
+		// [라벨, 추출함수] 순서대로 — 모든 watch_records 필드
+		const cols = [
+			['시각', (r) => fmtTs(r.created_at)],
+			['에너지', (r) => energyOf(r) ?? '—'],
+			['스트레스', (r) => stressOf(r.hrv)],
+			['심박', (r) => int0(r.heart_rate)],
+			['RHR', (r) => int0(r.resting_heart_rate)],
+			['보행HR', (r) => int0(r.walking_heart_rate)],
+			['최대HR', (r) => int0(r.heart_rate_max)],
+			['평균HR', (r) => int0(r.heart_rate_avg)],
+			['HR샘플', (r) => int0(r.heart_rate_samples_count)],
+			['HRV', (r) => int0(r.hrv)],
+			['SpO2', (r) => int0(r.blood_oxygen)],
+			['호흡수', (r) => int0(r.respiratory_rate)],
+			['혈압↑', (r) => int0(r.blood_pressure_sys)],
+			['혈압↓', (r) => int0(r.blood_pressure_dia)],
+			['체온', (r) => f1(r.body_temperature)],
+			['피부온', (r) => f1(r.skin_temperature)],
+			['기초체온', (r) => f1(r.basal_body_temperature)],
+			['혈당', (r) => int0(r.blood_glucose)],
+			['수면h', (r) => f1(r.sleep_hours)],
+			['깊은수면m', (r) => int0(r.sleep_deep_min)],
+			['REM m', (r) => int0(r.sleep_rem_min)],
+			['얕은수면m', (r) => int0(r.sleep_light_min)],
+			['걸음', (r) => num(r.steps)],
+			['거리km', (r) => f2(r.distance_km)],
+			['고도m', (r) => int0(r.elevation_m)],
+			['층수', (r) => int0(r.flights_climbed)],
+			['활동kcal', (r) => int0(r.active_calories)],
+			['기초kcal', (r) => int0(r.basal_calories)],
+			['BMR', (r) => int0(r.basal_metabolic_rate)],
+			['운동분', (r) => int0(r.exercise_minutes)],
+			['기립분', (r) => int0(r.stand_minutes)],
+			['보행케이던스', (r) => int0(r.steps_cadence)],
+			['자전거케이던스', (r) => int0(r.cycling_cadence)],
+			['속도m/s', (r) => f2(r.run_speed_mps)],
+			['파워W', (r) => int0(r.run_power_w)],
+			['VO2max', (r) => f1(r.vo2_max)],
+			['체중kg', (r) => f1(r.weight_kg)],
+			['체지방%', (r) => f1(r.body_fat_pct)],
+			['근육kg', (r) => f1(r.lean_body_mass_kg)],
+			['체수분kg', (r) => f1(r.body_water_mass_kg)],
+			['골량kg', (r) => f1(r.bone_mass_kg)],
+			['수분L', (r) => f1(r.hydration_liters)],
+			['영양kcal', (r) => int0(r.nutrition_kcal)],
+			['환경음dB', (r) => int0(r.env_audio_db)],
+			['이어폰dB', (r) => int0(r.headphone_audio_db)],
+		];
+		if (thead) {
+			thead.innerHTML = '<tr style="border-bottom:1px solid var(--border,#2a2a2a);opacity:0.7;">' +
+				cols.map((c, i) => {
+					const align = i === 0 ? 'left' : 'right';
+					return `<th style="padding:5px 6px;text-align:${align};white-space:nowrap;">${c[0]}</th>`;
+				}).join('') + '</tr>';
+		}
 		const rows = records.map((r) => {
-			const energy = energyOf(r);
-			return `<tr style="border-bottom:1px solid var(--border,#2a2a2a);">
-				<td style="padding:5px 6px;white-space:nowrap;">${fmtTs(r.created_at)}</td>
-				<td style="padding:5px 6px;text-align:right;">${energy != null ? energy : '—'}</td>
-				<td style="padding:5px 6px;text-align:right;">${r.sleep_hours != null ? r.sleep_hours.toFixed(1) : '—'}</td>
-				<td style="padding:5px 6px;text-align:right;">${r.hrv != null ? Math.round(r.hrv) : '—'}</td>
-				<td style="padding:5px 6px;text-align:right;">${r.heart_rate != null ? Math.round(r.heart_rate) : '—'}</td>
-				<td style="padding:5px 6px;text-align:right;">${r.blood_oxygen != null ? Math.round(r.blood_oxygen) : '—'}</td>
-				<td style="padding:5px 6px;text-align:right;">${r.steps != null ? r.steps.toLocaleString() : '—'}</td>
-				<td style="padding:5px 6px;text-align:right;">${r.active_calories != null ? Math.round(r.active_calories) : '—'}</td>
-				<td style="padding:5px 6px;text-align:right;">${r.resting_heart_rate != null ? Math.round(r.resting_heart_rate) : '—'}</td>
-				<td style="padding:5px 6px;text-align:right;">${stressOf(r.hrv)}</td>
-			</tr>`;
+			return '<tr style="border-bottom:1px solid var(--border,#2a2a2a);">' +
+				cols.map((c, i) => {
+					const align = i === 0 ? 'left' : 'right';
+					return `<td style="padding:5px 6px;text-align:${align};white-space:nowrap;">${c[1](r)}</td>`;
+				}).join('') + '</tr>';
 		}).join('');
 		tbody.innerHTML = rows;
 	}

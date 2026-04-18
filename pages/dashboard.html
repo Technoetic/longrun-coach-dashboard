@@ -206,23 +206,10 @@
     <!-- === 시계열 View === -->
     <div class="panel-body dp-view" id="viewMonthly">
       <div style="overflow-x:auto;">
-        <table class="samsung-timeseries" style="width:100%;border-collapse:collapse;font-size:11px;min-width:760px;">
-          <thead>
-            <tr style="border-bottom:1px solid var(--border,#2a2a2a);opacity:0.7;">
-              <th style="padding:5px 6px;text-align:left;white-space:nowrap;">시각</th>
-              <th style="padding:5px 6px;text-align:right;">에너지</th>
-              <th style="padding:5px 6px;text-align:right;">수면h</th>
-              <th style="padding:5px 6px;text-align:right;">HRV*</th>
-              <th style="padding:5px 6px;text-align:right;">심박</th>
-              <th style="padding:5px 6px;text-align:right;">SpO2</th>
-              <th style="padding:5px 6px;text-align:right;">걸음</th>
-              <th style="padding:5px 6px;text-align:right;">kcal</th>
-              <th style="padding:5px 6px;text-align:right;">RHR</th>
-              <th style="padding:5px 6px;text-align:right;">스트레스</th>
-            </tr>
-          </thead>
+        <table class="samsung-timeseries" style="width:100%;border-collapse:collapse;font-size:11px;">
+          <thead id="timeseries-head"></thead>
           <tbody id="timeseries-body">
-            <tr><td colspan="10" style="padding:20px;text-align:center;opacity:0.5;">선수를 선택하면 시계열 기록이 표시됩니다.</td></tr>
+            <tr><td style="padding:20px;text-align:center;opacity:0.5;">선수를 선택하면 시계열 기록이 표시됩니다.</td></tr>
           </tbody>
         </table>
       </div>
