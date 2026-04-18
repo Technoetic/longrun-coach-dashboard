@@ -760,11 +760,14 @@ async def receive_watch_data(
 
 @app.get("/api/bio-timeseries")
 async def get_bio_timeseries(
+    response: Response,
     limit: int = 100,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """최근 N개 WatchRecord 를 시계열로 반환. 각 레코드는 created_at 타임스탬프 포함."""
+    response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate"
+    response.headers["Pragma"] = "no-cache"
     limit = max(1, min(500, limit))
     records = db.query(WatchRecord).filter(
         WatchRecord.user_id == current_user.id,
