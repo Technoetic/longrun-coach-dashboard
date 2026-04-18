@@ -288,9 +288,10 @@ function _buildPlayerCard(p, idx) {
 	const colorByStatus = { g: "00F19F", y: "FFD60A", r: "FF3B30" };
 	const photoColor = colorByStatus[p.status] || "7BDBFF";
 	const hrvText = p.hrv != null ? Math.round(p.hrv) : "-";
+	// pseudo-HRV 범위 (정수 bpm 기반 역산, 실제 RMSSD 의 1/3~1/5)
 	const hrvClass = p.hrv == null
 		? "val-normal"
-		: p.hrv >= 50 ? "val-up" : p.hrv >= 35 ? "val-normal" : "val-down";
+		: p.hrv >= 12 ? "val-up" : p.hrv >= 8 ? "val-normal" : "val-down";
 	const rhrText = p.rhr != null ? Math.round(p.rhr) : "-";
 	const sleepText = p.sleep != null ? p.sleep.toFixed(1) + "h" : "-";
 	const stressText = p.stress != null ? p.stress : "-";
