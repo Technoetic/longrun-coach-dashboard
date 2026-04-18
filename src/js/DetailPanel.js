@@ -59,8 +59,10 @@ class DetailPanel {
 			}
 			if (!p) { this._placeholderView(); return; }
 
-			// 회복 점수 계산 (HRV + ACWR 기반)
-			const hrvScore = p.hrv ? Math.min(100, Math.round(p.hrv * 1.5)) : 50;
+			// 회복 점수 계산 (pseudo-HRV + ACWR 기반)
+			// pseudo-HRV 는 정수 bpm 기반 역산이라 실제 RMSSD 의 1/3~1/5 수준.
+			// 일반 범위: 5~20ms. 20ms 이상이면 100점 처리.
+			const hrvScore = p.hrv ? Math.min(100, Math.round(p.hrv * 5)) : 50;
 			const acwrPenalty = p.acwr > 1.3 ? (p.acwr - 1.3) * 50 : 0;
 			const recovery = Math.max(0, Math.min(100, hrvScore - Math.round(acwrPenalty)));
 			const sleepPct = p.sleep ? Math.min(1, p.sleep / 9) : 0;
@@ -128,7 +130,7 @@ class DetailPanel {
 					items[0].querySelector('.dp-list-val').innerHTML = hrHtml;
 				}
 				if (items[1]) items[1].querySelector('.dp-list-val').innerHTML = (p.rhr || '-') + '<span class="dp-list-unit">bpm</span>';
-				if (items[2]) items[2].querySelector('.dp-list-val').innerHTML = (p.hrv ? Math.round(p.hrv) : '-') + '<span class="dp-list-unit">ms</span>';
+				if (items[2]) items[2].querySelector('.dp-list-val').innerHTML = (p.hrv ? Math.round(p.hrv) : '-') + '<span class="dp-list-unit">ms*</span>';
 				if (items[3]) items[3].querySelector('.dp-list-val').innerHTML = (p.spo2 || '-') + '<span class="dp-list-unit">%</span>';
 			}
 
@@ -160,8 +162,9 @@ class DetailPanel {
 			if (aiP) {
 				const parts = [];
 				if (p.hrv != null) {
-					const hrvStatus = p.hrv >= 50 ? '양호' : p.hrv >= 35 ? '보통' : '낮음';
-					parts.push('HRV ' + Math.round(p.hrv) + 'ms(' + hrvStatus + ')');
+					// pseudo-HRV 임계값 (정수 bpm 기반, 실제 RMSSD 의 1/3~1/5)
+					const hrvStatus = p.hrv >= 12 ? '양호' : p.hrv >= 8 ? '보통' : '낮음';
+					parts.push('HRV* ' + Math.round(p.hrv) + 'ms(' + hrvStatus + ')');
 				}
 				if (p.rhr != null) parts.push('안정심박 ' + Math.round(p.rhr) + 'bpm');
 				if (p.hr != null) parts.push('심박 ' + Math.round(p.hr) + 'bpm');
@@ -175,7 +178,7 @@ class DetailPanel {
 					advice = '급성 부하 증가. 훈련량 감소 권장.';
 				} else if (p.acwr != null && p.acwr > 1.3) {
 					advice = '훈련 부하 조절 권장.';
-				} else if (p.hrv != null && p.hrv < 35) {
+				} else if (p.hrv != null && p.hrv < 8) {
 					advice = '회복 부족. 휴식 권장.';
 				} else if (p.sleep != null && p.sleep < 6) {
 					advice = '수면 부족. 취침 시간 확보 권장.';
