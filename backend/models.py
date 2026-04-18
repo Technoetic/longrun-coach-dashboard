@@ -196,6 +196,11 @@ class WatchRecord(Base):
     sleep_deep_min = Column(Float, nullable=True)
     sleep_rem_min = Column(Float, nullable=True)
     sleep_light_min = Column(Float, nullable=True)
+    steps_cadence = Column(Float, nullable=True)
+    cycling_cadence = Column(Float, nullable=True)
+    lean_body_mass_kg = Column(Float, nullable=True)
+    body_water_mass_kg = Column(Float, nullable=True)
+    basal_body_temperature = Column(Float, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
     user = relationship("User")

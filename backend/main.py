@@ -164,6 +164,11 @@ def startup_event():
         "ALTER TABLE watch_records ADD COLUMN IF NOT EXISTS sleep_deep_min DOUBLE PRECISION",
         "ALTER TABLE watch_records ADD COLUMN IF NOT EXISTS sleep_rem_min DOUBLE PRECISION",
         "ALTER TABLE watch_records ADD COLUMN IF NOT EXISTS sleep_light_min DOUBLE PRECISION",
+        "ALTER TABLE watch_records ADD COLUMN IF NOT EXISTS steps_cadence DOUBLE PRECISION",
+        "ALTER TABLE watch_records ADD COLUMN IF NOT EXISTS cycling_cadence DOUBLE PRECISION",
+        "ALTER TABLE watch_records ADD COLUMN IF NOT EXISTS lean_body_mass_kg DOUBLE PRECISION",
+        "ALTER TABLE watch_records ADD COLUMN IF NOT EXISTS body_water_mass_kg DOUBLE PRECISION",
+        "ALTER TABLE watch_records ADD COLUMN IF NOT EXISTS basal_body_temperature DOUBLE PRECISION",
     ]
     with engine.begin() as conn:
         for sql in migrations:
@@ -730,6 +735,11 @@ async def receive_watch_data(
         sleep_deep_min=data.get("sleep_deep_min"),
         sleep_rem_min=data.get("sleep_rem_min"),
         sleep_light_min=data.get("sleep_light_min"),
+        steps_cadence=data.get("steps_cadence"),
+        cycling_cadence=data.get("cycling_cadence"),
+        lean_body_mass_kg=data.get("lean_body_mass_kg"),
+        body_water_mass_kg=data.get("body_water_mass_kg"),
+        basal_body_temperature=data.get("basal_body_temperature"),
     )
     db.add(watch)
     db.commit()

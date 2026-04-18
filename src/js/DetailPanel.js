@@ -144,6 +144,11 @@ class DetailPanel {
 			setCell('sm-deep', p.sleep_deep_min != null ? Math.round(p.sleep_deep_min) + '분' : null);
 			setCell('sm-rem', p.sleep_rem_min != null ? Math.round(p.sleep_rem_min) + '분' : null);
 			setCell('sm-light', p.sleep_light_min != null ? Math.round(p.sleep_light_min) + '분' : null);
+			setCell('sm-steps-cadence', p.steps_cadence != null ? Math.round(p.steps_cadence) + ' spm' : null);
+			setCell('sm-cyc-cadence', p.cycling_cadence != null ? Math.round(p.cycling_cadence) + ' rpm' : null);
+			setCell('sm-lean', p.lean_body_mass_kg != null ? p.lean_body_mass_kg.toFixed(1) + ' kg' : null);
+			setCell('sm-water', p.body_water_mass_kg != null ? p.body_water_mass_kg.toFixed(1) + ' kg' : null);
+			setCell('sm-basal-temp', p.basal_body_temperature != null ? p.basal_body_temperature.toFixed(1) + '°C' : null);
 
 			// 기존 블록(AI 인사이트, 주간 HR 차트 등) 은 HTML 에서 제거됨 — 아래 기존 코드는
 			// 방어적으로 건드리지만 DOM 이 없으면 조용히 건너뜀.

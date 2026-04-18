@@ -399,6 +399,11 @@ async function loadAllPlayers() {
 					sleep_deep_min: latest.sleep_deep_min,
 					sleep_rem_min: latest.sleep_rem_min,
 					sleep_light_min: latest.sleep_light_min,
+					steps_cadence: latest.steps_cadence,
+					cycling_cadence: latest.cycling_cadence,
+					lean_body_mass_kg: latest.lean_body_mass_kg,
+					body_water_mass_kg: latest.body_water_mass_kg,
+					basal_body_temperature: latest.basal_body_temperature,
 					watch_at: latest.created_at,
 					status: "g",
 				};
