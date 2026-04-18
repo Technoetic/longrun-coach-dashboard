@@ -380,6 +380,11 @@ async function loadAllPlayers() {
 					sleep: latest.sleep_hours,
 					env_db: latest.env_audio_db,
 					earphone_db: latest.headphone_audio_db,
+					vo2_max: latest.vo2_max,
+					skin_temperature: latest.skin_temperature,
+					basal_metabolic_rate: latest.basal_metabolic_rate,
+					weight_kg: latest.weight_kg,
+					body_fat_pct: latest.body_fat_pct,
 					watch_at: latest.created_at,
 					status: "g",
 				};

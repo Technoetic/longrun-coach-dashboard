@@ -175,6 +175,12 @@ class WatchRecord(Base):
     sleep_hours = Column(Float, nullable=True)
     env_audio_db = Column(Float, nullable=True)
     headphone_audio_db = Column(Float, nullable=True)
+    # Samsung Health 공식 지원 추가 필드
+    vo2_max = Column(Float, nullable=True)
+    skin_temperature = Column(Float, nullable=True)
+    basal_metabolic_rate = Column(Float, nullable=True)
+    weight_kg = Column(Float, nullable=True)
+    body_fat_pct = Column(Float, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
     user = relationship("User")

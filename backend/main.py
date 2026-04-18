@@ -141,6 +141,23 @@ def to_list(objs):
 @app.on_event("startup")
 def startup_event():
     Base.metadata.create_all(bind=engine)
+    # Idempotent column migrations for WatchRecord.
+    # create_all 은 기존 테이블에 컬럼을 추가하지 않으므로 운영 DB 에는 새 컬럼이
+    # 반영되지 않는다. 스타트업마다 안전하게 ALTER ADD COLUMN IF NOT EXISTS 실행.
+    migrations = [
+        "ALTER TABLE watch_records ADD COLUMN IF NOT EXISTS vo2_max DOUBLE PRECISION",
+        "ALTER TABLE watch_records ADD COLUMN IF NOT EXISTS skin_temperature DOUBLE PRECISION",
+        "ALTER TABLE watch_records ADD COLUMN IF NOT EXISTS basal_metabolic_rate DOUBLE PRECISION",
+        "ALTER TABLE watch_records ADD COLUMN IF NOT EXISTS weight_kg DOUBLE PRECISION",
+        "ALTER TABLE watch_records ADD COLUMN IF NOT EXISTS body_fat_pct DOUBLE PRECISION",
+    ]
+    with engine.begin() as conn:
+        for sql in migrations:
+            try:
+                from sqlalchemy import text
+                conn.execute(text(sql))
+            except Exception as e:
+                print(f"migration skipped: {sql} — {e}")
 
 # Health check
 @app.get("/api/health")
@@ -680,6 +697,11 @@ async def receive_watch_data(
         heart_rate_avg=data.get("heart_rate_avg"),
         heart_rate_samples_count=data.get("heart_rate_samples_count"),
         heart_rate_samples=hr_samples_str,
+        vo2_max=data.get("vo2_max"),
+        skin_temperature=data.get("skin_temperature"),
+        basal_metabolic_rate=data.get("basal_metabolic_rate"),
+        weight_kg=data.get("weight_kg"),
+        body_fat_pct=data.get("body_fat_pct"),
     )
     db.add(watch)
     db.commit()

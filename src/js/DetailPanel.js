@@ -120,6 +120,13 @@ class DetailPanel {
 			setCell('sm-stress', stressLabel);
 			setCell('sm-spo2', p.spo2 != null ? p.spo2 + '%' : null);
 
+			// Samsung Health 공식 지원 추가 필드
+			setCell('sm-vo2', p.vo2_max != null ? p.vo2_max.toFixed(1) + ' ml/kg/min' : null);
+			setCell('sm-skin-temp', p.skin_temperature != null ? p.skin_temperature.toFixed(1) + '°C' : null);
+			setCell('sm-bmr', p.basal_metabolic_rate != null ? Math.round(p.basal_metabolic_rate) + ' kcal' : null);
+			setCell('sm-weight', p.weight_kg != null ? p.weight_kg.toFixed(1) + ' kg' : null);
+			setCell('sm-body-fat', p.body_fat_pct != null ? p.body_fat_pct.toFixed(1) + '%' : null);
+
 			// 기존 블록(AI 인사이트, 주간 HR 차트 등) 은 HTML 에서 제거됨 — 아래 기존 코드는
 			// 방어적으로 건드리지만 DOM 이 없으면 조용히 건너뜀.
 			if (false) {  // legacy — HTML 제거됨, 아래 로직은 미사용
