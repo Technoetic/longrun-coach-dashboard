@@ -624,6 +624,17 @@ async def receive_watch_data(
     if all(v is None for v in meaningful) and meaningful_steps is None:
         return {"status": "skipped", "reason": "empty batch"}
 
+    # 쿨다운: onResume / Worker / 수동 requestSync 가 중첩되어 같은 스냅샷을
+    # 수 초 간격으로 POST 하는 경우 중복 저장 방지. 60초 이내 같은 user_id 의
+    # 레코드가 있으면 저장 스킵 (컨디션 행도 만들지 않음).
+    recent_cutoff = datetime.utcnow() - timedelta(seconds=60)
+    recent_exists = db.query(WatchRecord.id).filter(
+        WatchRecord.user_id == user.id,
+        WatchRecord.created_at >= recent_cutoff,
+    ).first()
+    if recent_exists is not None:
+        return {"status": "skipped", "reason": "cooldown_60s"}
+
     # Option G: Samsung Energy Score 모사 — 수면/HRV/RHR/활동을 가중 합산.
     # Samsung 공식 점수는 0~100 이며 70+ 가 "양호". 우리가 보내는 HRV 는
     # pseudo-HRV(정수 bpm 기반, 실제 RMSSD 의 1/3~1/5) 이므로 임계값이 낮다.
