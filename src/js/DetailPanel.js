@@ -259,16 +259,16 @@ class DetailPanel {
 		const rows = records.map((r) => {
 			const energy = energyOf(r);
 			return `<tr style="border-bottom:1px solid var(--border,#2a2a2a);">
-				<td style="padding:6px 8px;white-space:nowrap;">${fmtTs(r.created_at)}</td>
-				<td style="padding:6px 8px;text-align:right;">${energy != null ? energy : '—'}</td>
-				<td style="padding:6px 8px;text-align:right;">${r.sleep_hours != null ? r.sleep_hours.toFixed(1) : '—'}</td>
-				<td style="padding:6px 8px;text-align:right;">${r.hrv != null ? Math.round(r.hrv) : '—'}</td>
-				<td style="padding:6px 8px;text-align:right;">${r.heart_rate != null ? Math.round(r.heart_rate) : '—'}</td>
-				<td style="padding:6px 8px;text-align:right;">${r.blood_oxygen != null ? Math.round(r.blood_oxygen) : '—'}</td>
-				<td style="padding:6px 8px;text-align:right;">${r.steps != null ? r.steps.toLocaleString() : '—'}</td>
-				<td style="padding:6px 8px;text-align:right;">${r.active_calories != null ? Math.round(r.active_calories) : '—'}</td>
-				<td style="padding:6px 8px;text-align:right;">${r.resting_heart_rate != null ? Math.round(r.resting_heart_rate) : '—'}</td>
-				<td style="padding:6px 8px;text-align:right;">${stressOf(r.hrv)}</td>
+				<td style="padding:5px 6px;white-space:nowrap;">${fmtTs(r.created_at)}</td>
+				<td style="padding:5px 6px;text-align:right;">${energy != null ? energy : '—'}</td>
+				<td style="padding:5px 6px;text-align:right;">${r.sleep_hours != null ? r.sleep_hours.toFixed(1) : '—'}</td>
+				<td style="padding:5px 6px;text-align:right;">${r.hrv != null ? Math.round(r.hrv) : '—'}</td>
+				<td style="padding:5px 6px;text-align:right;">${r.heart_rate != null ? Math.round(r.heart_rate) : '—'}</td>
+				<td style="padding:5px 6px;text-align:right;">${r.blood_oxygen != null ? Math.round(r.blood_oxygen) : '—'}</td>
+				<td style="padding:5px 6px;text-align:right;">${r.steps != null ? r.steps.toLocaleString() : '—'}</td>
+				<td style="padding:5px 6px;text-align:right;">${r.active_calories != null ? Math.round(r.active_calories) : '—'}</td>
+				<td style="padding:5px 6px;text-align:right;">${r.resting_heart_rate != null ? Math.round(r.resting_heart_rate) : '—'}</td>
+				<td style="padding:5px 6px;text-align:right;">${stressOf(r.hrv)}</td>
 			</tr>`;
 		}).join('');
 		tbody.innerHTML = rows;
