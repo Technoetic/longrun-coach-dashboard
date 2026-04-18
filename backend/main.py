@@ -591,30 +591,37 @@ async def receive_watch_data(
     # 각 컴포넌트는 0~100 으로 정규화 후 가중 평균.
     def clamp(v, lo, hi): return max(lo, min(hi, v))
 
+    # Samsung Health 표시값과 방향성을 맞추기 위해 곡선 관용도를 완화.
+    # 전문준님 실측 기준점: 수면 4.3h → Samsung "60점 보통". 우리도 60 근처.
     sleep_score = None
     if sleep is not None:
-        # 7~8h = 100, 선형 하강 (5h=60, 3h=20)
-        sleep_score = clamp(int((sleep - 3) / 5 * 100), 0, 100) if sleep < 8 else 100
+        # 8h+=100, 6h=80, 4h=58, 2h=15, 0h=0 (2차 곡선)
+        # 8h가 만점, 그 이하부터 부드럽게 하강
+        if sleep >= 8:
+            sleep_score = 100
+        else:
+            # sleep^1.3 * 14 근사 (4.3h → 약 58)
+            sleep_score = clamp(int((sleep ** 1.3) * 14), 0, 100)
 
     hrv_score = None
     if hrv is not None:
-        # pseudo-HRV: 15ms=100, 5ms=20 선형
-        hrv_score = clamp(int((hrv - 5) / 10 * 80 + 20), 0, 100)
+        # pseudo-HRV: 15ms=100, 10ms=70, 5ms=30 (완만)
+        hrv_score = clamp(int((hrv - 3) / 12 * 90 + 10), 0, 100)
 
     rhr_score = None
     if rhr is not None:
-        # 55bpm=100, 75bpm=50, 90+bpm=0 선형
-        rhr_score = clamp(int((90 - rhr) / 35 * 100), 0, 100)
+        # 55bpm=100, 75bpm=70, 90bpm=30 (완만)
+        rhr_score = clamp(int((90 - rhr) * 2.2), 0, 100)
 
     activity_score = None
     if steps is not None:
-        # 8000보=100, 4000보=50, 0보=0 선형
-        activity_score = clamp(int(steps / 80), 0, 100)
+        # Samsung 하루 목표 6000보 기준. 6000=80, 10000+=100, 3000=40
+        activity_score = clamp(int(steps / 100 + 20), 0, 100)
 
     spo2_score = None
     if spo2 is not None:
-        # 97%+=100, 95%=70, 90%-=0 선형
-        spo2_score = clamp(int((spo2 - 90) / 7 * 100), 0, 100)
+        # 96%+=100, 94%=80, 91%=50, 88%-=0
+        spo2_score = clamp(int((spo2 - 87) * 12), 0, 100)
 
     # 가중 평균: 사용 가능한 컴포넌트만 정규화해 합산
     weights = {'sleep': 0.30, 'hrv': 0.25, 'rhr': 0.20, 'activity': 0.15, 'spo2': 0.10}
