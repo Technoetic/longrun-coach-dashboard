@@ -127,6 +127,24 @@ class DetailPanel {
 			setCell('sm-weight', p.weight_kg != null ? p.weight_kg.toFixed(1) + ' kg' : null);
 			setCell('sm-body-fat', p.body_fat_pct != null ? p.body_fat_pct.toFixed(1) + '%' : null);
 
+			// 추가 11개 필드
+			const bp = (p.blood_pressure_sys != null && p.blood_pressure_dia != null)
+				? `${Math.round(p.blood_pressure_sys)}/${Math.round(p.blood_pressure_dia)} mmHg`
+				: null;
+			setCell('sm-bp', bp);
+			setCell('sm-resp', p.respiratory_rate != null ? p.respiratory_rate.toFixed(0) + ' /min' : null);
+			setCell('sm-body-temp', p.body_temperature != null ? p.body_temperature.toFixed(1) + '°C' : null);
+			setCell('sm-glucose', p.blood_glucose != null ? p.blood_glucose.toFixed(1) + ' mmol/L' : null);
+			setCell('sm-hydration', p.hydration_liters != null ? p.hydration_liters.toFixed(1) + ' L' : null);
+			setCell('sm-nutrition', p.nutrition_kcal != null ? Math.round(p.nutrition_kcal) + ' kcal' : null);
+			setCell('sm-speed', p.run_speed_mps != null ? (p.run_speed_mps * 3.6).toFixed(1) + ' km/h' : null);
+			setCell('sm-power', p.run_power_w != null ? Math.round(p.run_power_w) + ' W' : null);
+			setCell('sm-elevation', p.elevation_m != null ? Math.round(p.elevation_m) + ' m' : null);
+			setCell('sm-bone', p.bone_mass_kg != null ? p.bone_mass_kg.toFixed(1) + ' kg' : null);
+			setCell('sm-deep', p.sleep_deep_min != null ? Math.round(p.sleep_deep_min) + '분' : null);
+			setCell('sm-rem', p.sleep_rem_min != null ? Math.round(p.sleep_rem_min) + '분' : null);
+			setCell('sm-light', p.sleep_light_min != null ? Math.round(p.sleep_light_min) + '분' : null);
+
 			// 기존 블록(AI 인사이트, 주간 HR 차트 등) 은 HTML 에서 제거됨 — 아래 기존 코드는
 			// 방어적으로 건드리지만 DOM 이 없으면 조용히 건너뜀.
 			if (false) {  // legacy — HTML 제거됨, 아래 로직은 미사용

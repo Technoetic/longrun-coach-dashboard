@@ -150,6 +150,20 @@ def startup_event():
         "ALTER TABLE watch_records ADD COLUMN IF NOT EXISTS basal_metabolic_rate DOUBLE PRECISION",
         "ALTER TABLE watch_records ADD COLUMN IF NOT EXISTS weight_kg DOUBLE PRECISION",
         "ALTER TABLE watch_records ADD COLUMN IF NOT EXISTS body_fat_pct DOUBLE PRECISION",
+        "ALTER TABLE watch_records ADD COLUMN IF NOT EXISTS blood_pressure_sys DOUBLE PRECISION",
+        "ALTER TABLE watch_records ADD COLUMN IF NOT EXISTS blood_pressure_dia DOUBLE PRECISION",
+        "ALTER TABLE watch_records ADD COLUMN IF NOT EXISTS respiratory_rate DOUBLE PRECISION",
+        "ALTER TABLE watch_records ADD COLUMN IF NOT EXISTS body_temperature DOUBLE PRECISION",
+        "ALTER TABLE watch_records ADD COLUMN IF NOT EXISTS blood_glucose DOUBLE PRECISION",
+        "ALTER TABLE watch_records ADD COLUMN IF NOT EXISTS hydration_liters DOUBLE PRECISION",
+        "ALTER TABLE watch_records ADD COLUMN IF NOT EXISTS nutrition_kcal DOUBLE PRECISION",
+        "ALTER TABLE watch_records ADD COLUMN IF NOT EXISTS run_speed_mps DOUBLE PRECISION",
+        "ALTER TABLE watch_records ADD COLUMN IF NOT EXISTS run_power_w DOUBLE PRECISION",
+        "ALTER TABLE watch_records ADD COLUMN IF NOT EXISTS elevation_m DOUBLE PRECISION",
+        "ALTER TABLE watch_records ADD COLUMN IF NOT EXISTS bone_mass_kg DOUBLE PRECISION",
+        "ALTER TABLE watch_records ADD COLUMN IF NOT EXISTS sleep_deep_min DOUBLE PRECISION",
+        "ALTER TABLE watch_records ADD COLUMN IF NOT EXISTS sleep_rem_min DOUBLE PRECISION",
+        "ALTER TABLE watch_records ADD COLUMN IF NOT EXISTS sleep_light_min DOUBLE PRECISION",
     ]
     with engine.begin() as conn:
         for sql in migrations:
@@ -702,6 +716,20 @@ async def receive_watch_data(
         basal_metabolic_rate=data.get("basal_metabolic_rate"),
         weight_kg=data.get("weight_kg"),
         body_fat_pct=data.get("body_fat_pct"),
+        blood_pressure_sys=data.get("blood_pressure_sys"),
+        blood_pressure_dia=data.get("blood_pressure_dia"),
+        respiratory_rate=data.get("respiratory_rate"),
+        body_temperature=data.get("body_temperature"),
+        blood_glucose=data.get("blood_glucose"),
+        hydration_liters=data.get("hydration_liters"),
+        nutrition_kcal=data.get("nutrition_kcal"),
+        run_speed_mps=data.get("run_speed_mps"),
+        run_power_w=data.get("run_power_w"),
+        elevation_m=data.get("elevation_m"),
+        bone_mass_kg=data.get("bone_mass_kg"),
+        sleep_deep_min=data.get("sleep_deep_min"),
+        sleep_rem_min=data.get("sleep_rem_min"),
+        sleep_light_min=data.get("sleep_light_min"),
     )
     db.add(watch)
     db.commit()
