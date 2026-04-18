@@ -617,9 +617,14 @@ async def receive_watch_data(
     active_cal = data.get("active_calories")
     basal_cal = data.get("basal_calories")
 
-    # 빈 배치 거부: 모든 의미있는 지표가 null/0이면 저장하지 않는다.
-    # Health Connect가 14분마다 빈 sync를 보내 과거 HR row가 limit() 뒤로 밀려나는 현상 방지.
-    meaningful = [hr, rhr, hrv, spo2, sleep, data.get("walking_heart_rate")]
+    # 빈 배치 거부: Samsung Health 공식 시계열 필드 중 하나라도 있어야 저장.
+    # 체중/체지방은 변화가 없는 날에도 매 tick 같은 값이 잡혀 의미가 없으므로 제외.
+    meaningful = [
+        hr, spo2, sleep, active_cal, basal_cal,
+        data.get("distance_km"),
+        data.get("run_speed_mps"),
+        data.get("exercise_minutes"),
+    ]
     meaningful_steps = steps if (steps and steps > 100) else None
     if all(v is None for v in meaningful) and meaningful_steps is None:
         return {"status": "skipped", "reason": "empty batch"}

@@ -269,8 +269,6 @@ class DetailPanel {
 				return Math.round((r.active_calories || 0) + (r.basal_calories || 0));
 			}],
 			['수면h', (r) => f1(r.sleep_hours)],
-			['체중kg', (r) => f1(r.weight_kg)],
-			['체지방%', (r) => f1(r.body_fat_pct)],
 		];
 		if (thead) {
 			thead.innerHTML = '<tr style="border-bottom:1px solid var(--border,#2a2a2a);opacity:0.7;">' +
