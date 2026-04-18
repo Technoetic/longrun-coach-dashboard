@@ -240,7 +240,8 @@ class DetailPanel {
 			return;
 		}
 		const fmtTs = (iso) => {
-			const d = new Date(iso);
+			const s = typeof iso === 'string' && !/[zZ]|[+-]\d\d:?\d\d$/.test(iso) ? iso + 'Z' : iso;
+			const d = new Date(s);
 			const mm = String(d.getMonth() + 1).padStart(2, '0');
 			const dd = String(d.getDate()).padStart(2, '0');
 			const hh = String(d.getHours()).padStart(2, '0');
