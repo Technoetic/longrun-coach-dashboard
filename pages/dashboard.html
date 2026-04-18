@@ -138,85 +138,24 @@
 
     <!-- ═══ 주간 View ═══ -->
     <div class="panel-body dp-view active" id="viewWeekly">
-
-      <!-- 링 3개: 회복 / 수면 / 활동 -->
-      <div class="dp-rings">
-        <div class="dp-ring-item">
-          <div class="dp-ring-wrap" style="width:140px;height:140px;">
-            <svg viewBox="0 0 140 140" width="140" height="140">
-              <circle class="track" cx="70" cy="70" r="58" stroke-width="8"/>
-              <circle class="fill" cx="70" cy="70" r="58" stroke="var(--green)" stroke-width="8" stroke-dasharray="364" stroke-dashoffset="364" id="rRecovery"/>
-            </svg>
-            <div class="dp-ring-center">
-              <div class="dp-ring-val dp-v-green" style="font-size:36px;" id="rRecoveryVal">—</div>
-              <div class="dp-ring-sub">Energy</div>
-            </div>
-          </div>
-          <div class="dp-ring-label">에너지 점수</div>
-        </div>
-        <div class="dp-ring-item">
-          <div class="dp-ring-wrap" style="width:100px;height:100px;">
-            <svg viewBox="0 0 100 100" width="100" height="100">
-              <circle class="track" cx="50" cy="50" r="40" stroke-width="7"/>
-              <circle class="fill" cx="50" cy="50" r="40" stroke="var(--blue)" stroke-width="7" stroke-dasharray="251" stroke-dashoffset="251" id="rSleep"/>
-            </svg>
-            <div class="dp-ring-center">
-              <div class="dp-ring-val dp-v-blue" style="font-size:22px;" id="rSleepVal">—</div>
-              <div class="dp-ring-sub">Sleep</div>
-            </div>
-          </div>
-          <div class="dp-ring-label">수면</div>
-        </div>
-        <div class="dp-ring-item">
-          <div class="dp-ring-wrap" style="width:100px;height:100px;">
-            <svg viewBox="0 0 100 100" width="100" height="100">
-              <circle class="track" cx="50" cy="50" r="40" stroke-width="7"/>
-              <circle class="fill" cx="50" cy="50" r="40" stroke="var(--yellow)" stroke-width="7" stroke-dasharray="251" stroke-dashoffset="251" id="rStrain"/>
-            </svg>
-            <div class="dp-ring-center">
-              <div class="dp-ring-val dp-v-yellow" style="font-size:22px;" id="rStrainVal">—</div>
-              <div class="dp-ring-sub">Strain</div>
-            </div>
-          </div>
-          <div class="dp-ring-label">부하</div>
-        </div>
-      </div>
-
-      <!-- 심박 · 심혈관 -->
-      <div class="dp-section-title">심박 · 심혈관</div>
-      <ul class="dp-list">
-        <li><span class="dp-list-label">심박수</span><span class="dp-list-val dp-v-white">—</span></li>
-        <li><span class="dp-list-label">안정심박</span><span class="dp-list-val dp-v-white">—</span></li>
-        <li><span class="dp-list-label" title="* 추정치 — 손목 PPG 정수 bpm 기반 역산. 절대값이 아닌 변동 추세로만 판단하세요. 임상 HRV(체스트 스트랩)와 직접 비교 금지.">HRV<sup style="font-size:0.6em;opacity:0.7">*</sup></span><span class="dp-list-val dp-v-white">—</span></li>
-        <li><span class="dp-list-label">SpO2</span><span class="dp-list-val dp-v-white">—</span></li>
-      </ul>
-      <!-- Phase 5: 7일 HR 트렌드 (일자별 안정심박/최대심박 bar chart) -->
-      <div id="dp-weekly-hr-chart" class="dp-weekly-chart"></div>
-
-      <!-- 활동 -->
-      <div class="dp-section-title">활동</div>
-      <ul class="dp-list">
-        <li><span class="dp-list-label">걸음수</span><span class="dp-list-val dp-v-white">—</span></li>
-        <li><span class="dp-list-label">거리</span><span class="dp-list-val dp-v-white">—</span></li>
-        <li><span class="dp-list-label">활동칼로리</span><span class="dp-list-val dp-v-white">—</span></li>
-        <li><span class="dp-list-label">기초칼로리</span><span class="dp-list-val dp-v-white">—</span></li>
-        <li><span class="dp-list-label">운동</span><span class="dp-list-val dp-v-white">—</span></li>
-        <li><span class="dp-list-label">계단</span><span class="dp-list-val dp-v-white">—</span></li>
-      </ul>
-
-      <!-- 수면 -->
-      <div class="dp-section-title">수면</div>
-      <ul class="dp-list">
-        <li><span class="dp-list-label">수면 시간</span><span class="dp-list-val dp-v-white">—</span></li>
-        <li><span class="dp-list-label" title="수면 시간 기반 추정: 8h=100, 5h=30, 0h=0">수면 점수</span><span class="dp-list-val dp-v-white">—</span></li>
-        <li><span class="dp-list-label">취침 — 기상</span><span class="dp-list-val dp-v-white">—</span></li>
-      </ul>
-
-      <!-- AI -->
-      <div class="ai-insight">
-        <div class="ai-insight-tag">AI 인사이트</div>
-        <p>선수를 선택하면 실시간 분석이 표시됩니다.</p>
-      </div>
+      <!-- Samsung Health 미러 테이블: 링·차트·AI 블록을 걷어내고 라벨-값만 -->
+      <table class="samsung-mirror" style="width:100%;border-collapse:collapse;font-size:14px;">
+        <tbody id="samsung-mirror-body">
+          <tr><td style="padding:8px 12px;border-bottom:1px solid var(--border,#2a2a2a);opacity:0.7;">에너지 점수</td><td id="sm-energy" style="padding:8px 12px;border-bottom:1px solid var(--border,#2a2a2a);text-align:right;">—</td></tr>
+          <tr><td style="padding:8px 12px;border-bottom:1px solid var(--border,#2a2a2a);opacity:0.7;">걸음수</td><td id="sm-steps" style="padding:8px 12px;border-bottom:1px solid var(--border,#2a2a2a);text-align:right;">—</td></tr>
+          <tr><td style="padding:8px 12px;border-bottom:1px solid var(--border,#2a2a2a);opacity:0.7;">활동 시간</td><td id="sm-exercise" style="padding:8px 12px;border-bottom:1px solid var(--border,#2a2a2a);text-align:right;">—</td></tr>
+          <tr><td style="padding:8px 12px;border-bottom:1px solid var(--border,#2a2a2a);opacity:0.7;">활동 칼로리</td><td id="sm-cal" style="padding:8px 12px;border-bottom:1px solid var(--border,#2a2a2a);text-align:right;">—</td></tr>
+          <tr><td style="padding:8px 12px;border-bottom:1px solid var(--border,#2a2a2a);opacity:0.7;">수면 점수</td><td id="sm-sleep-score" style="padding:8px 12px;border-bottom:1px solid var(--border,#2a2a2a);text-align:right;">—</td></tr>
+          <tr><td style="padding:8px 12px;border-bottom:1px solid var(--border,#2a2a2a);opacity:0.7;">수면 시간</td><td id="sm-sleep" style="padding:8px 12px;border-bottom:1px solid var(--border,#2a2a2a);text-align:right;">—</td></tr>
+          <tr><td style="padding:8px 12px;border-bottom:1px solid var(--border,#2a2a2a);opacity:0.7;">취침 — 기상</td><td id="sm-bed" style="padding:8px 12px;border-bottom:1px solid var(--border,#2a2a2a);text-align:right;">—</td></tr>
+          <tr><td style="padding:8px 12px;border-bottom:1px solid var(--border,#2a2a2a);opacity:0.7;">심박수</td><td id="sm-hr" style="padding:8px 12px;border-bottom:1px solid var(--border,#2a2a2a);text-align:right;">—</td></tr>
+          <tr><td style="padding:8px 12px;border-bottom:1px solid var(--border,#2a2a2a);opacity:0.7;">심박 범위</td><td id="sm-hr-range" style="padding:8px 12px;border-bottom:1px solid var(--border,#2a2a2a);text-align:right;">—</td></tr>
+          <tr><td style="padding:8px 12px;border-bottom:1px solid var(--border,#2a2a2a);opacity:0.7;">안정심박</td><td id="sm-rhr" style="padding:8px 12px;border-bottom:1px solid var(--border,#2a2a2a);text-align:right;">—</td></tr>
+          <tr><td style="padding:8px 12px;border-bottom:1px solid var(--border,#2a2a2a);opacity:0.7;" title="* 추정치 — 손목 PPG 정수 bpm 기반 역산. Samsung 은 HRV 를 UI 에 노출하지 않음.">HRV*</td><td id="sm-hrv" style="padding:8px 12px;border-bottom:1px solid var(--border,#2a2a2a);text-align:right;">—</td></tr>
+          <tr><td style="padding:8px 12px;border-bottom:1px solid var(--border,#2a2a2a);opacity:0.7;">스트레스</td><td id="sm-stress" style="padding:8px 12px;border-bottom:1px solid var(--border,#2a2a2a);text-align:right;">—</td></tr>
+          <tr><td style="padding:8px 12px;opacity:0.7;">혈중 산소</td><td id="sm-spo2" style="padding:8px 12px;text-align:right;">—</td></tr>
+        </tbody>
+      </table>
     </div>
 
     <!-- ═══ 월간 View ═══ -->

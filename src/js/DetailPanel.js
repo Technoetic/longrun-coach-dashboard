@@ -59,102 +59,64 @@ class DetailPanel {
 			}
 			if (!p) { this._placeholderView(); return; }
 
-			// 회복 점수 계산 (pseudo-HRV + ACWR 기반)
-			// pseudo-HRV 는 정수 bpm 기반 역산이라 실제 RMSSD 의 1/3~1/5 수준.
-			// 일반 범위: 5~20ms. 20ms 이상이면 100점 처리.
-			const hrvScore = p.hrv ? Math.min(100, Math.round(p.hrv * 5)) : 50;
-			const acwrPenalty = p.acwr > 1.3 ? (p.acwr - 1.3) * 50 : 0;
-			const recovery = Math.max(0, Math.min(100, hrvScore - Math.round(acwrPenalty)));
-			const sleepPct = p.sleep ? Math.min(1, p.sleep / 9) : 0;
-			const strainVal = p.acwr ? (p.acwr * 10).toFixed(1) : '0';
-			const strainPct = p.acwr ? Math.min(1, p.acwr / 2) : 0;
+			// Samsung Health mirror table 렌더링.
+			// 기존 링·차트·섹션 리스트는 HTML 에서 제거됨.
+			const setCell = (id, val) => {
+				const el = document.getElementById(id);
+				if (el) el.textContent = val != null && val !== '' ? val : '—';
+			};
 
-			const rColor = recovery >= 70 ? 'var(--green)' : recovery >= 40 ? 'var(--yellow)' : 'var(--red)';
-			const rCls = recovery >= 70 ? 'dp-v-green' : recovery >= 40 ? 'dp-v-yellow' : 'dp-v-red';
+			// 에너지 점수 (Option G 공식 — 서버 composite_score 와 방향성 일치)
+			const energy = p.composite_score != null ? p.composite_score
+				: (p.hrv != null && p.sleep != null
+					? Math.round(
+						(Math.pow(Math.min(p.sleep, 8), 1.3) * 14 * 0.30 +
+						Math.min(100, Math.max(10, (p.hrv - 3) / 12 * 90 + 10)) * 0.25 +
+						Math.min(100, Math.max(0, (p.steps || 0) / 100 + 20)) * 0.15 +
+						Math.min(100, Math.max(0, (p.spo2 - 87) * 12)) * 0.10)
+						/ (0.30 + 0.25 + 0.15 + 0.10),
+					  )
+					: null);
+			setCell('sm-energy', energy);
 
-			const valEl = document.getElementById("rRecoveryVal");
-			valEl.textContent = recovery;
-			valEl.className = "dp-ring-val " + rCls;
-			valEl.style.fontSize = "36px";
+			setCell('sm-steps', p.steps != null ? p.steps.toLocaleString() : null);
+			setCell('sm-exercise', p.exercise_min != null ? p.exercise_min + '분' : null);
+			setCell('sm-cal', p.active_cal != null ? Math.round(p.active_cal) + ' kcal' : null);
 
-			const rings = [
-				{ id: "rRecovery", circ: 364, pct: recovery / 100, color: rColor },
-				{ id: "rSleep", circ: 251, pct: sleepPct, color: "var(--blue)" },
-				{ id: "rStrain", circ: 251, pct: strainPct, color: "var(--yellow)" },
-			];
-			rings.forEach((r) => {
-				const el = document.getElementById(r.id);
-				el.style.stroke = r.color;
-				el.style.strokeDashoffset = String(r.circ);
-				setTimeout(() => { el.style.strokeDashoffset = String(r.circ - r.circ * r.pct); }, 100);
-			});
-
-			// 수면 링 값
-			const sleepCenter = document.querySelector('#rSleep').closest('.dp-ring-wrap').querySelector('.dp-ring-val');
-			if (sleepCenter) {
-				sleepCenter.innerHTML = p.sleep != null
-					? p.sleep.toFixed(1) + '<span style="font-size:11px">h</span>'
-					: '—';
+			// 수면 점수 (서버 공식과 동일): sleep^1.3 * 14, 8h+ = 100
+			let sleepScore = null;
+			if (p.sleep != null) {
+				sleepScore = p.sleep >= 8 ? 100 : Math.max(0, Math.min(100, Math.round(Math.pow(p.sleep, 1.3) * 14)));
 			}
+			setCell('sm-sleep-score', sleepScore);
+			setCell('sm-sleep', p.sleep != null ? p.sleep.toFixed(1) + '시간' : null);
+			setCell('sm-bed', null); // 취침/기상 시각은 DB 스키마 추가 후 (별도 phase)
 
-			// 부하 링 값
-			const strainCenter = document.querySelector('#rStrain').closest('.dp-ring-wrap').querySelector('.dp-ring-val');
-			if (strainCenter) strainCenter.textContent = strainVal;
+			setCell('sm-hr', p.hr != null ? p.hr + ' bpm' : null);
+			// 심박 범위: hr_avg 가 있으면 그 근처 ±편차 추정, 또는 현재/안정 조합
+			let hrRange = null;
+			if (p.hr_max != null && p.rhr != null) hrRange = `${Math.round(p.rhr)} - ${Math.round(p.hr_max)} bpm`;
+			else if (p.hr_max != null && p.hr_avg != null) hrRange = `${Math.round(p.hr_avg)} (최대 ${Math.round(p.hr_max)}) bpm`;
+			setCell('sm-hr-range', hrRange);
 
-			// 주간 뷰 상세 리스트 업데이트
-			const weekly = document.getElementById('viewWeekly');
-			if (!weekly) return;
-			const lists = weekly.querySelectorAll('.dp-list');
+			setCell('sm-rhr', p.rhr != null ? p.rhr + ' bpm' : null);
+			setCell('sm-hrv', p.hrv != null ? Math.round(p.hrv) + ' ms' : null);
 
-			// 심박·심혈관
-			if (lists[0]) {
-				const items = lists[0].querySelectorAll('li');
-				if (items[0]) {
-					// 심박수: 현재값 + (오늘 max / avg / samples) 작은 서브텍스트 + sparkline
-					let hrHtml = (p.hr || '-') + '<span class="dp-list-unit">bpm</span>';
-					if (p.hr_max != null || p.hr_avg != null) {
-						const maxTxt = p.hr_max != null ? Math.round(p.hr_max) : '-';
-						const avgTxt = p.hr_avg != null ? Math.round(p.hr_avg) : '-';
-						const n = p.hr_samples_count || 0;
-						hrHtml += `<div class="dp-list-sub">오늘 최대 ${maxTxt} / 평균 ${avgTxt} bpm (${n}샘플)</div>`;
-					}
-					// Parse hr_samples_json (from coach endpoint) or array (from bio-data)
-					let samples = null;
-					if (Array.isArray(p.hr_samples)) samples = p.hr_samples;
-					else if (typeof p.hr_samples_json === 'string' && p.hr_samples_json.length > 0) {
-						try { samples = JSON.parse(p.hr_samples_json); } catch (_) { samples = null; }
-					}
-					if (Array.isArray(samples) && samples.length >= 3) {
-						hrHtml += this._sparkline(samples);
-					}
-					items[0].querySelector('.dp-list-val').innerHTML = hrHtml;
-				}
-				if (items[1]) items[1].querySelector('.dp-list-val').innerHTML = (p.rhr || '-') + '<span class="dp-list-unit">bpm</span>';
-				if (items[2]) items[2].querySelector('.dp-list-val').innerHTML = (p.hrv ? Math.round(p.hrv) : '-') + '<span class="dp-list-unit">ms*</span>';
-				if (items[3]) items[3].querySelector('.dp-list-val').innerHTML = (p.spo2 || '-') + '<span class="dp-list-unit">%</span>';
+			// 스트레스 라벨: pseudo-HRV 기반. Samsung 은 "편안함/보통/높음".
+			let stressLabel = null;
+			if (p.hrv != null) {
+				stressLabel = p.hrv >= 12 ? '편안함' : p.hrv >= 8 ? '보통' : '높음';
 			}
+			setCell('sm-stress', stressLabel);
+			setCell('sm-spo2', p.spo2 != null ? p.spo2 + '%' : null);
 
-			// 활동
-			if (lists[1]) {
-				const items = lists[1].querySelectorAll('li');
-				if (items[0]) items[0].querySelector('.dp-list-val').textContent = p.steps ? p.steps.toLocaleString() : '-';
-				if (items[1]) items[1].querySelector('.dp-list-val').innerHTML = (p.distance_km || '-') + '<span class="dp-list-unit">km</span>';
-				if (items[2]) items[2].querySelector('.dp-list-val').innerHTML = (p.active_cal ? Math.round(p.active_cal) : '-') + '<span class="dp-list-unit">kcal</span>';
-				if (items[3]) items[3].querySelector('.dp-list-val').innerHTML = (p.basal_cal || '-') + '<span class="dp-list-unit">kcal</span>';
-				if (items[4]) items[4].querySelector('.dp-list-val').innerHTML = (p.exercise_min || '-') + '<span class="dp-list-unit">분</span>';
-				if (items[5]) items[5].querySelector('.dp-list-val').innerHTML = (p.flights || '-') + '<span class="dp-list-unit">층</span>';
-			}
-
-			// 수면
-			if (lists[2]) {
-				const items = lists[2].querySelectorAll('li');
-				if (items[0]) {
-					items[0].querySelector('.dp-list-val').innerHTML = p.sleep != null
-						? p.sleep.toFixed(1) + '<span class="dp-list-unit">시간</span>'
-						: '—';
-				}
-				// 수면 점수 (Samsung Health 방향성 매칭): 서버 공식과 동일하게
-				// sleep^1.3 * 14. 4.3h → 약 58, 6h → 80, 8h+ → 100
+			// 기존 블록(AI 인사이트, 주간 HR 차트 등) 은 HTML 에서 제거됨 — 아래 기존 코드는
+			// 방어적으로 건드리지만 DOM 이 없으면 조용히 건너뜀.
+			if (false) {  // legacy — HTML 제거됨, 아래 로직은 미사용
+				const weekly = document.getElementById('viewWeekly');
+				const lists = weekly && weekly.querySelectorAll('.dp-list');
+				const items = lists && lists[2] ? lists[2].querySelectorAll('li') : [];
+				void items;
 				if (items[1]) {
 					let sleepScore = null;
 					if (p.sleep != null) {
@@ -167,8 +129,9 @@ class DetailPanel {
 			}
 
 
-			// AI 인사이트 — 데이터 일부만 있을 때도 의미 있게
-			const aiP = weekly.querySelector('.ai-insight p');
+			// AI 인사이트 — HTML 에서 제거됨, 방어적으로 존재 여부만 확인
+			const weekly2 = document.getElementById('viewWeekly');
+			const aiP = weekly2 ? weekly2.querySelector('.ai-insight p') : null;
 			if (aiP) {
 				const parts = [];
 				if (p.hrv != null) {
