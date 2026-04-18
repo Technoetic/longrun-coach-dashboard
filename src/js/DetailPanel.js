@@ -80,8 +80,18 @@ class DetailPanel {
 			setCell('sm-energy', energy);
 
 			setCell('sm-steps', p.steps != null ? p.steps.toLocaleString() : null);
-			setCell('sm-exercise', p.exercise_min != null ? p.exercise_min + '분' : null);
-			setCell('sm-cal', p.active_cal != null ? Math.round(p.active_cal) + ' kcal' : null);
+			// 활동 시간: Health Connect 의 ExerciseSessionRecord 는 명시적 세션만
+			// 기록하므로 Samsung Health 의 자동 감지 활동량(87분 등) 과 달라 null.
+			// Fallback: 걸음/100 으로 추정 (경험적: 1000보 ≈ 10분).
+			const exerciseMin = p.exercise_min != null
+				? p.exercise_min
+				: (p.steps != null ? Math.round(p.steps / 100) : null);
+			setCell('sm-exercise', exerciseMin != null ? exerciseMin + '분' : null);
+			// 활동 칼로리: Health Connect 에 없으면 걸음 기반 추정 (1보 ≈ 0.04 kcal)
+			const activeCal = p.active_cal != null
+				? Math.round(p.active_cal)
+				: (p.steps != null ? Math.round(p.steps * 0.04) : null);
+			setCell('sm-cal', activeCal != null ? activeCal + ' kcal' : null);
 
 			// 수면 점수 (서버 공식과 동일): sleep^1.3 * 14, 8h+ = 100
 			let sleepScore = null;
