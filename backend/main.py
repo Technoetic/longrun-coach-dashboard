@@ -762,15 +762,19 @@ async def receive_watch_data(
 async def get_bio_timeseries(
     response: Response,
     limit: int = 100,
+    player_id: int | None = None,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """최근 N개 WatchRecord 를 시계열로 반환. 각 레코드는 created_at 타임스탬프 포함."""
+    """최근 N개 WatchRecord 시계열. player_id 가 있으면 그 선수(코치 뷰), 없으면 본인."""
     response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate"
     response.headers["Pragma"] = "no-cache"
     limit = max(1, min(500, limit))
+    target_id = current_user.id
+    if player_id is not None and current_user.role == "coach":
+        target_id = player_id
     records = db.query(WatchRecord).filter(
-        WatchRecord.user_id == current_user.id,
+        WatchRecord.user_id == target_id,
     ).order_by(WatchRecord.created_at.desc()).limit(limit).all()
     return {"records": [to_dict(r) for r in records], "count": len(records)}
 

@@ -223,7 +223,8 @@ class DetailPanel {
 		tbody.innerHTML = '<tr><td colspan="10" style="padding:20px;text-align:center;opacity:0.5;">불러오는 중...</td></tr>';
 		let records = [];
 		try {
-			const res = await fetch('/api/bio-timeseries?limit=100&_t=' + Date.now(), {
+			const pidQs = this.currentPlayerId ? `&player_id=${this.currentPlayerId}` : '';
+			const res = await fetch('/api/bio-timeseries?limit=100' + pidQs + '&_t=' + Date.now(), {
 				credentials: 'include',
 				cache: 'no-store',
 			});
