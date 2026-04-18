@@ -141,42 +141,45 @@ def to_list(objs):
 @app.on_event("startup")
 def startup_event():
     Base.metadata.create_all(bind=engine)
-    # Idempotent column migrations for WatchRecord.
-    # create_all 은 기존 테이블에 컬럼을 추가하지 않으므로 운영 DB 에는 새 컬럼이
-    # 반영되지 않는다. 스타트업마다 안전하게 ALTER ADD COLUMN IF NOT EXISTS 실행.
-    migrations = [
-        "ALTER TABLE watch_records ADD COLUMN IF NOT EXISTS vo2_max DOUBLE PRECISION",
-        "ALTER TABLE watch_records ADD COLUMN IF NOT EXISTS skin_temperature DOUBLE PRECISION",
-        "ALTER TABLE watch_records ADD COLUMN IF NOT EXISTS basal_metabolic_rate DOUBLE PRECISION",
-        "ALTER TABLE watch_records ADD COLUMN IF NOT EXISTS weight_kg DOUBLE PRECISION",
-        "ALTER TABLE watch_records ADD COLUMN IF NOT EXISTS body_fat_pct DOUBLE PRECISION",
-        "ALTER TABLE watch_records ADD COLUMN IF NOT EXISTS blood_pressure_sys DOUBLE PRECISION",
-        "ALTER TABLE watch_records ADD COLUMN IF NOT EXISTS blood_pressure_dia DOUBLE PRECISION",
-        "ALTER TABLE watch_records ADD COLUMN IF NOT EXISTS respiratory_rate DOUBLE PRECISION",
-        "ALTER TABLE watch_records ADD COLUMN IF NOT EXISTS body_temperature DOUBLE PRECISION",
-        "ALTER TABLE watch_records ADD COLUMN IF NOT EXISTS blood_glucose DOUBLE PRECISION",
-        "ALTER TABLE watch_records ADD COLUMN IF NOT EXISTS hydration_liters DOUBLE PRECISION",
-        "ALTER TABLE watch_records ADD COLUMN IF NOT EXISTS nutrition_kcal DOUBLE PRECISION",
-        "ALTER TABLE watch_records ADD COLUMN IF NOT EXISTS run_speed_mps DOUBLE PRECISION",
-        "ALTER TABLE watch_records ADD COLUMN IF NOT EXISTS run_power_w DOUBLE PRECISION",
-        "ALTER TABLE watch_records ADD COLUMN IF NOT EXISTS elevation_m DOUBLE PRECISION",
-        "ALTER TABLE watch_records ADD COLUMN IF NOT EXISTS bone_mass_kg DOUBLE PRECISION",
-        "ALTER TABLE watch_records ADD COLUMN IF NOT EXISTS sleep_deep_min DOUBLE PRECISION",
-        "ALTER TABLE watch_records ADD COLUMN IF NOT EXISTS sleep_rem_min DOUBLE PRECISION",
-        "ALTER TABLE watch_records ADD COLUMN IF NOT EXISTS sleep_light_min DOUBLE PRECISION",
-        "ALTER TABLE watch_records ADD COLUMN IF NOT EXISTS steps_cadence DOUBLE PRECISION",
-        "ALTER TABLE watch_records ADD COLUMN IF NOT EXISTS cycling_cadence DOUBLE PRECISION",
-        "ALTER TABLE watch_records ADD COLUMN IF NOT EXISTS lean_body_mass_kg DOUBLE PRECISION",
-        "ALTER TABLE watch_records ADD COLUMN IF NOT EXISTS body_water_mass_kg DOUBLE PRECISION",
-        "ALTER TABLE watch_records ADD COLUMN IF NOT EXISTS basal_body_temperature DOUBLE PRECISION",
+    # Idempotent column migrations for WatchRecord — MySQL/PostgreSQL 호환.
+    # MySQL 은 ADD COLUMN IF NOT EXISTS 를 8.0.20 미만에서 지원하지 않아
+    # information_schema 로 사전 검사 후 ADD.
+    from sqlalchemy import text
+    new_cols = [
+        "vo2_max", "skin_temperature", "basal_metabolic_rate",
+        "weight_kg", "body_fat_pct",
+        "blood_pressure_sys", "blood_pressure_dia", "respiratory_rate",
+        "body_temperature", "blood_glucose", "hydration_liters",
+        "nutrition_kcal", "run_speed_mps", "run_power_w", "elevation_m",
+        "bone_mass_kg", "sleep_deep_min", "sleep_rem_min", "sleep_light_min",
+        "steps_cadence", "cycling_cadence", "lean_body_mass_kg",
+        "body_water_mass_kg", "basal_body_temperature",
     ]
-    with engine.begin() as conn:
-        for sql in migrations:
-            try:
-                from sqlalchemy import text
-                conn.execute(text(sql))
-            except Exception as e:
-                print(f"migration skipped: {sql} — {e}")
+    try:
+        with engine.begin() as conn:
+            existing = set()
+            # MySQL / PostgreSQL 둘 다 information_schema 지원
+            res = conn.execute(text(
+                "SELECT column_name FROM information_schema.columns "
+                "WHERE table_name = 'watch_records'"
+            ))
+            for row in res:
+                existing.add(row[0].lower())
+            for col in new_cols:
+                if col.lower() in existing:
+                    continue
+                try:
+                    conn.execute(text(f"ALTER TABLE watch_records ADD COLUMN {col} DOUBLE"))
+                    print(f"migration: added column {col}")
+                except Exception as e:
+                    # PostgreSQL 은 DOUBLE 키워드 없음 — DOUBLE PRECISION 재시도
+                    try:
+                        conn.execute(text(f"ALTER TABLE watch_records ADD COLUMN {col} DOUBLE PRECISION"))
+                        print(f"migration: added column {col} (DOUBLE PRECISION)")
+                    except Exception as e2:
+                        print(f"migration failed for {col}: {e2}")
+    except Exception as e:
+        print(f"migration block failed: {e}")
 
 # Health check
 @app.get("/api/health")
