@@ -128,9 +128,8 @@ class DetailPanel {
 					items[0].querySelector('.dp-list-val').innerHTML = hrHtml;
 				}
 				if (items[1]) items[1].querySelector('.dp-list-val').innerHTML = (p.rhr || '-') + '<span class="dp-list-unit">bpm</span>';
-				if (items[2]) items[2].querySelector('.dp-list-val').innerHTML = (p.walking_hr || '-') + '<span class="dp-list-unit">bpm</span>';
-				if (items[3]) items[3].querySelector('.dp-list-val').innerHTML = (p.hrv ? Math.round(p.hrv) : '-') + '<span class="dp-list-unit">ms</span>';
-				if (items[4]) items[4].querySelector('.dp-list-val').innerHTML = (p.spo2 || '-') + '<span class="dp-list-unit">%</span>';
+				if (items[2]) items[2].querySelector('.dp-list-val').innerHTML = (p.hrv ? Math.round(p.hrv) : '-') + '<span class="dp-list-unit">ms</span>';
+				if (items[3]) items[3].querySelector('.dp-list-val').innerHTML = (p.spo2 || '-') + '<span class="dp-list-unit">%</span>';
 			}
 
 			// 활동
@@ -141,8 +140,7 @@ class DetailPanel {
 				if (items[2]) items[2].querySelector('.dp-list-val').innerHTML = (p.active_cal ? Math.round(p.active_cal) : '-') + '<span class="dp-list-unit">kcal</span>';
 				if (items[3]) items[3].querySelector('.dp-list-val').innerHTML = (p.basal_cal || '-') + '<span class="dp-list-unit">kcal</span>';
 				if (items[4]) items[4].querySelector('.dp-list-val').innerHTML = (p.exercise_min || '-') + '<span class="dp-list-unit">분</span>';
-				if (items[5]) items[5].querySelector('.dp-list-val').innerHTML = (p.stand_min || '-') + '<span class="dp-list-unit">분</span>';
-				if (items[6]) items[6].querySelector('.dp-list-val').innerHTML = (p.flights || '-') + '<span class="dp-list-unit">층</span>';
+				if (items[5]) items[5].querySelector('.dp-list-val').innerHTML = (p.flights || '-') + '<span class="dp-list-unit">층</span>';
 			}
 
 			// 수면
@@ -156,12 +154,6 @@ class DetailPanel {
 				if (items[1]) items[1].querySelector('.dp-list-val').textContent = '—';
 			}
 
-			// 환경·청각
-			if (lists[3]) {
-				const items = lists[3].querySelectorAll('li');
-				if (items[0]) items[0].querySelector('.dp-list-val').innerHTML = (p.env_db || '-') + '<span class="dp-list-unit">dB</span>';
-				if (items[1]) items[1].querySelector('.dp-list-val').innerHTML = (p.earphone_db || '-') + '<span class="dp-list-unit">dB</span>';
-			}
 
 			// AI 인사이트 — 데이터 일부만 있을 때도 의미 있게
 			const aiP = weekly.querySelector('.ai-insight p');
@@ -503,14 +495,6 @@ class DetailPanel {
 				: data.pain <= 3
 					? "dp-v-yellow"
 					: "dp-v-red");
-		document.getElementById("dd-noise").innerHTML =
-			data.noise + '<span class="dp-list-unit">dB</span>';
-		document.getElementById("dd-noise").className =
-			"dp-list-val " + (data.noise < 50 ? "dp-v-green" : "dp-v-yellow");
-		document.getElementById("dd-earphone").innerHTML =
-			data.earphone + '<span class="dp-list-unit">dB</span>';
-		document.getElementById("dd-earphone").className =
-			"dp-list-val " + (data.earphone < 65 ? "dp-v-green" : "dp-v-yellow");
 	}
 
 	/**
