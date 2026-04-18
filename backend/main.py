@@ -585,17 +585,49 @@ async def receive_watch_data(
     if all(v is None for v in meaningful) and meaningful_steps is None:
         return {"status": "skipped", "reason": "empty batch"}
 
-    # 컨디션 점수 자동 계산
-    score = 50  # 기본
-    if hrv and hrv > 50: score += 15
-    elif hrv and hrv < 30: score -= 15
-    if sleep and sleep >= 7: score += 10
-    elif sleep and sleep < 6: score -= 10
-    if spo2 and spo2 >= 95: score += 5
-    elif spo2 and spo2 < 95: score -= 15
-    if rhr and rhr < 65: score += 5
-    elif rhr and rhr > 85: score -= 10
-    score = max(0, min(100, score))
+    # Option G: Samsung Energy Score 모사 — 수면/HRV/RHR/활동을 가중 합산.
+    # Samsung 공식 점수는 0~100 이며 70+ 가 "양호". 우리가 보내는 HRV 는
+    # pseudo-HRV(정수 bpm 기반, 실제 RMSSD 의 1/3~1/5) 이므로 임계값이 낮다.
+    # 각 컴포넌트는 0~100 으로 정규화 후 가중 평균.
+    def clamp(v, lo, hi): return max(lo, min(hi, v))
+
+    sleep_score = None
+    if sleep is not None:
+        # 7~8h = 100, 선형 하강 (5h=60, 3h=20)
+        sleep_score = clamp(int((sleep - 3) / 5 * 100), 0, 100) if sleep < 8 else 100
+
+    hrv_score = None
+    if hrv is not None:
+        # pseudo-HRV: 15ms=100, 5ms=20 선형
+        hrv_score = clamp(int((hrv - 5) / 10 * 80 + 20), 0, 100)
+
+    rhr_score = None
+    if rhr is not None:
+        # 55bpm=100, 75bpm=50, 90+bpm=0 선형
+        rhr_score = clamp(int((90 - rhr) / 35 * 100), 0, 100)
+
+    activity_score = None
+    if steps is not None:
+        # 8000보=100, 4000보=50, 0보=0 선형
+        activity_score = clamp(int(steps / 80), 0, 100)
+
+    spo2_score = None
+    if spo2 is not None:
+        # 97%+=100, 95%=70, 90%-=0 선형
+        spo2_score = clamp(int((spo2 - 90) / 7 * 100), 0, 100)
+
+    # 가중 평균: 사용 가능한 컴포넌트만 정규화해 합산
+    weights = {'sleep': 0.30, 'hrv': 0.25, 'rhr': 0.20, 'activity': 0.15, 'spo2': 0.10}
+    components = {
+        'sleep': sleep_score, 'hrv': hrv_score, 'rhr': rhr_score,
+        'activity': activity_score, 'spo2': spo2_score,
+    }
+    total_w = sum(weights[k] for k, v in components.items() if v is not None)
+    if total_w > 0:
+        score = int(sum(weights[k] * v for k, v in components.items() if v is not None) / total_w)
+    else:
+        score = 50  # 데이터 없으면 중립
+    score = clamp(score, 0, 100)
 
     # ACWR 추정 (steps 기반 간이 계산)
     acwr = 1.0
