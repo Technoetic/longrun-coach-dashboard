@@ -624,16 +624,23 @@ async def receive_watch_data(
     if all(v is None for v in meaningful) and meaningful_steps is None:
         return {"status": "skipped", "reason": "empty batch"}
 
-    # 쿨다운: onResume / Worker / 수동 requestSync 가 중첩되어 같은 스냅샷을
-    # 수 초 간격으로 POST 하는 경우 중복 저장 방지. 60초 이내 같은 user_id 의
-    # 레코드가 있으면 저장 스킵 (컨디션 행도 만들지 않음).
-    recent_cutoff = datetime.utcnow() - timedelta(seconds=60)
-    recent_exists = db.query(WatchRecord.id).filter(
+    # 15분 경계 버켓: 한 버켓(00/15/30/45분)당 최대 1개 레코드만 저장.
+    # onResume / Worker / requestSync 중첩 트리거로 인한 중복, 14분 주기 Health
+    # Connect sync 로 인한 불규칙 분 저장을 방지. 저장되는 created_at 도 해당
+    # 15분 경계로 내림(floor)하여 시계열 눈금을 균일하게 맞춘다.
+    now_utc = datetime.utcnow()
+    bucket_start = now_utc.replace(
+        minute=(now_utc.minute // 15) * 15,
+        second=0, microsecond=0,
+    )
+    bucket_end = bucket_start + timedelta(minutes=15)
+    bucket_exists = db.query(WatchRecord.id).filter(
         WatchRecord.user_id == user.id,
-        WatchRecord.created_at >= recent_cutoff,
+        WatchRecord.created_at >= bucket_start,
+        WatchRecord.created_at < bucket_end,
     ).first()
-    if recent_exists is not None:
-        return {"status": "skipped", "reason": "cooldown_60s"}
+    if bucket_exists is not None:
+        return {"status": "skipped", "reason": "bucket_15min_already_saved"}
 
     # Option G: Samsung Energy Score 모사 — 수면/HRV/RHR/활동을 가중 합산.
     # Samsung 공식 점수는 0~100 이며 70+ 가 "양호". 우리가 보내는 HRV 는
@@ -754,6 +761,7 @@ async def receive_watch_data(
         lean_body_mass_kg=data.get("lean_body_mass_kg"),
         body_water_mass_kg=data.get("body_water_mass_kg"),
         basal_body_temperature=data.get("basal_body_temperature"),
+        created_at=bucket_start,
     )
     db.add(watch)
     db.commit()
