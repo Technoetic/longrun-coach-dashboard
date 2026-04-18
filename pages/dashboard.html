@@ -132,7 +132,7 @@
     <!-- Tab -->
     <div class="dp-tabs">
       <button class="dp-tab active" onclick="switchTab('weekly')">오늘</button>
-      <button class="dp-tab" onclick="switchTab('monthly')">월간</button>
+      <button class="dp-tab" onclick="switchTab('monthly')">시계열</button>
       <button class="dp-tab" onclick="switchTab('daily')">일별 기록</button>
     </div>
 
@@ -182,73 +182,28 @@
     </div>
 
     <!-- ═══ 월간 View ═══ -->
+    <!-- === 시계열 View === -->
     <div class="panel-body dp-view" id="viewMonthly">
-
-      <!-- 링 3개 (월간 평균) -->
-      <div class="dp-rings">
-        <div class="dp-ring-item">
-          <div class="dp-ring-wrap" style="width:140px;height:140px;">
-            <svg viewBox="0 0 140 140" width="140" height="140">
-              <circle class="track" cx="70" cy="70" r="58" stroke-width="8"/>
-              <circle class="fill" cx="70" cy="70" r="58" stroke="var(--green)" stroke-width="8" stroke-dasharray="364" stroke-dashoffset="364" id="mRecovery"/>
-            </svg>
-            <div class="dp-ring-center">
-              <div class="dp-ring-val dp-v-green" style="font-size:36px;" id="mRecoveryVal">—</div>
-              <div class="dp-ring-sub">Avg</div>
-            </div>
-          </div>
-          <div class="dp-ring-label">월평균 회복</div>
-        </div>
-        <div class="dp-ring-item">
-          <div class="dp-ring-wrap" style="width:100px;height:100px;">
-            <svg viewBox="0 0 100 100" width="100" height="100">
-              <circle class="track" cx="50" cy="50" r="40" stroke-width="7"/>
-              <circle class="fill" cx="50" cy="50" r="40" stroke="var(--blue)" stroke-width="7" stroke-dasharray="251" stroke-dashoffset="251" id="mSleep"/>
-            </svg>
-            <div class="dp-ring-center">
-              <div class="dp-ring-val dp-v-blue" style="font-size:22px;" id="mSleepVal">—</div>
-              <div class="dp-ring-sub">Avg</div>
-            </div>
-          </div>
-          <div class="dp-ring-label">월평균 수면</div>
-        </div>
-        <div class="dp-ring-item">
-          <div class="dp-ring-wrap" style="width:100px;height:100px;">
-            <svg viewBox="0 0 100 100" width="100" height="100">
-              <circle class="track" cx="50" cy="50" r="40" stroke-width="7"/>
-              <circle class="fill" cx="50" cy="50" r="40" stroke="var(--yellow)" stroke-width="7" stroke-dasharray="251" stroke-dashoffset="251" id="mStrain"/>
-            </svg>
-            <div class="dp-ring-center">
-              <div class="dp-ring-val dp-v-yellow" style="font-size:22px;" id="mStrainVal">—</div>
-              <div class="dp-ring-sub">Avg</div>
-            </div>
-          </div>
-          <div class="dp-ring-label">월평균 부하</div>
-        </div>
-      </div>
-
-      <!-- 월간 추이 -->
-      <div class="dp-section-title">30일 추이</div>
-      <ul class="dp-list">
-        <li><span class="dp-list-label" title="* 추정치 — 손목 PPG 정수 bpm 기반 역산. 절대값이 아닌 변동 추세로만 판단하세요. 임상 HRV(체스트 스트랩)와 직접 비교 금지.">HRV<sup style="font-size:0.6em;opacity:0.7">*</sup></span><span class="dp-list-val dp-v-white">—</span></li>
-        <li><span class="dp-list-label">안정심박</span><span class="dp-list-val dp-v-white">—</span></li>
-        <li><span class="dp-list-label">수면</span><span class="dp-list-val dp-v-white">—</span></li>
-        <li><span class="dp-list-label">ACWR</span><span class="dp-list-val dp-v-white">—</span></li>
-        <li><span class="dp-list-label">스트레스</span><span class="dp-list-val dp-v-white">—</span></li>
-      </ul>
-
-      <!-- 위험 구간 -->
-      <div class="dp-section-title">부상 위험 지표</div>
-      <ul class="dp-list">
-        <li><span class="dp-list-label">ACWR 위험구간(1.5+) 진입</span><span class="dp-list-val dp-v-white">—</span></li>
-        <li><span class="dp-list-label">지난달 위험구간 진입</span><span class="dp-list-val dp-v-white">—</span></li>
-        <li><span class="dp-list-label">통증 보고</span><span class="dp-list-val dp-v-white">—</span></li>
-      </ul>
-
-      <!-- AI 월간 -->
-      <div class="ai-insight">
-        <div class="ai-insight-tag">AI 월간 인사이트</div>
-        <p>선수를 선택하면 30일 추이 분석이 표시됩니다.</p>
+      <div style="overflow-x:auto;">
+        <table class="samsung-timeseries" style="width:100%;border-collapse:collapse;font-size:12px;min-width:900px;">
+          <thead>
+            <tr style="border-bottom:1px solid var(--border,#2a2a2a);opacity:0.7;">
+              <th style="padding:6px 8px;text-align:left;white-space:nowrap;">시각</th>
+              <th style="padding:6px 8px;text-align:right;">에너지</th>
+              <th style="padding:6px 8px;text-align:right;">수면(h)</th>
+              <th style="padding:6px 8px;text-align:right;">HRV*</th>
+              <th style="padding:6px 8px;text-align:right;">심박</th>
+              <th style="padding:6px 8px;text-align:right;">SpO2</th>
+              <th style="padding:6px 8px;text-align:right;">걸음</th>
+              <th style="padding:6px 8px;text-align:right;">활동(kcal)</th>
+              <th style="padding:6px 8px;text-align:right;">안정심박</th>
+              <th style="padding:6px 8px;text-align:right;">스트레스</th>
+            </tr>
+          </thead>
+          <tbody id="timeseries-body">
+            <tr><td colspan="10" style="padding:20px;text-align:center;opacity:0.5;">선수를 선택하면 시계열 기록이 표시됩니다.</td></tr>
+          </tbody>
+        </table>
       </div>
     </div>
 

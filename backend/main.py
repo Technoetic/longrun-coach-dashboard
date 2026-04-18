@@ -755,6 +755,20 @@ async def receive_watch_data(
         "data_received": raw
     }
 
+@app.get("/api/bio-timeseries")
+async def get_bio_timeseries(
+    limit: int = 100,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """최근 N개 WatchRecord 를 시계열로 반환. 각 레코드는 created_at 타임스탬프 포함."""
+    limit = max(1, min(500, limit))
+    records = db.query(WatchRecord).filter(
+        WatchRecord.user_id == current_user.id,
+    ).order_by(WatchRecord.created_at.desc()).limit(limit).all()
+    return {"records": [to_dict(r) for r in records], "count": len(records)}
+
+
 @app.get("/api/bio-data")
 async def get_bio_data(
     current_user: User = Depends(get_current_user),

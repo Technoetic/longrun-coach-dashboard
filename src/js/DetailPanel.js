@@ -214,6 +214,67 @@ class DetailPanel {
 	}
 
 	/**
+	 * 시계열 탭: 최근 100개 WatchRecord 를 created_at 기준으로 테이블 렌더.
+	 * 에너지 점수는 record 시점의 데이터로 on-the-fly 계산 (서버 반환 안 함).
+	 */
+	async _loadTimeseries() {
+		const tbody = document.getElementById('timeseries-body');
+		if (!tbody) return;
+		tbody.innerHTML = '<tr><td colspan="10" style="padding:20px;text-align:center;opacity:0.5;">불러오는 중...</td></tr>';
+		let records = [];
+		try {
+			const res = await fetch('/api/bio-timeseries?limit=100', { credentials: 'include' });
+			if (!res.ok) throw new Error('HTTP ' + res.status);
+			const json = await res.json();
+			records = json.records || [];
+		} catch (e) {
+			tbody.innerHTML = `<tr><td colspan="10" style="padding:20px;text-align:center;opacity:0.5;">데이터 없음 (${e.message})</td></tr>`;
+			return;
+		}
+		if (records.length === 0) {
+			tbody.innerHTML = '<tr><td colspan="10" style="padding:20px;text-align:center;opacity:0.5;">레코드 없음</td></tr>';
+			return;
+		}
+		const fmtTs = (iso) => {
+			const d = new Date(iso);
+			const mm = String(d.getMonth() + 1).padStart(2, '0');
+			const dd = String(d.getDate()).padStart(2, '0');
+			const hh = String(d.getHours()).padStart(2, '0');
+			const mi = String(d.getMinutes()).padStart(2, '0');
+			return `${mm}/${dd} ${hh}:${mi}`;
+		};
+		const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+		const energyOf = (r) => {
+			const comp = {};
+			if (r.sleep_hours != null) comp.sleep = r.sleep_hours >= 8 ? 100 : clamp(Math.round(Math.pow(r.sleep_hours, 1.3) * 14), 0, 100);
+			if (r.hrv != null) comp.hrv = clamp(Math.round((r.hrv - 3) / 12 * 90 + 10), 10, 100);
+			if (r.steps != null) comp.act = clamp(Math.round(r.steps / 100 + 20), 0, 100);
+			if (r.blood_oxygen != null) comp.spo2 = clamp(Math.round((r.blood_oxygen - 87) * 12), 0, 100);
+			const w = { sleep: 0.30, hrv: 0.25, act: 0.15, spo2: 0.10 };
+			const total = Object.keys(comp).reduce((s, k) => s + w[k], 0);
+			if (total === 0) return null;
+			return Math.round(Object.keys(comp).reduce((s, k) => s + w[k] * comp[k], 0) / total);
+		};
+		const stressOf = (hrv) => hrv == null ? '—' : (hrv >= 12 ? '편안함' : hrv >= 8 ? '보통' : '높음');
+		const rows = records.map((r) => {
+			const energy = energyOf(r);
+			return `<tr style="border-bottom:1px solid var(--border,#2a2a2a);">
+				<td style="padding:6px 8px;white-space:nowrap;">${fmtTs(r.created_at)}</td>
+				<td style="padding:6px 8px;text-align:right;">${energy != null ? energy : '—'}</td>
+				<td style="padding:6px 8px;text-align:right;">${r.sleep_hours != null ? r.sleep_hours.toFixed(1) : '—'}</td>
+				<td style="padding:6px 8px;text-align:right;">${r.hrv != null ? Math.round(r.hrv) : '—'}</td>
+				<td style="padding:6px 8px;text-align:right;">${r.heart_rate != null ? Math.round(r.heart_rate) : '—'}</td>
+				<td style="padding:6px 8px;text-align:right;">${r.blood_oxygen != null ? Math.round(r.blood_oxygen) : '—'}</td>
+				<td style="padding:6px 8px;text-align:right;">${r.steps != null ? r.steps.toLocaleString() : '—'}</td>
+				<td style="padding:6px 8px;text-align:right;">${r.active_calories != null ? Math.round(r.active_calories) : '—'}</td>
+				<td style="padding:6px 8px;text-align:right;">${r.resting_heart_rate != null ? Math.round(r.resting_heart_rate) : '—'}</td>
+				<td style="padding:6px 8px;text-align:right;">${stressOf(r.hrv)}</td>
+			</tr>`;
+		}).join('');
+		tbody.innerHTML = rows;
+	}
+
+	/**
 	 * Phase 5: fetch /api/bio-daily (7 days) and render a bar+line chart in
 	 * the weekly view. Bars = resting_heart_rate, overlay line = heart_rate_max.
 	 */
@@ -340,19 +401,8 @@ class DetailPanel {
 			document.getElementById("dpDateRange").textContent =
 				fmt(start) + " ~ " + fmt(today);
 		} else if (tab === "monthly") {
-			const today = new Date();
-			const start = new Date(today);
-			start.setDate(today.getDate() - 29);
-			document.getElementById("dpDateRange").textContent =
-				fmt(start) + " ~ " + fmt(today);
-			["mRecovery", "mSleep", "mStrain"].forEach((id) => {
-				const el = document.getElementById(id);
-				if (el) el.style.strokeDashoffset = String(id === "mRecovery" ? 364 : 251);
-			});
-			["mRecoveryVal", "mSleepVal", "mStrainVal"].forEach((id) => {
-				const el = document.getElementById(id);
-				if (el) el.textContent = "—";
-			});
+			document.getElementById("dpDateRange").textContent = "시계열 — 최근 100개 레코드";
+			this._loadTimeseries();
 		} else if (tab === "daily") {
 			document.getElementById("dpDateRange").textContent = "일별 기록";
 			this.renderCalendar();
