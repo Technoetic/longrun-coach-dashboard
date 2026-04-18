@@ -624,15 +624,28 @@ async def receive_watch_data(
     if all(v is None for v in meaningful) and meaningful_steps is None:
         return {"status": "skipped", "reason": "empty batch"}
 
-    # 15분 경계 버켓: 한 버켓(00/15/30/45분)당 최대 1개 레코드만 저장.
-    # onResume / Worker / requestSync 중첩 트리거로 인한 중복, 14분 주기 Health
-    # Connect sync 로 인한 불규칙 분 저장을 방지. 저장되는 created_at 도 해당
-    # 15분 경계로 내림(floor)하여 시계열 눈금을 균일하게 맞춘다.
+    # 15분 정각 버켓: :00/:15/:30/:45 에서 ±2분 창 안에 도착한 요청만 수용.
+    # Foreground Service AlarmManager 가 정각에 tick 하므로 경계 근처만 저장하고,
+    # onResume 등으로 경계 밖 시각(예: :07)에 도착한 요청은 "out of window" 로 스킵.
+    # 저장되는 created_at 은 가장 가까운 15분 경계로 스냅하여 눈금 정렬.
     now_utc = datetime.utcnow()
-    bucket_start = now_utc.replace(
+    floor_bucket = now_utc.replace(
         minute=(now_utc.minute // 15) * 15,
         second=0, microsecond=0,
     )
+    ceil_bucket = floor_bucket + timedelta(minutes=15)
+    dist_floor = (now_utc - floor_bucket).total_seconds()
+    dist_ceil = (ceil_bucket - now_utc).total_seconds()
+    if dist_floor <= dist_ceil:
+        bucket_start = floor_bucket
+        dist = dist_floor
+    else:
+        bucket_start = ceil_bucket
+        dist = dist_ceil
+    # 경계에서 ±2분(120s) 이내만 수용
+    if dist > 120:
+        return {"status": "skipped", "reason": "out_of_bucket_window"}
+
     bucket_end = bucket_start + timedelta(minutes=15)
     bucket_exists = db.query(WatchRecord.id).filter(
         WatchRecord.user_id == user.id,
