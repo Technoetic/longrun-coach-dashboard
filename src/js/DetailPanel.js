@@ -249,43 +249,28 @@ class DetailPanel {
 			const mi = String(d.getMinutes()).padStart(2, '0');
 			return `${mm}/${dd} ${hh}:${mi}`;
 		};
-		const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
-		const energyOf = (r) => {
-			const comp = {};
-			if (r.sleep_hours != null) comp.sleep = r.sleep_hours >= 8 ? 100 : clamp(Math.round(Math.pow(r.sleep_hours, 1.3) * 14), 0, 100);
-			if (r.hrv != null) comp.hrv = clamp(Math.round((r.hrv - 3) / 12 * 90 + 10), 10, 100);
-			if (r.steps != null) comp.act = clamp(Math.round(r.steps / 100 + 20), 0, 100);
-			if (r.blood_oxygen != null) comp.spo2 = clamp(Math.round((r.blood_oxygen - 87) * 12), 0, 100);
-			const w = { sleep: 0.30, hrv: 0.25, act: 0.15, spo2: 0.10 };
-			const total = Object.keys(comp).reduce((s, k) => s + w[k], 0);
-			if (total === 0) return null;
-			return Math.round(Object.keys(comp).reduce((s, k) => s + w[k] * comp[k], 0) / total);
-		};
-		const stressOf = (hrv) => hrv == null ? '—' : (hrv >= 12 ? '편안함' : hrv >= 8 ? '보통' : '높음');
 		const int0 = (v) => v == null ? '—' : Math.round(v);
 		const f1 = (v) => v == null ? '—' : v.toFixed(1);
 		const f2 = (v) => v == null ? '—' : v.toFixed(2);
 		const num = (v) => v == null ? '—' : v.toLocaleString();
-		// Samsung Health 가 Health Connect 로 실제 노출하는 데이터 타입만 표시.
-		// 삼성 헬스 "데이터 및 액세스" 화면에서 공유 확인된 11 종을 기반으로 구성.
+		// Samsung Health 가 Health Connect "데이터 및 액세스" 화면에서 공유 확인된
+		// 11 종만 표시: 수면, 체중, 체지방, 키, 거리, 걸음수, 속도, 운동, 총 칼로리,
+		// 산소포화도, 심박수. (HRV / 활동kcal / BMR 등은 공식 공유 아님 → 제외)
 		const cols = [
 			['시각', (r) => fmtTs(r.created_at)],
-			['에너지', (r) => energyOf(r) ?? '—'],
-			['스트레스', (r) => stressOf(r.hrv)],
 			['심박', (r) => int0(r.heart_rate)],
-			['HRV', (r) => int0(r.hrv)],
 			['SpO2', (r) => int0(r.blood_oxygen)],
 			['걸음', (r) => num(r.steps)],
 			['거리km', (r) => f2(r.distance_km)],
-			['활동kcal', (r) => int0(r.active_calories)],
+			['속도m/s', (r) => f2(r.run_speed_mps)],
 			['운동분', (r) => int0(r.exercise_minutes)],
+			['총kcal', (r) => {
+				if (r.active_calories == null && r.basal_calories == null) return '—';
+				return Math.round((r.active_calories || 0) + (r.basal_calories || 0));
+			}],
 			['수면h', (r) => f1(r.sleep_hours)],
-			['깊은수면m', (r) => int0(r.sleep_deep_min)],
-			['REM m', (r) => int0(r.sleep_rem_min)],
-			['얕은수면m', (r) => int0(r.sleep_light_min)],
 			['체중kg', (r) => f1(r.weight_kg)],
 			['체지방%', (r) => f1(r.body_fat_pct)],
-			['BMR', (r) => int0(r.basal_metabolic_rate)],
 		];
 		if (thead) {
 			thead.innerHTML = '<tr style="border-bottom:1px solid var(--border,#2a2a2a);opacity:0.7;">' +
