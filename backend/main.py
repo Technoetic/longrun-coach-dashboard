@@ -617,17 +617,16 @@ async def receive_watch_data(
     active_cal = data.get("active_calories")
     basal_cal = data.get("basal_calories")
 
-    # 빈 배치 거부: Samsung Health 공식 시계열 필드 중 하나라도 있어야 저장.
-    # 체중/체지방은 변화가 없는 날에도 매 tick 같은 값이 잡혀 의미가 없으므로 제외.
-    meaningful = [
-        hr, spo2, sleep, active_cal, basal_cal,
-        data.get("distance_km"),
-        data.get("run_speed_mps"),
-        data.get("exercise_minutes"),
-    ]
-    meaningful_steps = steps if (steps and steps > 100) else None
-    if all(v is None for v in meaningful) and meaningful_steps is None:
-        return {"status": "skipped", "reason": "empty batch"}
+    # 빈 배치 거부 정책 폐지. Samsung Health 가 주는 어떤 필드든 레코드로 저장.
+    # 15 분 버켓 중복 방지가 이미 있으므로 동일 값 반복은 생기지 않는다.
+    # email 외에 저장할 값이 하나도 없는 완전 빈 페이로드만 스킵.
+    payload_has_value = any(
+        data.get(k) is not None
+        for k in data.keys()
+        if k != "email"
+    )
+    if not payload_has_value:
+        return {"status": "skipped", "reason": "empty payload"}
 
     # 15분 정각 버켓: :00/:15/:30/:45 에서 ±2분 창 안에 도착한 요청만 수용.
     # Foreground Service AlarmManager 가 정각에 tick 하므로 경계 근처만 저장하고,
