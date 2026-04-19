@@ -269,6 +269,11 @@ class DetailPanel {
 				return Math.round((r.active_calories || 0) + (r.basal_calories || 0));
 			}],
 			['수면h', (r) => f1(r.sleep_hours)],
+			['깊은수면m', (r) => int0(r.sleep_deep_min)],
+			['REM m', (r) => int0(r.sleep_rem_min)],
+			['얕은수면m', (r) => int0(r.sleep_light_min)],
+			['층수', (r) => int0(r.flights_climbed)],
+			['고도m', (r) => int0(r.elevation_m)],
 		];
 		if (thead) {
 			thead.innerHTML = '<tr style="border-bottom:1px solid var(--border,#2a2a2a);opacity:0.7;">' +
